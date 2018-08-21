@@ -20,9 +20,11 @@ public:
     ~MainWindow();
 
 private slots:
-    void on_actionShowDataHeader_triggered();
+    void on_actionSimpleMassSpecAcc_triggered();
 
 private:
+    Q_SLOT void on_actionShowDataHeader_triggered();
+    Q_SLOT void on_actionShowDataProperties_triggered();
     Q_SLOT void on_actionOpenRikenDataFile_triggered();
 
 private:
@@ -35,6 +37,7 @@ private:
     void msg(const QString& msg);
 
     QPointer<RikenDataHeaderForm> m_pHeaderForm;
+    QPointer<RikenDataHeaderForm> m_pPropForm;
 };
 
 #endif // MAINWINDOW_H

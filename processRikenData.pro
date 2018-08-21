@@ -15,14 +15,19 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     RikenData/rawrikendata.cpp \
-    rikendataheaderform.cpp
+    rikendataheaderform.cpp \
+    simplemassspecaccdialog.cpp \
+    QCustomPlot/qcustomplot.cpp
 
 HEADERS  += mainwindow.h \
     RikenData/rawrikendata.h \
-    rikendataheaderform.h
+    rikendataheaderform.h \
+    simplemassspecaccdialog.h \
+    QCustomPlot/qcustomplot.h
 
 FORMS    += mainwindow.ui \
-    rikendataheaderform.ui
+    rikendataheaderform.ui \
+    simplemassspecaccdialog.ui
 
 RESOURCES += \
     resources.qrc

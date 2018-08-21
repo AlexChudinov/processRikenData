@@ -58,4 +58,23 @@ void RawRikenData::readFile(QFile &file)
         }
         m_vData.rbegin()->push_back(countData);
     }
+    m_vData.shrink_to_fit();
+    for(auto& d : m_vData) d.shrink_to_fit();
+}
+
+MassSpec RawRikenData::accumulateMassSpec(size_t idx0, size_t idx1) const
+{
+    std::pair<size_t, size_t> pairMinMax = std::minmax(idx0, idx1);
+    MassSpec::VectorInt vAmplitudes(m_nMaxTime - m_nMinTime + 1);
+    if(pairMinMax.second <= m_vData.size())
+    {
+        for(size_t i = pairMinMax.first; i < pairMinMax.second; ++i)
+        {
+            for(const CountData& d : m_vData[i])
+            {
+                vAmplitudes[d.time_bin - m_nMinTime]++;
+            }
+        }
+    }
+    return MassSpec(m_nMinTime, std::move(vAmplitudes));
 }
