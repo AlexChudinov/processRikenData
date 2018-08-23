@@ -3,6 +3,8 @@
 #include <QFile>
 #include <QTextStream>
 #include <bitset>
+#include <cmath>
+#include <numeric>
 
 RawRikenData::RawRikenData(QObject *parent)
     :
@@ -65,16 +67,82 @@ void RawRikenData::readFile(QFile &file)
 MassSpec RawRikenData::accumulateMassSpec(size_t idx0, size_t idx1) const
 {
     std::pair<size_t, size_t> pairMinMax = std::minmax(idx0, idx1);
-    MassSpec::VectorInt vAmplitudes(m_nMaxTime - m_nMinTime + 1);
+    MassSpec::VectorInt vFreqs(m_nMaxTime - m_nMinTime + 1);
     if(pairMinMax.second <= m_vData.size())
     {
         for(size_t i = pairMinMax.first; i < pairMinMax.second; ++i)
         {
             for(const CountData& d : m_vData[i])
             {
-                vAmplitudes[d.time_bin - m_nMinTime]++;
+                vFreqs[d.time_bin - m_nMinTime]++;
             }
         }
     }
-    return MassSpec(m_nMinTime, std::move(vAmplitudes));
+    return MassSpec(m_nMinTime, std::move(vFreqs));
 }
+
+/**
+ * @brief MassSpec::s_fMaxShiftValue restricts bestSqueeze function, so
+ * |n/MaxTime| < s_fMaxShiftValue
+ */
+const double MassSpec::s_fMaxShiftValue = 1e-5;
+
+MassSpec MassSpec::squeeze(int n) const
+{
+    if (n == 0) return *this;
+    else
+    {
+        double fSqueezeFactor =
+            (1. + static_cast<double>(n)
+             / static_cast<double>(m_nMinTime + m_vFreqs.size() - 1));
+        VectorInt vFreqs(m_vFreqs.size());
+        //Calculate corresponding time scale
+        std::vector<double> vTimeScale(m_vFreqs.size());
+        for(size_t i = 0; i < m_vFreqs.size(); ++i)
+        {
+            vTimeScale[i] = (i + m_nMinTime) * fSqueezeFactor;
+        }
+        //For every given ref time find it correspondence
+        size_t j = 0;
+        for(size_t i = 0; i < m_vFreqs.size(); ++i)
+        {
+            double fTimeRef = static_cast<double>(i + m_nMinTime);
+            while(vTimeScale[j] < fTimeRef && j < m_vFreqs.size()) ++j;
+            if(j == 0) vFreqs[i] = m_vFreqs[j];
+            else if (j == m_vFreqs.size()) vFreqs[i] = m_vFreqs[j-1];
+            else
+            {
+                double w = (vTimeScale[j] - vTimeScale[j-1]);
+                double w1 = (vTimeScale[j] - fTimeRef)/w;
+                double w2 = (fTimeRef - vTimeScale[j-1])/w;
+                    vFreqs[i] = m_vFreqs[j-1] * w1 + m_vFreqs[j] * w2;
+            }
+        }
+        return MassSpec(m_nMinTime, vFreqs);
+    }
+}
+
+int MassSpec::bestSqueeze(const MassSpec &m, bool *ok) const
+{
+    if(m_nMinTime != m.minTime() || m_vFreqs.size() != m.freqs().size())
+    {
+        if(ok) *ok = false;
+        return 0;
+    }
+    else
+    {
+        //Set initial shift values
+        int nl = -1, n0 = 0, nr = 1;
+        VectorInt
+                vl = m.squeeze(nl).freqs(),
+                v0 = m.squeeze(n0).freqs(),
+                vr = m.squeeze(nr).freqs();
+        //Note, overflows are possible!!!
+        double
+                sl = std::inner_product(vl.begin(),vl.end(),m_vFreqs.begin(),0),
+                s0 = std::inner_product(v0.begin(),v0.end(),m_vFreqs.begin(),0),
+                sr = std::inner_product(vr.begin(),vr.end(),m_vFreqs.begin(),0);
+
+    }
+}
+

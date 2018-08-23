@@ -1,21 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <author/>
- <comment/>
- <exportmacro/>
  <class>PlotForm</class>
- <widget name="PlotForm" class="QWidget">
+ <widget class="QWidget" name="PlotForm">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>665</width>
+    <height>429</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Plot</string>
   </property>
+  <layout class="QVBoxLayout" name="verticalLayout"/>
+  <action name="actionHorizontalZoom">
+   <property name="icon">
+    <iconset resource="../resources.qrc">
+     <normaloff>:/Icons/hZoomIcon</normaloff>:/Icons/hZoomIcon</iconset>
+   </property>
+   <property name="text">
+    <string>Horizontal zoom</string>
+   </property>
+   <property name="toolTip">
+    <string>Horizontal zoom</string>
+   </property>
+  </action>
+  <action name="actionZoomOut">
+   <property name="icon">
+    <iconset resource="../resources.qrc">
+     <normaloff>:/Icons/zoomOutIcon</normaloff>:/Icons/zoomOutIcon</iconset>
+   </property>
+   <property name="text">
+    <string>Zoom out</string>
+   </property>
+   <property name="toolTip">
+    <string>Zoom out</string>
+   </property>
+  </action>
+  <action name="actionImport">
+   <property name="icon">
+    <iconset resource="../resources.qrc">
+     <normaloff>:/Icons/importTextData</normaloff>:/Icons/importTextData</iconset>
+   </property>
+   <property name="text">
+    <string>Import</string>
+   </property>
+   <property name="toolTip">
+    <string>Import text data to a specified file</string>
+   </property>
+  </action>
  </widget>
- <pixmapfunction/>
+ <resources>
+  <include location="../resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

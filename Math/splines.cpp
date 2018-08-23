@@ -43,7 +43,7 @@ void logspline3
 {
     if(p<0)
     {
-        THROW("Smooth parameter should belongs interval [0,1)! \n")
+        THROW("Smooth parameter should be >= 0! \n")
     }
 
     //copy input data to temporary arrays

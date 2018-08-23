@@ -1,5 +1,5 @@
-#include "stdafx.h"
 #include "Interpolator.h"
+#include <algorithm>
 
 DEF_PRODUCTS_LIST(Interpolator, Interpolator::Map)
 {
@@ -34,7 +34,7 @@ double Linear::integrate(double xMin, double xMax) const
 {
 	std::pair<double, double> MinMax = std::minmax(xMin, xMax);
 	xMin = MinMax.first;
-	xMax = min(m_table.rbegin()->first, MinMax.second);
+    xMax = std::min(m_table.rbegin()->first, MinMax.second);
 
 	if (xMin >= m_table.rbegin()->first) return 0.0;
 

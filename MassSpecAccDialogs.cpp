@@ -1,5 +1,5 @@
-#include "simplemassspecaccdialog.h"
-#include "ui_simplemassspecaccdialog.h"
+#include "MassSpecAccDialogs.h"
+#include "ui_SimpleMassSpecAccDialog.h"
 
 SimpleMassSpecAccDialog::SimpleMassSpecAccDialog(int nMaxValue, QWidget *parent)
     :

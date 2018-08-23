@@ -6,7 +6,7 @@
 
 QT       += core gui
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
 TARGET = processRikenData
 TEMPLATE = app
@@ -15,19 +15,32 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     RikenData/rawrikendata.cpp \
-    rikendataheaderform.cpp \
-    simplemassspecaccdialog.cpp \
-    QCustomPlot/qcustomplot.cpp
+    QCustomPlot/qcustomplot.cpp \
+    Plot/PlotForm.cpp \
+    PropertiesListForm.cpp \
+    Math/splines.cpp \
+    MassSpecAccDialogs.cpp \
+    Math/Interpolator.cpp
 
 HEADERS  += mainwindow.h \
     RikenData/rawrikendata.h \
-    rikendataheaderform.h \
-    simplemassspecaccdialog.h \
-    QCustomPlot/qcustomplot.h
+    QCustomPlot/qcustomplot.h \
+    Plot/PlotForm.h \
+    PropertiesListForm.h \
+    Math/exception.h \
+    Math/smoothing_splines.h \
+    Math/Solvers.h \
+    Math/splines.h \
+    MassSpecAccDialogs.h \
+    Utils/BaseDefs.h \
+    Utils/Factory.h \
+    Math/Interpolator.h
 
 FORMS    += mainwindow.ui \
-    rikendataheaderform.ui \
-    simplemassspecaccdialog.ui
+    Plot/PlotForm.ui \
+    PropertiesListForm.ui \
+    SimpleMassSpecAccDialog.ui \
+    SimpleMassSpecAccDialog.ui
 
 RESOURCES += \
     resources.qrc

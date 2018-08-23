@@ -8,8 +8,9 @@ namespace Ui {
 class MainWindow;
 }
 
+class PlotForm;
 class RawRikenData;
-class RikenDataHeaderForm;
+class PropertiesListForm;
 
 class MainWindow : public QMainWindow
 {
@@ -19,25 +20,27 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-private slots:
-    void on_actionSimpleMassSpecAcc_triggered();
-
 private:
+    Q_SLOT void on_actionTileSubWindows_triggered();
+    Q_SLOT void on_actionSimpleMassSpecAcc_triggered();
     Q_SLOT void on_actionShowDataHeader_triggered();
     Q_SLOT void on_actionShowDataProperties_triggered();
     Q_SLOT void on_actionOpenRikenDataFile_triggered();
+    Q_SLOT void msg(const QString& msg);
 
-private:
     Ui::MainWindow *ui;
 
-    QString m_StrRikenFileName;
+    QString m_strRikenFilePath;
+    QString m_strRikenFileName;
     RawRikenData* m_pData;
 
     void readRikenDataFile();
-    void msg(const QString& msg);
+    void disableRikenDataFileActions();
+    void enableRikenDataFileActions();
+    void plotSubwindow(PlotForm *plot);
 
-    QPointer<RikenDataHeaderForm> m_pHeaderForm;
-    QPointer<RikenDataHeaderForm> m_pPropForm;
+    QPointer<PropertiesListForm> m_pHeaderForm;
+    QPointer<PropertiesListForm> m_pPropForm;
 };
 
 #endif // MAINWINDOW_H

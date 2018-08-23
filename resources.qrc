@@ -1,5 +1,9 @@
 <RCC>
     <qresource prefix="/Icons">
         <file alias="fileOpenIcon">Icons/file_open_icon.png</file>
+        <file alias="hZoomIcon">Icons/hzoom_icon.png</file>
+        <file alias="zoomOutIcon">Icons/zoom_out_icon.png</file>
+        <file alias="tilesIcon">Icons/tiles_icon.png</file>
+        <file alias="importTextData">Icons/import_text_data.png</file>
     </qresource>
 </RCC>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>RikenDataHeaderForm</class>
- <widget class="QWidget" name="RikenDataHeaderForm">
+ <class>PropertiesListForm</class>
+ <widget class="QWidget" name="PropertiesListForm">
   <property name="geometry">
    <rect>
     <x>0</x>

@@ -16,21 +16,46 @@ class MassSpec
 public:
     using VectorInt = std::vector<quint32>;
 
-    MassSpec(quint8 nMinTime, const VectorInt& vAmplitudes)
+    MassSpec(quint32 nMinTime, const VectorInt& vFreqs)
         :
           m_nMinTime(nMinTime),
-          m_vAmplitudes(vAmplitudes)
+          m_vFreqs(vFreqs)
     {}
 
-    MassSpec(quint8 nMinTime, VectorInt&& vAmplitudes)
+    MassSpec(quint32 nMinTime, VectorInt&& vFreqs)
         :
           m_nMinTime(nMinTime),
-          m_vAmplitudes(vAmplitudes)
+          m_vFreqs(vFreqs)
     {}
+
+    inline quint32 minTime() const { return m_nMinTime; }
+    inline const VectorInt& freqs() const { return m_vFreqs; }
+
+    /**
+     * @brief squeeze squeezes or stretches original mass spec
+     * @param n number of time bines
+     * @return squeezed or stretched mass spec
+     */
+    MassSpec squeeze(int n) const;
+
+    /**
+     * @brief bestSqueeze looks for best squeeze value using this as a
+     * reference one
+     * @param m
+     * @param ok The routine checks inside that sizes of mass spectrums
+     * and their minimum time values are the same. This case it calculates
+     * the time shift and returns one putting "ok" to true otherwise it does
+     * early return of zero value for time shift and puts "ok" to false. False
+     * flag also will be set up if the shift value went out the limits
+     * @return value of a time shift where the mass specs is matching
+     */
+    int bestSqueeze(const MassSpec& m, bool *ok) const;
 
 private:
     quint32 m_nMinTime;
-    std::vector<quint32> m_vAmplitudes;
+    VectorInt m_vFreqs;
+
+    static const double s_fMaxShiftValue;
 };
 
 /**

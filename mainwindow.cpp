@@ -1,22 +1,25 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+
+#include <QMdiSubWindow>
 #include <QFileDialog>
 #include <QMessageBox>
-#include "rikendataheaderform.h"
-#include "simplemassspecaccdialog.h"
+
+#include "PropertiesListForm.h"
+#include "MassSpecAccDialogs.h"
 #include "RikenData/rawrikendata.h"
+#include "Plot/PlotForm.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     m_pData(new RawRikenData(this)),
-    m_pHeaderForm(new RikenDataHeaderForm()),
-    m_pPropForm(new RikenDataHeaderForm())
+    m_pHeaderForm(new PropertiesListForm()),
+    m_pPropForm(new PropertiesListForm())
 {
     ui->setupUi(this);
-    ui->actionShowDataHeader->setDisabled(true);
-    ui->actionShowDataProperties->setDisabled(true);
     setCentralWidget(ui->mdiArea);
+    disableRikenDataFileActions();
 }
 
 MainWindow::~MainWindow()
@@ -24,19 +27,29 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::on_actionTileSubWindows_triggered()
+{
+    ui->mdiArea->tileSubWindows();
+}
+
 void MainWindow::on_actionOpenRikenDataFile_triggered()
 {
-    m_StrRikenFileName =
+    m_strRikenFilePath =
             QFileDialog::getOpenFileName(this, tr("Open File"),
                                          QString(),
                                          tr("RIKEN Data (*.lst)"));
 
-    if(!m_StrRikenFileName.isEmpty()) readRikenDataFile();
+    if(!m_strRikenFilePath.isEmpty())
+    {
+        QFileInfo fileInfo(m_strRikenFilePath);
+        m_strRikenFileName = fileInfo.fileName();
+        readRikenDataFile();
+    }
 }
 
 void MainWindow::readRikenDataFile()
 {
-    QFile file(m_StrRikenFileName);
+    QFile file(m_strRikenFilePath);
     if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         msg("Failed to open file!");
@@ -46,8 +59,6 @@ void MainWindow::readRikenDataFile()
         m_pData->readFile(file);
     }
     file.close();
-    ui->actionShowDataHeader->setEnabled(true);
-    ui->actionShowDataProperties->setEnabled(true);
 
     m_pHeaderForm->clearList();
     m_pPropForm->clearList();
@@ -65,13 +76,32 @@ void MainWindow::readRikenDataFile()
                               .arg(m_pData->maxTime()));
     m_pPropForm->addListEntry(QString("Min time bin: %1")
                               .arg(m_pData->minTime()));
+
+    enableRikenDataFileActions();
 }
 
 void MainWindow::msg(const QString &msg)
 {
-    QMessageBox::warning(this,
-                         "Process Riken Data Message",
-                         msg);
+    QMessageBox::warning(this,"Process Riken Data", msg);
+}
+
+void MainWindow::disableRikenDataFileActions()
+{
+    ui->actionShowDataHeader->setDisabled(true);
+    ui->actionShowDataProperties->setDisabled(true);
+    ui->actionSimpleMassSpecAcc->setDisabled(true);
+}
+
+void MainWindow::enableRikenDataFileActions()
+{
+    ui->actionShowDataHeader->setEnabled(true);
+    ui->actionShowDataProperties->setEnabled(true);
+    ui->actionSimpleMassSpecAcc->setEnabled(true);
+}
+
+void MainWindow::plotSubwindow(PlotForm *form)
+{
+    ui->mdiArea->addSubWindow(form)->show();
 }
 
 void MainWindow::on_actionShowDataHeader_triggered()
@@ -93,6 +123,8 @@ void MainWindow::on_actionSimpleMassSpecAcc_triggered()
         QPair<int, int> pairAccLims = dialog.getAccumulationLimits();
         MassSpec massSpec = m_pData->accumulateMassSpec(pairAccLims.first,
                                                         pairAccLims.second);
-        int n = 0;
+        QString strDescription = m_strRikenFileName + tr(" sum [%1 .. %2]").
+                arg(pairAccLims.first).arg(pairAccLims.second);
+        plotSubwindow(new PlotForm(massSpec, strDescription));
     }
 }

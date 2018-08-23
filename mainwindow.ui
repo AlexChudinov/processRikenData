@@ -65,11 +65,13 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionOpenRikenDataFile"/>
+   <addaction name="separator"/>
+   <addaction name="actionTileSubWindows"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionOpenRikenDataFile">
    <property name="icon">
-    <iconset>
+    <iconset resource="resources.qrc">
      <normaloff>:/Icons/fileOpenIcon</normaloff>:/Icons/fileOpenIcon</iconset>
    </property>
    <property name="text">
@@ -106,8 +108,22 @@
     <string>Accumulation of mass spectrum using time counts</string>
    </property>
   </action>
+  <action name="actionTileSubWindows">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/Icons/tilesIcon</normaloff>:/Icons/tilesIcon</iconset>
+   </property>
+   <property name="text">
+    <string>Tile subwindows</string>
+   </property>
+   <property name="toolTip">
+    <string>Tile subwindows</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

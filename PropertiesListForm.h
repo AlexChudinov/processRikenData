@@ -2,25 +2,29 @@
 #define RIKENDATAHEADERFORM_H
 
 #include <QWidget>
+#include <QModelIndex>
 
 namespace Ui {
-class RikenDataHeaderForm;
+class PropertiesListForm;
 }
 
-class RikenDataHeaderForm : public QWidget
+class PropertiesListForm : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit RikenDataHeaderForm(QWidget *parent = 0);
-    ~RikenDataHeaderForm();
+    explicit PropertiesListForm(QWidget *parent = 0);
+    ~PropertiesListForm();
 
     void addListEntry(const QString& entry);
 
     void clearList();
 
+    Q_SIGNAL void itemChosen(const QString&);
 private:
-    Ui::RikenDataHeaderForm *ui;
+    Ui::PropertiesListForm *ui;
+
+    Q_SLOT void emitItemStringFromIdx(QModelIndex idx);
 };
 
 #endif // RIKENDATAHEADERFORM_H

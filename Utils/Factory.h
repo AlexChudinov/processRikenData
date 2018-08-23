@@ -1,4 +1,9 @@
-#pragma once
+#ifndef _FACTORY_
+#define _FACTORY_
+
+#include <memory>
+#include <vector>
+#include <unordered_map>
 
 #include "BaseDefs.h"
 
@@ -50,16 +55,16 @@ private:
 };
 
 #define DEF_PRODUCTS_LIST(ClassName, Params)\
-typename Factory<ClassName, Params>::Map Factory<ClassName, Params>::s_products
+template<> typename Factory<ClassName, Params>::Map Factory<ClassName, Params>::s_products
 
 #define DEF_PRODUCTS_LIST_ENTRY(ClassName)\
 {#ClassName, ClassName::constructor()}
 
 #define DEF_ADD_FACTORY_DEFS(ClassName, Params)\
-	using Factory = Factory<ClassName, Params>;\
-	using Constructor = Factory::Constructor; \
-	using ConstructorPtr = Factory::ConstructorPtr; \
-	using Pointer = Factory::Pointer;
+    using FactoryInstance = Factory<ClassName, Params>;\
+    using Constructor = FactoryInstance::Constructor; \
+    using ConstructorPtr = FactoryInstance::ConstructorPtr; \
+    using Pointer = FactoryInstance::Pointer;
 
 #define DEF_ADD_CONSTRUCTOR_INSTANCE \
 static ConstructorPtr constructor() \
@@ -67,3 +72,5 @@ static ConstructorPtr constructor() \
 	static Constructor s_constructorInstance;\
 	return &s_constructorInstance;\
 }
+
+#endif

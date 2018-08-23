@@ -1,6 +1,8 @@
-#pragma once
+#ifndef _INTERPOLATOR_
+#define _INTERPOLATOR_
 
-#include "Factory.h"
+#include <map>
+#include "Utils/Factory.h"
 
 /**
  * Interpolating procedures
@@ -81,3 +83,5 @@ double maxShift(const Interpolator& i1, const Interpolator& i2);
 
 //Dot product of two interpolators
 double dotProduct(const Interpolator& i1, const Interpolator& i2);
+
+#endif
