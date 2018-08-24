@@ -13,6 +13,11 @@ Linear::Linear(const Map& tab) : m_table(tab)
     m_nMaxY = minMax.second->second;
 }
 
+IntegerInterpolator::InterpType Linear::type() const
+{
+    return IntegerInterpolator::LinearType;
+}
+
 Linear::Linear(Map&& tab) : m_table(tab)
 {
     std::pair<Map::const_iterator, Map::const_iterator>
@@ -60,7 +65,12 @@ int Linear::maxY() const
 
 const Linear::Map & Linear::table() const
 {
-	return m_table;
+    return m_table;
+}
+
+Linear::Map &Linear::table()
+{
+    return m_table;
 }
 
 IntegerInterpolator::Pointer IntegerInterpolator::create(InterpType type, const Map &tab)
