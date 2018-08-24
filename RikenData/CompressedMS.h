@@ -2,6 +2,7 @@
 #define COMPRESSEDMS_H
 
 #include "Math/Interpolator.h"
+#include <vector>
 
 /**
  * @brief The CompressedMS class defines mass spec with only none zero values stored
@@ -13,12 +14,20 @@ public:
     using Map = Interpolator::Map;
     using String = Interpolator::String;
     using uint64_t = unsigned long long;
+    using uint32_t = unsigned int;
+    using VectorInt = std::vector<uint32_t>;
+
+    //Compress vector
+    CompressedMS(const VectorInt& vVals, size_t tMin,
+                 IntegerInterpolator::InterpType type = Interpolator::LinearType);
 
     CompressedMS(const Map& data, IntegerInterpolator::InterpType type = Interpolator::LinearType);
     CompressedMS(Map&& data, IntegerInterpolator::InterpType type = Interpolator::LinearType);
     //Impement copy constructors because pointer for Interpolator was used
     CompressedMS(const CompressedMS& ms);
     CompressedMS(CompressedMS&& ms);
+    CompressedMS& operator=(const CompressedMS& ms);
+    CompressedMS& operator=(CompressedMS&& ms);
 
     ~CompressedMS();
 

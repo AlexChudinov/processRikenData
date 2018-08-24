@@ -52,6 +52,7 @@
      <string>Mass Spec</string>
     </property>
     <addaction name="actionSimpleMassSpecAcc"/>
+    <addaction name="actionTimeShiftAcc"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuMass_Spec"/>
@@ -118,6 +119,14 @@
    </property>
    <property name="toolTip">
     <string>Tile subwindows</string>
+   </property>
+  </action>
+  <action name="actionTimeShiftAcc">
+   <property name="text">
+    <string>Time shift acc</string>
+   </property>
+   <property name="toolTip">
+    <string>Adjusts time scale</string>
    </property>
   </action>
  </widget>

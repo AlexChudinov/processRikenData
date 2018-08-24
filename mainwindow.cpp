@@ -90,6 +90,7 @@ void MainWindow::disableRikenDataFileActions()
     ui->actionShowDataHeader->setDisabled(true);
     ui->actionShowDataProperties->setDisabled(true);
     ui->actionSimpleMassSpecAcc->setDisabled(true);
+    ui->actionTimeShiftAcc->setDisabled(true);
 }
 
 void MainWindow::enableRikenDataFileActions()
@@ -97,6 +98,7 @@ void MainWindow::enableRikenDataFileActions()
     ui->actionShowDataHeader->setEnabled(true);
     ui->actionShowDataProperties->setEnabled(true);
     ui->actionSimpleMassSpecAcc->setEnabled(true);
+    ui->actionTimeShiftAcc->setEnabled(true);
 }
 
 void MainWindow::plotSubwindow(PlotForm *form)
@@ -127,4 +129,10 @@ void MainWindow::on_actionSimpleMassSpecAcc_triggered()
                 arg(pairAccLims.first).arg(pairAccLims.second);
         plotSubwindow(new PlotForm(massSpec.compress(), strDescription));
     }
+}
+
+void MainWindow::on_actionTimeShiftAcc_triggered()
+{
+    AccumScaleCorrectionDialog dialog(static_cast<int>(m_pData->sweepsNumber()));
+    dialog.exec();
 }

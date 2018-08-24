@@ -10,10 +10,12 @@ class IntegerInterpolator
 {
     /**
      * @brief m_fXFactor multyplicator for xscale to get float value
+     * should be not-negative
      */
     double m_fXFactor;
     /**
      * @brief m_fYFactor multiplycator for yscale to get float value
+     * should be not-negative
      */
     double m_fYFactor;
 

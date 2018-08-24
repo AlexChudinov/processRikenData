@@ -21,4 +21,21 @@ private:
     Ui::SimpleMassSpecAccDialog *ui;
 };
 
+namespace Ui {
+class AccumScaleCorrectionDialog;
+}
+
+class AccumScaleCorrectionDialog : public QDialog
+{
+    Q_OBJECT
+
+public:
+
+    explicit AccumScaleCorrectionDialog(int nSweepsNum, QWidget * parent = 0);
+    ~AccumScaleCorrectionDialog();
+
+private:
+    Ui::AccumScaleCorrectionDialog *ui;
+};
+
 #endif // SIMPLEMASSSPECACCDIALOG_H

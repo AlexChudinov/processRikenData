@@ -40,7 +40,7 @@ FORMS    += mainwindow.ui \
     Plot/PlotForm.ui \
     PropertiesListForm.ui \
     SimpleMassSpecAccDialog.ui \
-    SimpleMassSpecAccDialog.ui
+    AccumScaleCorrectionDialog.ui
 
 RESOURCES += \
     resources.qrc

@@ -43,22 +43,22 @@ Linear::String Linear::name() const
 	return String("Linear");
 }
 
-int Linear::minX() const
+double Linear::minX() const
 {
     return double(m_table.begin()->first) * xFactor();
 }
 
-int Linear::maxX() const
+double Linear::maxX() const
 {
     return double(m_table.rbegin()->first) * xFactor();
 }
 
-int Linear::minY() const
+double Linear::minY() const
 {
     return double(m_nMinY) * yFactor();
 }
 
-int Linear::maxY() const
+double Linear::maxY() const
 {
     return double(m_nMaxY) * yFactor();
 }

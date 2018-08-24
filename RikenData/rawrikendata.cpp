@@ -81,36 +81,29 @@ MassSpec RawRikenData::accumulateMassSpec(size_t idx0, size_t idx1) const
     return MassSpec(m_nMinTime, std::move(vFreqs));
 }
 
+CompressedMS RawRikenData::accumulateMassSpec(size_t idx0, size_t idx1, size_t step) const
+{
+    size_t FirstIdx = idx0, LastIdx = qMin(idx0 + step, idx1);
+    //Accumulate reference mass spectrum
+    CompressedMS msRef(accumulateMassSpec(FirstIdx, LastIdx).compress());
+    CompressedMS msAcc = msRef;
+    FirstIdx = LastIdx;
+    while(FirstIdx < idx1)
+    {
+        LastIdx = qMin(FirstIdx + step, idx1);
+        CompressedMS msNext(accumulateMassSpec(FirstIdx, LastIdx).compress());
+        double s = msNext.bestMatch(msRef, m_nMaxTime);
+        msNext.squeezeXScale(s);
+        msNext.rescale();
+        msNext.addToAcc(msAcc);
+        FirstIdx = LastIdx;
+    }
+    return msAcc;
+}
+
 
 
 CompressedMS MassSpec::compress() const
 {
-    size_t x0 = 0, x1 = 1;
-    while(x1 < m_vFreqs.size() && m_vFreqs[x1] == 0) x0 = x1++;
-    CompressedMS::Map tab;
-    bool bPeakBack = false;
-    while(x1 < m_vFreqs.size())
-    {
-        //If it is equal to zero, then check previous value
-        if(m_vFreqs[x1] == 0)
-        {
-            //...ok, it is not zero, then write it
-            if(m_vFreqs[x0] != 0)
-            {
-                bPeakBack = true;
-                tab[x1 + m_nMinTime] = m_vFreqs[x1];
-            }
-            else bPeakBack = false;
-            //...otherwise skip it
-        }
-        else //write just not zero values
-        {
-            //If previous value was equal to zero and it was not directly behind previous peak
-            //...then write it too
-            if(m_vFreqs[x0] == 0 && !bPeakBack) tab[x0 + m_nMinTime] = 0;
-            tab[x1 + m_nMinTime] = m_vFreqs[x1];
-        }
-        x0 = x1++;
-    }
-    return CompressedMS(std::move(tab));
+    return CompressedMS(m_vFreqs, m_nMinTime);
 }

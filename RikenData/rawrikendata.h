@@ -85,6 +85,15 @@ public:
      */
     MassSpec accumulateMassSpec(size_t idx0, size_t idx1) const;
 
+    /**
+     * @brief accumulateMassSpec accumulates mass specs step by step with
+     * x-scale shifting adjustment
+     * @param idx0 first sweep index
+     * @param idx1 second sweep index
+     * @param step step size
+     * @return
+     */
+    CompressedMS accumulateMassSpec(size_t idx0, size_t idx1, size_t step) const;
 private:
     QStringList m_strListHeader;
     quint32 m_nMaxTime;
