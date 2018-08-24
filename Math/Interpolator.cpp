@@ -1,11 +1,6 @@
 #include "Interpolator.h"
 #include <algorithm>
 
-DEF_PRODUCTS_LIST(IntegerInterpolator, IntegerInterpolator::Map)
-{
-	DEF_PRODUCTS_LIST_ENTRY(Linear)
-};
-
 Linear::Linear(const Map& tab) : m_table(tab)
 {
     std::pair<Map::const_iterator, Map::const_iterator>
@@ -45,22 +40,22 @@ Linear::String Linear::name() const
 
 int Linear::minX() const
 {
-	return m_table.begin()->first;
+    return double(m_table.begin()->first) * xFactor();
 }
 
 int Linear::maxX() const
 {
-    return m_table.rbegin()->first;
+    return double(m_table.rbegin()->first) * xFactor();
 }
 
 int Linear::minY() const
 {
-    return m_nMinY;
+    return double(m_nMinY) * yFactor();
 }
 
 int Linear::maxY() const
 {
-    return m_nMaxY;
+    return double(m_nMaxY) * yFactor();
 }
 
 const Linear::Map & Linear::table() const
@@ -68,12 +63,20 @@ const Linear::Map & Linear::table() const
 	return m_table;
 }
 
-IntegerInterpolator::Pointer Linear::Constructor::create(const Map & tab) const
+IntegerInterpolator::Pointer IntegerInterpolator::create(InterpType type, const Map &tab)
 {
-	return Pointer(new Linear(tab));
+    switch(type)
+    {
+    case LinearType: return Pointer(new Linear(tab));
+    default: return Pointer();
+    }
 }
 
-IntegerInterpolator::Pointer Linear::Constructor::create(Map && tab) const
+IntegerInterpolator::Pointer IntegerInterpolator::create(InterpType type, Map &tab)
 {
-	return Pointer(new Linear(tab));
+    switch(type)
+    {
+    case LinearType: return Pointer(new Linear(tab));
+    default: return Pointer();
+    }
 }

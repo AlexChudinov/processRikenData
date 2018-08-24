@@ -88,20 +88,29 @@ CompressedMS MassSpec::compress() const
     size_t x0 = 0, x1 = 1;
     while(x1 < m_vFreqs.size() && m_vFreqs[x1] == 0) x0 = x1++;
     CompressedMS::Map tab;
-    tab[x0 + m_nMinTime] = 0;
+    bool bPeakBack = false;
     while(x1 < m_vFreqs.size())
     {
         //If it is equal to zero, then check previous value
         if(m_vFreqs[x1] == 0)
         {
             //...ok, it is not zero, then write it
-            if(m_vFreqs[x0] != 0) tab[x1 + m_nMinTime] = m_vFreqs[x1];
+            if(m_vFreqs[x0] != 0)
+            {
+                bPeakBack = true;
+                tab[x1 + m_nMinTime] = m_vFreqs[x1];
+            }
+            else bPeakBack = false;
             //...otherwise skip it
         }
         else //write just not zero values
         {
+            //If previous value was equal to zero and it was not directly behind previous peak
+            //...then write it too
+            if(m_vFreqs[x0] == 0 && !bPeakBack) tab[x0 + m_nMinTime] = 0;
             tab[x1 + m_nMinTime] = m_vFreqs[x1];
         }
         x0 = x1++;
     }
+    return CompressedMS(std::move(tab));
 }

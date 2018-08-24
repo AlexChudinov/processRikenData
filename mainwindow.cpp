@@ -125,6 +125,6 @@ void MainWindow::on_actionSimpleMassSpecAcc_triggered()
                                                         pairAccLims.second);
         QString strDescription = m_strRikenFileName + tr(" sum [%1 .. %2]").
                 arg(pairAccLims.first).arg(pairAccLims.second);
-        plotSubwindow(new PlotForm(massSpec, strDescription));
+        plotSubwindow(new PlotForm(massSpec.compress(), strDescription));
     }
 }

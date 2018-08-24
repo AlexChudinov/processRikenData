@@ -9,7 +9,7 @@ class PlotForm;
 }
 
 class QCustomPlot;
-class MassSpec;
+class CompressedMS;
 class QToolBar;
 
 class PlotForm : public QWidget
@@ -23,7 +23,7 @@ public:
      * @param strDscrpt short data description
      * @param parent
      */
-    explicit PlotForm(const MassSpec& ms, const QString &strDscrpt, QWidget *parent = 0);
+    explicit PlotForm(const CompressedMS &ms, const QString &strDscrpt, QWidget *parent = 0);
     ~PlotForm();
 
 private slots:
@@ -39,7 +39,7 @@ private:
     QCustomPlot * m_pPlot;
 
     //Data
-    QScopedPointer<MassSpec> m_pMassSpec;
+    QScopedPointer<CompressedMS> m_pMassSpec;
     //Limits
     size_t m_nXMin, m_nXMax;
     size_t m_nYMin, m_nYMax;

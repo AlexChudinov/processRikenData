@@ -2,8 +2,7 @@
 #define _INTERPOLATOR_
 
 #include <map>
-#include "Utils/Factory.h"
-
+#include <memory>
 /**
  * Interpolating procedures
  */
@@ -21,10 +20,18 @@ class IntegerInterpolator
 public:
 	using String = std::string;
     using Map = std::map<int, int>;
-    DEF_ADD_FACTORY_DEFS(IntegerInterpolator, Map)
+    using Pointer = std::shared_ptr<IntegerInterpolator>;
 
     IntegerInterpolator() : m_fXFactor(1.0), m_fYFactor(1.0) {}
     virtual ~IntegerInterpolator(){}
+
+    //Creates particular interpolator
+    enum InterpType
+    {
+        LinearType
+    };
+    static Pointer create(InterpType type, const Map& tab);
+    static Pointer create(InterpType type, Map &tab);
 
 	//Interpolate y-value using x-value
 	virtual double interpolate(double xVal) const = 0;
@@ -69,15 +76,6 @@ public:
     Linear(const Map& tab);
 
     Linear(Map&& tab);
-
-    class Constructor : public IntegerInterpolator::Constructor
-	{
-	public:
-		virtual Pointer create(const Map& tab) const;
-		virtual Pointer create(Map&& tab) const;
-	};
-
-	DEF_ADD_CONSTRUCTOR_INSTANCE
 
 	virtual double interpolate(double xVal) const;
 

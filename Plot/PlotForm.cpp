@@ -7,11 +7,11 @@
 #include <QFileDialog>
 #include <QInputDialog>
 
-PlotForm::PlotForm(const MassSpec &ms, const QString& strDscrpt, QWidget *parent) :
+PlotForm::PlotForm(const CompressedMS &ms, const QString& strDscrpt, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::PlotForm),
     m_pPlot(new QCustomPlot(this)),
-    m_pMassSpec(new MassSpec(ms))
+    m_pMassSpec(new CompressedMS(ms))
 {
     QToolBar * toolBar = new QToolBar(this);
     ui->setupUi(this);
@@ -22,16 +22,10 @@ PlotForm::PlotForm(const MassSpec &ms, const QString& strDscrpt, QWidget *parent
     QString title = this->windowTitle();
     (title += ": ") += strDscrpt;
     this->setWindowTitle(title);
-
-    using Iterator = MassSpec::VectorInt::const_iterator;
-    using MinMaxPair = std::pair<Iterator, Iterator>;
-    const MassSpec::VectorInt& vFreqs = m_pMassSpec->freqs();
-    m_nXMin = m_pMassSpec->minTime();
-    m_nXMax = m_pMassSpec->minTime() + vFreqs.size();
-
-    MinMaxPair minMax = std::minmax_element(vFreqs.begin(), vFreqs.end());
-    m_nYMin = *(minMax.first);
-    m_nYMax = *(minMax.second);
+    m_nXMin = m_pMassSpec->interp()->minX();
+    m_nXMax = m_pMassSpec->interp()->maxX();
+    m_nYMin = m_pMassSpec->interp()->minY();
+    m_nYMax = m_pMassSpec->interp()->maxY();
     addMassSpecGraph();
     connect(m_pPlot->xAxis, SIGNAL(rangeChanged(QCPRange)),
             this, SLOT(adjustRangeToLimits(QCPRange)));
@@ -47,10 +41,17 @@ PlotForm::~PlotForm()
 void PlotForm::addMassSpecGraph()
 {
     QCPGraph * graph = m_pPlot->addGraph();
-    QVector<double> x(m_pMassSpec->freqs().size());
-    std::iota(x.begin(), x.end(), m_nXMin);
-    QVector<double> y(m_pMassSpec->freqs().size());
-    std::copy(m_pMassSpec->freqs().begin(), m_pMassSpec->freqs().end(), y.begin());
+    QVector<double> x(m_pMassSpec->interp()->table().size());
+    QVector<double> y(m_pMassSpec->interp()->table().size());
+
+    CompressedMS::Map::const_iterator it = m_pMassSpec->interp()->table().begin();
+    for(size_t i = 0; i < m_pMassSpec->interp()->table().size(); ++i)
+    {
+        x[i] = double(it->first) * m_pMassSpec->interp()->xFactor();
+        y[i] = double(it->second) * m_pMassSpec->interp()->yFactor();
+        ++it;
+    }
+
     graph->addData(x, y);
     m_pPlot->rescaleAxes();
     m_pPlot->replot();

@@ -13,12 +13,13 @@ public:
     using Map = Interpolator::Map;
     using String = Interpolator::String;
 
-    CompressedMS(const Map& data, const String& strInterpType = "Linear");
-    CompressedMS(Map&& data, const String& strInterpType = "Linear");
+    CompressedMS(const Map& data, IntegerInterpolator::InterpType type = Interpolator::LinearType);
+    CompressedMS(Map&& data, IntegerInterpolator::InterpType type = Interpolator::LinearType);
 
     ~CompressedMS();
 
     const Interpolator * interp() const { return m_pInterpolator.get(); }
+
 private:
     Interpolator::Pointer m_pInterpolator;
 };

@@ -33,8 +33,6 @@ HEADERS  += mainwindow.h \
     Math/Solvers.h \
     Math/splines.h \
     MassSpecAccDialogs.h \
-    Utils/BaseDefs.h \
-    Utils/Factory.h \
     Math/Interpolator.h \
     RikenData/CompressedMS.h
 
