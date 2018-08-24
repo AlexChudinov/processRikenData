@@ -7,43 +7,70 @@
 /**
  * Interpolating procedures
  */
-class Interpolator
+class IntegerInterpolator
 {
+    /**
+     * @brief m_fXFactor multyplicator for xscale to get float value
+     */
+    double m_fXFactor;
+    /**
+     * @brief m_fYFactor multiplycator for yscale to get float value
+     */
+    double m_fYFactor;
+
 public:
 	using String = std::string;
-	using Map = std::map<double, double>;
-	DEF_ADD_FACTORY_DEFS(Interpolator, Map)
+    using Map = std::map<int, int>;
+    DEF_ADD_FACTORY_DEFS(IntegerInterpolator, Map)
 
-	virtual ~Interpolator(){}
+    IntegerInterpolator() : m_fXFactor(1.0), m_fYFactor(1.0) {}
+    virtual ~IntegerInterpolator(){}
 
 	//Interpolate y-value using x-value
 	virtual double interpolate(double xVal) const = 0;
 
 	//Returns max and min x-values
-	virtual double minX() const = 0;
-	virtual double maxX() const = 0;
+    virtual int minX() const = 0;
+    virtual int maxX() const = 0;
+
+    //Returns max and min y-values
+    virtual int minY() const = 0;
+    virtual int maxY() const = 0;
 
 	//Returns name of a current instance
 	virtual String name() const = 0;
 
-	//Integrate function over the xMin xMax range
-	virtual double integrate(double xMin, double xMax) const = 0;
-
 	//Returns table of interpolating values
 	virtual const Map& table() const = 0;
+
+    inline double xFactor() const { return m_fXFactor; }
+    inline double yFactor() const { return m_fYFactor; }
+    inline void xFactor(double fXFactor) { m_fXFactor = fXFactor; }
+    inline void yFactor(double fYFactor) { m_fYFactor = fYFactor; }
 };
 
-class Linear : public Interpolator
+class Linear : public IntegerInterpolator
 {
+    /**
+     * @brief m_table ref values to proceed interpolation
+     */
 	Map m_table;
 
+    /**
+     * @brief m_nMinY keeps minimal y-value
+     */
+    int m_nMinY;
+    /**
+     * @brief m_nMaxY teeps maximal y-valuee
+     */
+    int m_nMaxY;
 public:
 
-	Linear(const Map& tab) : m_table(tab){}
+    Linear(const Map& tab);
 
-	Linear(Map&& tab) : m_table(tab) {}
+    Linear(Map&& tab);
 
-	class Constructor : public Interpolator::Constructor
+    class Constructor : public IntegerInterpolator::Constructor
 	{
 	public:
 		virtual Pointer create(const Map& tab) const;
@@ -56,32 +83,28 @@ public:
 
 	virtual String name() const;
 	
-	virtual double minX() const;
-	virtual double maxX() const;
+    virtual int minX() const;
+    virtual int maxX() const;
 
-	virtual double integrate(double xMin, double xMax) const;
+    virtual int minY() const;
+    virtual int maxY() const;
 
 	virtual const Map& table() const;
 private:
 
-	inline double interpolate(
-		const Map::const_iterator& it0,
+    inline double interpolate
+    (
+        const Map::const_iterator& it0,
 		const Map::const_iterator& it1,
-		double xVal) const
+        double xVal
+    ) const
 	{
-		return 
-			(it1->second - it0->second) / (it1->first - it0->first) 
-			* (xVal - it0->first) + it0->second;
+        double fX0 = static_cast<double>(it0->first) * xFactor();
+        double fX1 = static_cast<double>(it1->first) * xFactor();
+        double fY0 = static_cast<double>(it0->second)* yFactor();
+        double fY1 = static_cast<double>(it1->second)* yFactor();
+		return (fY1 - fY0) / (fX1 - fX0) * (xVal - fX0) + fY0;
 	}
 };
-
-//Dot product of two interpolators, one with the shift scale
-double dotProductScaleShift(const Interpolator& i1, const Interpolator& i2, double shift = 0.0);
-
-//Max shift
-double maxShift(const Interpolator& i1, const Interpolator& i2);
-
-//Dot product of two interpolators
-double dotProduct(const Interpolator& i1, const Interpolator& i2);
 
 #endif

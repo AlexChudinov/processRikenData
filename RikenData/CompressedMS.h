@@ -1,10 +1,26 @@
 #ifndef COMPRESSEDMS_H
 #define COMPRESSEDMS_H
 
+#include "Math/Interpolator.h"
+
+/**
+ * @brief The CompressedMS class defines mass spec with only none zero values stored
+ */
 class CompressedMS
 {
 public:
-    CompressedMS();
+    using Interpolator = IntegerInterpolator;
+    using Map = Interpolator::Map;
+    using String = Interpolator::String;
+
+    CompressedMS(const Map& data, const String& strInterpType = "Linear");
+    CompressedMS(Map&& data, const String& strInterpType = "Linear");
+
+    ~CompressedMS();
+
+    const Interpolator * interp() const { return m_pInterpolator.get(); }
+private:
+    Interpolator::Pointer m_pInterpolator;
 };
 
 #endif // COMPRESSEDMS_H

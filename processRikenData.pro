@@ -20,7 +20,8 @@ SOURCES += main.cpp\
     PropertiesListForm.cpp \
     Math/splines.cpp \
     MassSpecAccDialogs.cpp \
-    Math/Interpolator.cpp
+    Math/Interpolator.cpp \
+    RikenData/CompressedMS.cpp
 
 HEADERS  += mainwindow.h \
     RikenData/rawrikendata.h \
@@ -34,7 +35,8 @@ HEADERS  += mainwindow.h \
     MassSpecAccDialogs.h \
     Utils/BaseDefs.h \
     Utils/Factory.h \
-    Math/Interpolator.h
+    Math/Interpolator.h \
+    RikenData/CompressedMS.h
 
 FORMS    += mainwindow.ui \
     Plot/PlotForm.ui \

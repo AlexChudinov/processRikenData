@@ -11,7 +11,7 @@ template <class ClassName, class Params>
 class Factory
 {
 public:
-	using Pointer = std::unique_ptr<ClassName>;
+    using Pointer = std::shared_ptr<ClassName>;
 	class Constructor
 	{
 		DEF_NOT_COPYABLE(Constructor)

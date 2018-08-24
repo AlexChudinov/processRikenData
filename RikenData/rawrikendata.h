@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QVariant>
 #include <vector>
+#include "CompressedMS.h"
 
 class QTextStream;
 class QFile;
@@ -32,30 +33,13 @@ public:
     inline const VectorInt& freqs() const { return m_vFreqs; }
 
     /**
-     * @brief squeeze squeezes or stretches original mass spec
-     * @param n number of time bines
-     * @return squeezed or stretched mass spec
+     * @brief compressData transforms this mass spectrum to a compessed
+     * @return
      */
-    MassSpec squeeze(int n) const;
-
-    /**
-     * @brief bestSqueeze looks for best squeeze value using this as a
-     * reference one
-     * @param m
-     * @param ok The routine checks inside that sizes of mass spectrums
-     * and their minimum time values are the same. This case it calculates
-     * the time shift and returns one putting "ok" to true otherwise it does
-     * early return of zero value for time shift and puts "ok" to false. False
-     * flag also will be set up if the shift value went out the limits
-     * @return value of a time shift where the mass specs is matching
-     */
-    int bestSqueeze(const MassSpec& m, bool *ok) const;
-
+    CompressedMS compress() const;
 private:
     quint32 m_nMinTime;
     VectorInt m_vFreqs;
-
-    static const double s_fMaxShiftValue;
 };
 
 /**

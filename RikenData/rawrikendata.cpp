@@ -81,68 +81,27 @@ MassSpec RawRikenData::accumulateMassSpec(size_t idx0, size_t idx1) const
     return MassSpec(m_nMinTime, std::move(vFreqs));
 }
 
-/**
- * @brief MassSpec::s_fMaxShiftValue restricts bestSqueeze function, so
- * |n/MaxTime| < s_fMaxShiftValue
- */
-const double MassSpec::s_fMaxShiftValue = 1e-5;
 
-MassSpec MassSpec::squeeze(int n) const
+
+CompressedMS MassSpec::compress() const
 {
-    if (n == 0) return *this;
-    else
+    size_t x0 = 0, x1 = 1;
+    while(x1 < m_vFreqs.size() && m_vFreqs[x1] == 0) x0 = x1++;
+    CompressedMS::Map tab;
+    tab[x0 + m_nMinTime] = 0;
+    while(x1 < m_vFreqs.size())
     {
-        double fSqueezeFactor =
-            (1. + static_cast<double>(n)
-             / static_cast<double>(m_nMinTime + m_vFreqs.size() - 1));
-        VectorInt vFreqs(m_vFreqs.size());
-        //Calculate corresponding time scale
-        std::vector<double> vTimeScale(m_vFreqs.size());
-        for(size_t i = 0; i < m_vFreqs.size(); ++i)
+        //If it is equal to zero, then check previous value
+        if(m_vFreqs[x1] == 0)
         {
-            vTimeScale[i] = (i + m_nMinTime) * fSqueezeFactor;
+            //...ok, it is not zero, then write it
+            if(m_vFreqs[x0] != 0) tab[x1 + m_nMinTime] = m_vFreqs[x1];
+            //...otherwise skip it
         }
-        //For every given ref time find it correspondence
-        size_t j = 0;
-        for(size_t i = 0; i < m_vFreqs.size(); ++i)
+        else //write just not zero values
         {
-            double fTimeRef = static_cast<double>(i + m_nMinTime);
-            while(vTimeScale[j] < fTimeRef && j < m_vFreqs.size()) ++j;
-            if(j == 0) vFreqs[i] = m_vFreqs[j];
-            else if (j == m_vFreqs.size()) vFreqs[i] = m_vFreqs[j-1];
-            else
-            {
-                double w = (vTimeScale[j] - vTimeScale[j-1]);
-                double w1 = (vTimeScale[j] - fTimeRef)/w;
-                double w2 = (fTimeRef - vTimeScale[j-1])/w;
-                    vFreqs[i] = m_vFreqs[j-1] * w1 + m_vFreqs[j] * w2;
-            }
+            tab[x1 + m_nMinTime] = m_vFreqs[x1];
         }
-        return MassSpec(m_nMinTime, vFreqs);
+        x0 = x1++;
     }
 }
-
-int MassSpec::bestSqueeze(const MassSpec &m, bool *ok) const
-{
-    if(m_nMinTime != m.minTime() || m_vFreqs.size() != m.freqs().size())
-    {
-        if(ok) *ok = false;
-        return 0;
-    }
-    else
-    {
-        //Set initial shift values
-        int nl = -1, n0 = 0, nr = 1;
-        VectorInt
-                vl = m.squeeze(nl).freqs(),
-                v0 = m.squeeze(n0).freqs(),
-                vr = m.squeeze(nr).freqs();
-        //Note, overflows are possible!!!
-        double
-                sl = std::inner_product(vl.begin(),vl.end(),m_vFreqs.begin(),0),
-                s0 = std::inner_product(v0.begin(),v0.end(),m_vFreqs.begin(),0),
-                sr = std::inner_product(vr.begin(),vr.end(),m_vFreqs.begin(),0);
-
-    }
-}
-
