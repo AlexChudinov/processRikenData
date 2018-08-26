@@ -47,3 +47,12 @@ AccumScaleCorrectionDialog::~AccumScaleCorrectionDialog()
 {
     delete ui;
 }
+
+AccumScaleCorrectionDialog::DialogReturnParams AccumScaleCorrectionDialog::getDialogParams() const
+{
+    DialogReturnParams params;
+    params.maxSweepIdx = ui->maxSweepIdxSpinBox->value();
+    params.minSweepIdx = ui->minSweepIdxSpinBox->value();
+    params.step = ui->stepSizeSpinBox->value();
+    return params;
+}

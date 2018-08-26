@@ -41,20 +41,18 @@ PlotForm::~PlotForm()
 void PlotForm::addMassSpecGraph()
 {
     QCPGraph * graph = m_pPlot->addGraph();
-    QVector<double> x(m_pMassSpec->interp()->table().size());
-    QVector<double> y(m_pMassSpec->interp()->table().size());
+    addCompressedDataToGraph(graph, m_pMassSpec.data());
+}
 
-    CompressedMS::Map::const_iterator it = m_pMassSpec->interp()->table().begin();
-    for(size_t i = 0; i < m_pMassSpec->interp()->table().size(); ++i)
+void PlotForm::addSmoothedGraph()
+{
+    if(m_pPlot->graphCount() == 2)
     {
-        x[i] = double(it->first) * m_pMassSpec->interp()->xFactor();
-        y[i] = double(it->second) * m_pMassSpec->interp()->yFactor();
-        ++it;
+        m_pPlot->removeGraph(1);
     }
-
-    graph->addData(x, y);
-    m_pPlot->rescaleAxes();
-    m_pPlot->replot();
+    QCPGraph * graph = m_pPlot->addGraph();
+    graph->setPen(QPen(Qt::red));
+    addCompressedDataToGraph(graph, m_pSmoothedData.data());
 }
 
 void PlotForm::adjustRangeToLimits(QCPRange)
@@ -92,7 +90,27 @@ void PlotForm::setUpToolBar(QToolBar * toolBar)
 {
     toolBar->addActions({ui->actionHorizontalZoom, ui->actionZoomOut});
     toolBar->addSeparator();
+    toolBar->addActions({ui->actionSplineSmoothing});
+    toolBar->addSeparator();
     toolBar->addActions({ui->actionImport});
+}
+
+void PlotForm::addCompressedDataToGraph(QCPGraph *g, const CompressedMS *ms) const
+{
+    QVector<double> x(ms->interp()->table().size());
+    QVector<double> y(ms->interp()->table().size());
+
+    CompressedMS::Map::const_iterator it = ms->interp()->table().begin();
+    for(size_t i = 0; i < ms->interp()->table().size(); ++i)
+    {
+        x[i] = it->first * ms->interp()->xFactor();
+        y[i] = it->second * ms->interp()->yFactor();
+        ++it;
+    }
+
+    g->addData(x, y);
+    m_pPlot->rescaleAxes();
+    m_pPlot->replot();
 }
 
 void PlotForm::on_actionHorizontalZoom_triggered()
@@ -159,4 +177,17 @@ void PlotForm::on_actionImport_triggered()
             }
         }
     }
+}
+
+void PlotForm::on_actionSplineSmoothing_triggered()
+{
+    m_pSmoothedData.reset(new CompressedMS(*m_pMassSpec));
+    double p = QInputDialog::getDouble
+    (
+        this,
+        "Plot",
+        "Parameter of smoothing"
+    );
+    m_pSmoothedData->logSplineSmoothing(p);
+    addSmoothedGraph();
 }

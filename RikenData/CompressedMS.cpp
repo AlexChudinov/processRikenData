@@ -1,4 +1,5 @@
 #include "CompressedMS.h"
+#include "Math/smoothing_splines.h"
 #include <cmath>
 
 CompressedMS::CompressedMS(const CompressedMS::VectorInt &vVals,
@@ -40,7 +41,7 @@ CompressedMS::CompressedMS(const Map& data, Interpolator::InterpType type)
 {
 }
 
-CompressedMS::CompressedMS(Map &&data, IntegerInterpolator::InterpType type)
+CompressedMS::CompressedMS(Map &&data, Interpolator::InterpType type)
     :
       m_pInterpolator(Interpolator::create(type, data))
 {
@@ -83,46 +84,35 @@ void CompressedMS::squeezeXScale(double s)
     if(s>-1.0 && s<1.0) m_pInterpolator->xFactor(1. + s);
 }
 
-CompressedMS::uint64_t CompressedMS::match(const CompressedMS &msRef) const
+double CompressedMS::match(const CompressedMS &msRef) const
 {
     const Map& tabRef = msRef.interp()->table();
-    uint64_t res = 0;
+    double res = 0;
 
     for(const auto& e : tabRef)
-        res += e.second * std::round(interp()->interpolate(static_cast<double>(e.first)));
+        res += e.second * interp()->interpolate(e.first);
 
     return res;
 }
 
-double CompressedMS::bestMatch(const CompressedMS &msRef, int nMaxTime, bool *ok) const
+double CompressedMS::bestMatch(const CompressedMS &msRef, int nMaxTime) const
 {
     CompressedMS temp(*this);
-    //These variables keep match values calculated for different time scale shifts
-    uint64_t pl, p0, pr;
-    int n = 0; //Current shift value is s = n/nMaxTime = 0
-
-    const size_t maxIterNum = 10000; //restricts the number of iterations
-    size_t curIterNum = 0;
-    do
+    double maxMatch = 0.0;
+    double smax= 0.0 ;
+    for(int n = -100; n <= 100; ++n)
     {
-        temp.squeezeXScale(double(n-1)/double(nMaxTime));
-        pl = temp.match(msRef);
-        temp.squeezeXScale(double(n)/double(nMaxTime));
-        p0 = temp.match(msRef);
-        temp.squeezeXScale(double(n+1)/double(nMaxTime));
-        pr = temp.match(msRef);
-
-        if(std::min(pl,std::min(p0, pr)) == p0 || pl != pr || ++curIterNum == maxIterNum)
+        double s = double(n) / double(nMaxTime);
+        temp.squeezeXScale(s);
+        double curMatch = temp.match(msRef);
+        if(maxMatch < curMatch)
         {
-            if(ok) *ok = false;
-            return double(n)/double(nMaxTime);
+            maxMatch = curMatch;
+            smax = s;
         }
+    }
 
-        if(pr > pl) n++;
-        else n--;
-    }while(std::max(pl,std::max(p0, pr)) != p0);
-    if(ok) *ok = true;
-    return double(n)/double(nMaxTime);
+    return smax;
 }
 
 void CompressedMS::addToAcc(CompressedMS &msAcc) const
@@ -139,11 +129,45 @@ void CompressedMS::addToAcc(CompressedMS &msAcc) const
 
 void CompressedMS::rescale()
 {
-    uint64_t tMin = static_cast<uint32_t>(interp()->minX());
-    uint64_t tMax = static_cast<uint32_t>(interp()->maxY()) + 1;
+    uint32_t tMin = static_cast<uint32_t>(interp()->minX());
+    uint32_t tMax = static_cast<uint32_t>(interp()->maxX()) + 1;
     VectorInt vVals(tMax - tMin + 1);
     for(size_t i = 0; i < vVals.size(); ++i)
-        vVals[i] = interp()->interpolate(static_cast<double>(tMin + i));
+        vVals[i] =
+            std::round(interp()->interpolate(tMin + i));
+    *this = CompressedMS(vVals, tMin, interp()->type());
+}
+
+void CompressedMS::logSplineSmoothing(double p)
+{
+    uint32_t tMin = static_cast<uint32_t>(interp()->minX());
+    uint32_t tMax = static_cast<uint32_t>(interp()->maxX()) + 1;
+    std::vector<double> w(tMax - tMin + 1);
+    std::vector<double> y(tMax - tMin + 1, 1.0);
+    for(size_t i = 0; i < y.size(); ++i)
+    {
+        double yVal = interp()->interpolate(i+tMin);
+        w[i] = yVal <= 1.0 ? 1.0 : yVal;
+        y[i] += yVal;
+    }
+    std::vector<double> yy(tMax - tMin + 1);
+    math::log_third_order_smoothing_spline_eq
+    (
+        y.size(),
+        y.data(),
+        w.data(),
+        p,
+        yy.data()
+    );
+    w.clear();
+    y.clear();
+
+    VectorInt vVals(tMax - tMin + 1, 1);
+    for(size_t i = 0; i < vVals.size(); ++i)
+    {
+        vVals[i] = std::round(yy[i] - 1);
+    }
+    yy.clear();
     *this = CompressedMS(vVals, tMin, interp()->type());
 }
 

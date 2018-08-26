@@ -31,6 +31,8 @@ private slots:
 
     void on_actionImport_triggered();
 
+    void on_actionSplineSmoothing_triggered();
+
 private:
     Q_SLOT void on_actionHorizontalZoom_triggered();
 
@@ -40,6 +42,7 @@ private:
 
     //Data
     QScopedPointer<CompressedMS> m_pMassSpec;
+    QScopedPointer<CompressedMS> m_pSmoothedData;
     //Limits
     size_t m_nXMin, m_nXMax;
     size_t m_nYMin, m_nYMax;
@@ -48,6 +51,12 @@ private:
      * @brief addMassSpecGraph plots current mass spec
      */
     void addMassSpecGraph();
+
+    /**
+     * @brief addSmoothedGraph adds plot obtained
+     * using after smoothing procedure
+     */
+    void addSmoothedGraph();
 
     /**
      * @brief adjustRangeToLimits puts restriction on zooming
@@ -61,6 +70,8 @@ private:
     void msg(const QString& msg);
 
     void setUpToolBar(QToolBar *toolBar);
+
+    void addCompressedDataToGraph(QCPGraph* g, const CompressedMS* ms) const;
 };
 
 #endif // PLOTFORM_H

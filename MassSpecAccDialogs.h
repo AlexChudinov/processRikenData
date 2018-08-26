@@ -34,6 +34,15 @@ public:
     explicit AccumScaleCorrectionDialog(int nSweepsNum, QWidget * parent = 0);
     ~AccumScaleCorrectionDialog();
 
+    struct DialogReturnParams
+    {
+        size_t minSweepIdx;
+        size_t maxSweepIdx;
+        size_t step;
+    };
+
+    DialogReturnParams getDialogParams() const;
+
 private:
     Ui::AccumScaleCorrectionDialog *ui;
 };

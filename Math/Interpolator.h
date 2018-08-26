@@ -6,7 +6,7 @@
 /**
  * Interpolating procedures
  */
-class IntegerInterpolator
+class Interpolator
 {
     /**
      * @brief m_fXFactor multyplicator for xscale to get float value
@@ -22,10 +22,10 @@ class IntegerInterpolator
 public:
 	using String = std::string;
     using Map = std::map<int, int>;
-    using Pointer = std::unique_ptr<IntegerInterpolator>;
+    using Pointer = std::unique_ptr<Interpolator>;
 
-    IntegerInterpolator() : m_fXFactor(1.0), m_fYFactor(1.0) {}
-    virtual ~IntegerInterpolator(){}
+    Interpolator() : m_fXFactor(1.0), m_fYFactor(1.0) {}
+    virtual ~Interpolator(){}
 
     //Creates particular interpolator
     enum InterpType
@@ -61,7 +61,7 @@ public:
     inline void yFactor(double fYFactor) { m_fYFactor = fYFactor; }
 };
 
-class Linear : public IntegerInterpolator
+class Linear : public Interpolator
 {
     /**
      * @brief m_table ref values to proceed interpolation
@@ -71,11 +71,11 @@ class Linear : public IntegerInterpolator
     /**
      * @brief m_nMinY keeps minimal y-value
      */
-    int m_nMinY;
+    double m_nMinY;
     /**
      * @brief m_nMaxY teeps maximal y-valuee
      */
-    int m_nMaxY;
+    double m_nMaxY;
 public:
 
     Linear(const Map& tab);
@@ -105,11 +105,12 @@ private:
         double xVal
     ) const
 	{
-        double fX0 = static_cast<double>(it0->first) * xFactor();
-        double fX1 = static_cast<double>(it1->first) * xFactor();
-        double fY0 = static_cast<double>(it0->second)* yFactor();
-        double fY1 = static_cast<double>(it1->second)* yFactor();
-		return (fY1 - fY0) / (fX1 - fX0) * (xVal - fX0) + fY0;
+        double
+                fX0 = it0->first,
+                fX1 = it1->first,
+                fY0 = it0->second,
+                fY1 = it1->second;
+        return ((fY1 - fY0) / (fX1 - fX0) * (xVal - fX0) + fY0)*yFactor();
 	}
 };
 

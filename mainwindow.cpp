@@ -135,4 +135,18 @@ void MainWindow::on_actionTimeShiftAcc_triggered()
 {
     AccumScaleCorrectionDialog dialog(static_cast<int>(m_pData->sweepsNumber()));
     dialog.exec();
+    if(dialog.result() == QDialog::Accepted)
+    {
+        AccumScaleCorrectionDialog::DialogReturnParams params =
+                dialog.getDialogParams();
+        QString strDescr = m_strRikenFileName + tr(" sum with shift [%1 .. %2] step %3").
+                arg(params.minSweepIdx).arg(params.maxSweepIdx).arg(params.step);
+        CompressedMS ms = m_pData->accumulateMassSpec
+        (
+            params.minSweepIdx,
+            params.maxSweepIdx,
+            params.step
+        );
+        plotSubwindow(new PlotForm(ms, strDescr));
+    }
 }

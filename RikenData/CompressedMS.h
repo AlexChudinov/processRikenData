@@ -10,7 +10,6 @@
 class CompressedMS
 {
 public:
-    using Interpolator = IntegerInterpolator;
     using Map = Interpolator::Map;
     using String = Interpolator::String;
     using uint64_t = unsigned long long;
@@ -19,10 +18,10 @@ public:
 
     //Compress vector
     CompressedMS(const VectorInt& vVals, size_t tMin,
-                 IntegerInterpolator::InterpType type = Interpolator::LinearType);
+                 Interpolator::InterpType type = Interpolator::LinearType);
 
-    CompressedMS(const Map& data, IntegerInterpolator::InterpType type = Interpolator::LinearType);
-    CompressedMS(Map&& data, IntegerInterpolator::InterpType type = Interpolator::LinearType);
+    CompressedMS(const Map& data, Interpolator::InterpType type = Interpolator::LinearType);
+    CompressedMS(Map&& data, Interpolator::InterpType type = Interpolator::LinearType);
     //Impement copy constructors because pointer for Interpolator was used
     CompressedMS(const CompressedMS& ms);
     CompressedMS(CompressedMS&& ms);
@@ -46,7 +45,7 @@ public:
      * @param msRef - reference mass spectrum
      * @return inner product
      */
-    uint64_t match(const CompressedMS& msRef) const;
+    double match(const CompressedMS& msRef) const;
 
     /**
      * @brief bestMatch looks for the shift value that matches best. It makes discrete search in the
@@ -56,7 +55,7 @@ public:
      * @param ok - flag to check that computation is ok
      * @return best relative shift value
      */
-    double bestMatch(const CompressedMS& msRef, int nMaxTime, bool * ok = nullptr) const;
+    double bestMatch(const CompressedMS& msRef, int nMaxTime) const;
 
     /**
      * @brief addToAcc adds the mass spectrum to accumulating one
@@ -68,6 +67,13 @@ public:
      * @brief rescale recalculates the scale of interpolator, so the xscale factor becomes 1.0
      */
     void rescale();
+
+    /**
+     * @brief logSplineSmoothing applies spline smoothing to mass spectrum
+     * data
+     * @param p - smoothness param
+     */
+    void logSplineSmoothing(double p);
 private:
     Interpolator::Pointer m_pInterpolator;
 };

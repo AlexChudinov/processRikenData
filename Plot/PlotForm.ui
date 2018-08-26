@@ -50,6 +50,18 @@
     <string>Import text data to a specified file</string>
    </property>
   </action>
+  <action name="actionSplineSmoothing">
+   <property name="icon">
+    <iconset resource="../resources.qrc">
+     <normaloff>:/Icons/splineSmoothing</normaloff>:/Icons/splineSmoothing</iconset>
+   </property>
+   <property name="text">
+    <string>Spline smoothing</string>
+   </property>
+   <property name="toolTip">
+    <string>Log spline smoothing</string>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="../resources.qrc"/>

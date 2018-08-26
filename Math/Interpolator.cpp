@@ -13,11 +13,6 @@ Linear::Linear(const Map& tab) : m_table(tab)
     m_nMaxY = minMax.second->second;
 }
 
-IntegerInterpolator::InterpType Linear::type() const
-{
-    return IntegerInterpolator::LinearType;
-}
-
 Linear::Linear(Map&& tab) : m_table(tab)
 {
     std::pair<Map::const_iterator, Map::const_iterator>
@@ -30,12 +25,18 @@ Linear::Linear(Map&& tab) : m_table(tab)
     m_nMaxY = minMax.second->second;
 }
 
+Interpolator::InterpType Linear::type() const
+{
+    return Interpolator::LinearType;
+}
+
 double Linear::interpolate(double xVal) const
 {
-    int nXVal = static_cast<int>(xVal / xFactor());
-    if (nXVal < minX() || nXVal >= maxX()) return 0.0;
-    Map::const_iterator it1 = m_table.upper_bound(nXVal), it0 = std::prev(it1);
-	return interpolate(it0, it1, xVal);
+    xVal /= xFactor();
+    if (xVal < minX() || xVal >= maxX()) return 0.0;
+    Map::const_iterator it1 = m_table.upper_bound(xVal), it0 = std::prev(it1);
+    double yVal = interpolate(it0, it1, xVal);
+    return yVal;
 }
 
 Linear::String Linear::name() const
@@ -73,7 +74,7 @@ Linear::Map &Linear::table()
     return m_table;
 }
 
-IntegerInterpolator::Pointer IntegerInterpolator::create(InterpType type, const Map &tab)
+Interpolator::Pointer Interpolator::create(InterpType type, const Map &tab)
 {
     switch(type)
     {
@@ -82,7 +83,7 @@ IntegerInterpolator::Pointer IntegerInterpolator::create(InterpType type, const 
     }
 }
 
-IntegerInterpolator::Pointer IntegerInterpolator::create(InterpType type, Map &tab)
+Interpolator::Pointer Interpolator::create(InterpType type, Map &tab)
 {
     switch(type)
     {
