@@ -172,7 +172,7 @@ void PlotForm::on_actionImport_triggered()
                         out << key << "\t" << val << "\n";
                     }
                 }
-                if(strData = "Smoothed data")
+                if(strData == "Smoothed data")
                 {
                     if(m_pPlot->graphCount() == 2)
                     {
