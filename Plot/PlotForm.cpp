@@ -137,10 +137,13 @@ void PlotForm::on_actionImport_triggered()
 {
     QStringList items{"Raw data", "Smoothed data", "Peaks"};
     bool ok;
-    QString strData = QInputDialog::getItem(this,
-                          "Plot Dialog",
-                          "Choose the data",
-                          items, 0, false, &ok);
+    QString strData = QInputDialog::getItem
+    (
+        this,
+        "Plot Dialog",
+        "Choose the data",
+         items, 0, false, &ok
+    );
     if(ok && !strData.isEmpty())
     {
         QString importFileName = QFileDialog::getSaveFileName(this,
@@ -167,6 +170,25 @@ void PlotForm::on_actionImport_triggered()
                         size_t key = static_cast<size_t>(i->key);
                         size_t val = static_cast<size_t>(i->value);
                         out << key << "\t" << val << "\n";
+                    }
+                }
+                if(strData = "Smoothed data")
+                {
+                    if(m_pPlot->graphCount() == 2)
+                    {
+                        QSharedPointer<QCPGraphDataContainer> data
+                                = m_pPlot->graph(1)->data();
+                        using Iterator = QCPGraphDataContainer::const_iterator;
+                        Iterator
+                                First = data->findBegin(xrange.lower),
+                                Last = data->findEnd(xrange.upper);
+                        out << "x" << "\t\t" << "y" << "\n";
+                        for(Iterator i = First; i < Last; ++i)
+                        {
+                            size_t key = static_cast<size_t>(i->key);
+                            size_t val = static_cast<size_t>(i->value);
+                            out << key << "\t" << val << "\n";
+                        }
                     }
                 }
                 file.close();
