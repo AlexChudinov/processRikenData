@@ -171,3 +171,70 @@ void CompressedMS::logSplineSmoothing(double p)
     *this = CompressedMS(vVals, tMin, interp()->type());
 }
 
+void CompressedMS::logSplineParamLessSmoothing()
+{
+    CompressedMS temp(*this);
+    double param = 1.;
+    uint64_t TIC = totalIonCount();
+    temp.logSplineSmoothing(param);
+    uint64_t s = sumSqDev(temp);
+    double a, b;
+    if(s > TIC)
+    {
+        while (s > TIC)
+        {
+            temp = *this;
+            temp.logSplineSmoothing(param /= 10);
+            s = sumSqDev(temp);
+        }
+        a = param; b = param * 10.;
+    }
+    else
+    {
+        while(s < TIC)
+        {
+            temp = *this;
+            temp.logSplineSmoothing(param *= 10.);
+            s = sumSqDev(temp);
+        }
+        a = param/10.; b = param;
+    }
+
+    if(s != TIC) while(true)
+    {
+        param = (a + b)/2;
+        temp = *this;
+        temp.logSplineSmoothing(param);
+        s = sumSqDev(temp);
+        if(s < TIC) a = param;
+        else if (s > TIC) b = param;
+        else break;
+    }
+
+    logSplineSmoothing(param);
+}
+
+CompressedMS::uint64_t CompressedMS::sumSqDev(const CompressedMS &ms) const
+{
+    CompressedMS::uint64_t res = 0;
+    for(auto& e : ms.interp()->table()) res += e.second * e.second;
+    for(const auto& e : interp()->table())
+    {
+        CompressedMS::Map::const_iterator it = ms.interp()->table().find(e.first);
+        if (it != ms.interp()->table().end())
+        {
+            res -= it->second * it->second;
+            res += (it->second - e.second) * (it->second - e.second);
+        }
+        else
+            res += e.second * e.second;
+    }
+    return res;
+}
+
+CompressedMS::uint64_t CompressedMS::totalIonCount() const
+{
+    uint64_t res = 0;
+    for(const auto& e : interp()->table()) res += e.second;
+    return res;
+}

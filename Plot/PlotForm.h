@@ -26,14 +26,15 @@ public:
     explicit PlotForm(const CompressedMS &ms, const QString &strDscrpt, QWidget *parent = 0);
     ~PlotForm();
 
-private slots:
-    void on_actionZoomOut_triggered();
-
-    void on_actionImport_triggered();
-
-    void on_actionSplineSmoothing_triggered();
-
 private:
+    Q_SLOT void on_actionZoomOut_triggered();
+
+    Q_SLOT void on_actionImport_triggered();
+
+    Q_SLOT void on_actionSplineSmoothing_triggered();
+
+    Q_SLOT void on_actionAutoSplineSmoothing_triggered();
+
     Q_SLOT void on_actionHorizontalZoom_triggered();
 
     Ui::PlotForm *ui;

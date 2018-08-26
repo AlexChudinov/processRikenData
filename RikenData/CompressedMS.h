@@ -74,6 +74,20 @@ public:
      * @param p - smoothness param
      */
     void logSplineSmoothing(double p);
+    void logSplineParamLessSmoothing();
+
+    /**
+     * @brief sumSqDev estimates sum of squares of deviations between two mass spectra
+     * @param ms1
+     * @return
+     */
+    CompressedMS::uint64_t sumSqDev(const CompressedMS& ms) const;
+
+    /**
+     * @brief totalIonCount calculates the total number of ion counts for the mass spec
+     * @return
+     */
+    CompressedMS::uint64_t totalIonCount() const;
 private:
     Interpolator::Pointer m_pInterpolator;
 };

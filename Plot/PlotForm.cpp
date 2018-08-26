@@ -90,7 +90,7 @@ void PlotForm::setUpToolBar(QToolBar * toolBar)
 {
     toolBar->addActions({ui->actionHorizontalZoom, ui->actionZoomOut});
     toolBar->addSeparator();
-    toolBar->addActions({ui->actionSplineSmoothing});
+    toolBar->addActions({ui->actionSplineSmoothing, ui->actionAutoSplineSmoothing});
     toolBar->addSeparator();
     toolBar->addActions({ui->actionImport});
 }
@@ -211,5 +211,12 @@ void PlotForm::on_actionSplineSmoothing_triggered()
         "Parameter of smoothing"
     );
     m_pSmoothedData->logSplineSmoothing(p);
+    addSmoothedGraph();
+}
+
+void PlotForm::on_actionAutoSplineSmoothing_triggered()
+{
+    m_pSmoothedData.reset(new CompressedMS(*m_pMassSpec));
+    m_pSmoothedData->logSplineParamLessSmoothing();
     addSmoothedGraph();
 }
