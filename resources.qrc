@@ -7,5 +7,6 @@
         <file alias="importTextData">Icons/import_text_data.png</file>
         <file alias="splineSmoothing">Icons/spline.png</file>
         <file alias="splineAutoSmoothing">Icons/splineAuto.png</file>
+        <file alias="mainAppIcon">Icons/qms.ico</file>
     </qresource>
 </RCC>

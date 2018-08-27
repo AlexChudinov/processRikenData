@@ -217,7 +217,7 @@ void CompressedMS::logSplineParamLessSmoothing()
 CompressedMS::uint64_t CompressedMS::sumSqDev(const CompressedMS &ms) const
 {
     CompressedMS::uint64_t res = 0;
-    for(auto& e : ms.interp()->table()) res += e.second * e.second;
+    for(const auto& e : ms.interp()->table()) res += e.second * e.second;
     for(const auto& e : interp()->table())
     {
         CompressedMS::Map::const_iterator it = ms.interp()->table().find(e.first);

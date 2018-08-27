@@ -73,6 +73,8 @@ private:
     void setUpToolBar(QToolBar *toolBar);
 
     void addCompressedDataToGraph(QCPGraph* g, const CompressedMS* ms) const;
+
+    void importTextDataToFile(QTextStream &out, const QCPGraphDataContainer *tab) const;
 };
 
 #endif // PLOTFORM_H

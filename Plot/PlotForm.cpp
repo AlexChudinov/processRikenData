@@ -81,9 +81,12 @@ void PlotForm::adjustRangeToLimits(QCPRange)
 
 void PlotForm::msg(const QString &msg)
 {
-    QMessageBox::warning(this,
-                         "Plot Message",
-                         msg);
+    QMessageBox::warning
+    (
+        this,
+        "Plot Message",
+        msg
+    );
 }
 
 void PlotForm::setUpToolBar(QToolBar * toolBar)
@@ -111,6 +114,22 @@ void PlotForm::addCompressedDataToGraph(QCPGraph *g, const CompressedMS *ms) con
     g->addData(x, y);
     m_pPlot->rescaleAxes();
     m_pPlot->replot();
+}
+
+void PlotForm::importTextDataToFile(QTextStream &out, const QCPGraphDataContainer * tab) const
+{
+    QCPRange r = m_pPlot->xAxis->range();
+    using Iterator = QCPGraphDataContainer::const_iterator;
+    Iterator
+            First = tab->findBegin(r.lower),
+            Last = tab->findEnd(r.upper);
+    out << "x" << "\t\t" << "y" << "\n";
+    for(Iterator i = First; i < Last; ++i)
+    {
+        size_t key = static_cast<size_t>(i->key);
+        size_t val = static_cast<size_t>(i->value);
+        out << key << "\t" << val << "\n";
+    }
 }
 
 void PlotForm::on_actionHorizontalZoom_triggered()
@@ -155,41 +174,17 @@ void PlotForm::on_actionImport_triggered()
             if(file.open(QIODevice::WriteOnly | QIODevice::Text))
             {
                 QTextStream out(&file);
-                QCPRange xrange = m_pPlot->xAxis->range();
                 if(strData == "Raw data")
                 {
-                    QSharedPointer<QCPGraphDataContainer> data
+                    QSharedPointer<QCPGraphDataContainer> graphData
                             = m_pPlot->graph(0)->data();
-                    using Iterator = QCPGraphDataContainer::const_iterator;
-                    Iterator
-                            First = data->findBegin(xrange.lower),
-                            Last = data->findEnd(xrange.upper);
-                    out << "x" << "\t\t" << "y" << "\n";
-                    for(Iterator i = First; i < Last; ++i)
-                    {
-                        size_t key = static_cast<size_t>(i->key);
-                        size_t val = static_cast<size_t>(i->value);
-                        out << key << "\t" << val << "\n";
-                    }
+                    importTextDataToFile(out, graphData.data());
                 }
-                if(strData == "Smoothed data")
+                if(strData == "Smoothed data" && m_pPlot->graphCount() == 2)
                 {
-                    if(m_pPlot->graphCount() == 2)
-                    {
-                        QSharedPointer<QCPGraphDataContainer> data
-                                = m_pPlot->graph(1)->data();
-                        using Iterator = QCPGraphDataContainer::const_iterator;
-                        Iterator
-                                First = data->findBegin(xrange.lower),
-                                Last = data->findEnd(xrange.upper);
-                        out << "x" << "\t\t" << "y" << "\n";
-                        for(Iterator i = First; i < Last; ++i)
-                        {
-                            size_t key = static_cast<size_t>(i->key);
-                            size_t val = static_cast<size_t>(i->value);
-                            out << key << "\t" << val << "\n";
-                        }
-                    }
+                    QSharedPointer<QCPGraphDataContainer>  graphData
+                            = m_pPlot->graph(1)->data();
+                    importTextDataToFile(out, graphData.data());
                 }
                 file.close();
             }

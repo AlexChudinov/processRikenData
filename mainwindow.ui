@@ -11,7 +11,11 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>QMS</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="resources.qrc">
+    <normaloff>:/Icons/mainAppIcon</normaloff>:/Icons/mainAppIcon</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="QMdiArea" name="mdiArea">
@@ -31,7 +35,7 @@
      <x>0</x>
      <y>0</y>
      <width>748</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
