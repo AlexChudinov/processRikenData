@@ -103,6 +103,8 @@ void MainWindow::enableRikenDataFileActions()
 
 void MainWindow::plotSubwindow(PlotForm *form)
 {
+    connect(form, SIGNAL(mouseCoordNotify(QString)),
+            this->statusBar(), SLOT(showMessage(QString)));
     ui->mdiArea->addSubWindow(form)->show();
 }
 

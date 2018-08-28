@@ -13,8 +13,12 @@ PlotForm::PlotForm(const CompressedMS &ms, const QString& strDscrpt, QWidget *pa
     m_pPlot(new QCustomPlot(this)),
     m_pMassSpec(new CompressedMS(ms))
 {
-    QToolBar * toolBar = new QToolBar(this);
+    connect(m_pPlot, SIGNAL(mouseMove(QMouseEvent*)),
+            this, SLOT(printMouseCoordinates(QMouseEvent*)));
+    connect(m_pPlot, SIGNAL(mousePress(QMouseEvent*)),
+            this, SLOT(mouseClick(QMouseEvent*)));
     ui->setupUi(this);
+    QToolBar * toolBar = new QToolBar(this);
     setUpToolBar(toolBar);
     ui->verticalLayout->addWidget(toolBar);
     ui->verticalLayout->addWidget(m_pPlot);
@@ -31,6 +35,12 @@ PlotForm::PlotForm(const CompressedMS &ms, const QString& strDscrpt, QWidget *pa
             this, SLOT(adjustRangeToLimits(QCPRange)));
     connect(m_pPlot->yAxis, SIGNAL(rangeChanged(QCPRange)),
             this, SLOT(adjustRangeToLimits(QCPRange)));
+    m_pPlot->xAxis->setTickLabelFont(QFont("Arial", 12));
+    m_pPlot->yAxis->setTickLabelFont(QFont("Arial", 12));
+    m_pPlot->xAxis->setLabelFont(QFont("Arial", 12));
+    m_pPlot->yAxis->setLabelFont(QFont("Arial", 12));
+    m_pPlot->xAxis->setLabel("time [bin]");
+    m_pPlot->yAxis->setLabel("ion count");
 }
 
 PlotForm::~PlotForm()
@@ -41,6 +51,7 @@ PlotForm::~PlotForm()
 void PlotForm::addMassSpecGraph()
 {
     QCPGraph * graph = m_pPlot->addGraph();
+    graph->setPen(QPen(Qt::blue, 2));
     addCompressedDataToGraph(graph, m_pMassSpec.data());
 }
 
@@ -51,7 +62,7 @@ void PlotForm::addSmoothedGraph()
         m_pPlot->removeGraph(1);
     }
     QCPGraph * graph = m_pPlot->addGraph();
-    graph->setPen(QPen(Qt::red));
+    graph->setPen(QPen(Qt::red, 3));
     addCompressedDataToGraph(graph, m_pSmoothedData.data());
 }
 
@@ -91,11 +102,18 @@ void PlotForm::msg(const QString &msg)
 
 void PlotForm::setUpToolBar(QToolBar * toolBar)
 {
-    toolBar->addActions({ui->actionHorizontalZoom, ui->actionZoomOut});
+    toolBar->addActions
+    (
+        {
+            ui->actionHorizontalZoom,
+            ui->actionZoomOut,
+            ui->actionDragXAxisLim
+        }
+    );
     toolBar->addSeparator();
     toolBar->addActions({ui->actionSplineSmoothing, ui->actionAutoSplineSmoothing});
     toolBar->addSeparator();
-    toolBar->addActions({ui->actionImport});
+    toolBar->addActions({ui->actionSavePicture, ui->actionImport});
 }
 
 void PlotForm::addCompressedDataToGraph(QCPGraph *g, const CompressedMS *ms) const
@@ -136,6 +154,40 @@ void PlotForm::on_actionHorizontalZoom_triggered()
 {
     m_pPlot->setSelectionRectMode(QCP::srmZoom);
     m_pPlot->setCursor(QCursor(QPixmap("://Icons//hZoomIcon")));
+}
+
+void PlotForm::printMouseCoordinates(QMouseEvent *event)
+{
+    double x = m_pPlot->xAxis->pixelToCoord(event->pos().x());
+    double y = m_pPlot->yAxis->pixelToCoord(event->pos().y());
+    QString strMousePos = QString("x: %1, y: %2").arg(x).arg(y);
+    Q_EMIT mouseCoordNotify(strMousePos);
+}
+
+void PlotForm::mouseClick(QMouseEvent *event)
+{
+    if(event->button() == Qt::RightButton)
+    {
+        m_pPlot->setSelectionRectMode(QCP::srmNone);
+        m_pPlot->setCursor(QCursor(Qt::ArrowCursor));
+    }
+    else
+    {
+        if(m_pPlot->cursor().shape() == Qt::OpenHandCursor)
+        {
+            QPoint pt = event->pos();
+            double x = m_pPlot->xAxis->pixelToCoord(pt.x());
+            QCPRange range = m_pPlot->xAxis->range();
+            double x0 = .5 * (range.upper + range.lower);
+            if(x < x0)
+                range.lower += (x - x0);
+            else
+                range.upper += (x - x0);
+            range.lower = qMax(range.lower, static_cast<double>(m_nXMin));
+            range.upper = qMin(range.upper, static_cast<double>(m_nXMax));
+            m_pPlot->xAxis->setRange(range);
+        }
+    }
 }
 
 void PlotForm::on_actionZoomOut_triggered()
@@ -214,4 +266,29 @@ void PlotForm::on_actionAutoSplineSmoothing_triggered()
     m_pSmoothedData.reset(new CompressedMS(*m_pMassSpec));
     m_pSmoothedData->logSplineParamLessSmoothing();
     addSmoothedGraph();
+}
+
+void PlotForm::on_actionSavePicture_triggered()
+{
+    QString fileFilt;
+    QString fileName = QFileDialog::getSaveFileName
+    (
+        this,
+        "Save as an image",
+        QString(),
+        tr("PNG (*.png);;JPG (*.jpg);;BMP (*.bmp);;PDF (*.pdf)"),
+        &fileFilt
+    );
+    if(!fileName.isEmpty())
+    {
+        if(fileFilt == "PNG (*.png)") m_pPlot->savePng(fileName);
+        if(fileFilt == "JPG (*.jpg)") m_pPlot->saveJpg(fileName);
+        if(fileFilt == "BMP (*.bmp)") m_pPlot->saveBmp(fileName);
+        if(fileFilt == "PDF (*.pdf)") m_pPlot->savePng(fileName);
+    }
+}
+
+void PlotForm::on_actionDragXAxisLim_triggered()
+{
+    m_pPlot->setCursor(QCursor(Qt::OpenHandCursor));
 }

@@ -13,7 +13,23 @@
   <property name="windowTitle">
    <string>Plot</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout"/>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+  </layout>
   <action name="actionHorizontalZoom">
    <property name="icon">
     <iconset resource="../resources.qrc">
@@ -24,6 +40,9 @@
    </property>
    <property name="toolTip">
     <string>Horizontal zoom</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
    </property>
   </action>
   <action name="actionZoomOut">
@@ -37,6 +56,9 @@
    <property name="toolTip">
     <string>Zoom out</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
   </action>
   <action name="actionImport">
    <property name="icon">
@@ -48,6 +70,9 @@
    </property>
    <property name="toolTip">
     <string>Import text data to a specified file</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
    </property>
   </action>
   <action name="actionSplineSmoothing">
@@ -61,6 +86,9 @@
    <property name="toolTip">
     <string>Log spline smoothing</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
   </action>
   <action name="actionAutoSplineSmoothing">
    <property name="icon">
@@ -72,6 +100,36 @@
    </property>
    <property name="toolTip">
     <string>Spline smoothing without parameters</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
+   </property>
+  </action>
+  <action name="actionSavePicture">
+   <property name="icon">
+    <iconset resource="../resources.qrc">
+     <normaloff>:/Icons/importSaveIcon</normaloff>:/Icons/importSaveIcon</iconset>
+   </property>
+   <property name="text">
+    <string>Save the picture</string>
+   </property>
+   <property name="toolTip">
+    <string>Saves current view as an image</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+I</string>
+   </property>
+  </action>
+  <action name="actionDragXAxisLim">
+   <property name="icon">
+    <iconset resource="../resources.qrc">
+     <normaloff>:/Icons/qtOpenHandIcon</normaloff>:/Icons/qtOpenHandIcon</iconset>
+   </property>
+   <property name="text">
+    <string>Drag x axis limit</string>
+   </property>
+   <property name="toolTip">
+    <string>Drags the current x-axes limits</string>
    </property>
   </action>
  </widget>

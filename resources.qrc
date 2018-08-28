@@ -8,5 +8,7 @@
         <file alias="splineSmoothing">Icons/spline.png</file>
         <file alias="splineAutoSmoothing">Icons/splineAuto.png</file>
         <file alias="mainAppIcon">Icons/qms.ico</file>
+        <file alias="importSaveIcon">Icons/importSaveIcon.jpg</file>
+        <file alias="qtOpenHandIcon">Icons/qtOpenHand.png</file>
     </qresource>
 </RCC>
