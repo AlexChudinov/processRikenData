@@ -2,7 +2,42 @@
 #define COMPRESSEDMS_H
 
 #include "Math/Interpolator.h"
+#include <set>
 #include <vector>
+
+/**
+ * @brief The Peak class defines peak, its position, height and width
+ */
+class Peak
+{
+    double m_left;
+    double m_right;
+    double m_center;
+    double m_height;
+public:
+
+    using PeakCollection = std::set<Peak>;
+
+    Peak(double center, double left = 0.0, double right = 0.0, double height = 0.0)
+        :
+          m_left(left), m_right(right), m_center(center), m_height(height)
+    {}
+
+    double left() const;
+    void setLeft(double left);
+
+    double right() const;
+    void setRight(double right);
+
+
+    double center() const;
+    void setCenter(double center);
+
+    double height() const;
+    void setHeight(double height);
+
+    inline bool operator < (const Peak& pr) const { return m_center < pr.center(); }
+};
 
 /**
  * @brief The CompressedMS class defines mass spec with only none zero values stored
@@ -15,6 +50,7 @@ public:
     using uint64_t = unsigned long long;
     using uint32_t = unsigned int;
     using VectorInt = std::vector<uint32_t>;
+    using VectorDouble = std::vector<double>;
 
     //Compress vector
     CompressedMS(const VectorInt& vVals, size_t tMin,
@@ -55,7 +91,7 @@ public:
      * @param ok - flag to check that computation is ok
      * @return best relative shift value
      */
-    double bestMatch(const CompressedMS& msRef, int nMaxTime) const;
+    double bestMatch(const CompressedMS& msRef, size_t nMaxTime, size_t nTimeInterval = 300) const;
 
     /**
      * @brief addToAcc adds the mass spectrum to accumulating one
@@ -77,6 +113,13 @@ public:
     void logSplineParamLessSmoothing();
 
     /**
+     * @brief getPeaks calculates peaks with parameters using logarithmic spline smoothing
+     * @param p - spline smoothness param
+     * @return
+     */
+    Peak::PeakCollection getPeaks(double p) const;
+
+    /**
      * @brief sumSqDev estimates sum of squares of deviations between two mass spectra
      * @param ms1
      * @return
@@ -90,6 +133,13 @@ public:
     CompressedMS::uint64_t totalIonCount() const;
 private:
     Interpolator::Pointer m_pInterpolator;
+
+    /**
+     * @brief transformToVector transform mass spec data to full scale
+     * mass spectrum should be rescaled
+     * @return vector of intensities
+     */
+    VectorDouble transformToVector() const;
 };
 
 #endif // COMPRESSEDMS_H

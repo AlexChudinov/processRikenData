@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>306</width>
-    <height>158</height>
+    <width>323</width>
+    <height>214</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -80,6 +80,31 @@
      </item>
      <item>
       <widget class="QSpinBox" name="stepSizeSpinBox">
+       <property name="font">
+        <font>
+         <pointsize>16</pointsize>
+        </font>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <item>
+      <widget class="QLabel" name="label_4">
+       <property name="font">
+        <font>
+         <pointsize>15</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Peak width [bins]</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="peakWidthSpinBox">
        <property name="font">
         <font>
          <pointsize>16</pointsize>

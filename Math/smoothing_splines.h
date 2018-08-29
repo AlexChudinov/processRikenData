@@ -1,5 +1,5 @@
-#ifndef _SMOOTHING_SPLINES_
-#define _SMOOTHING_SPLINES_
+#ifndef SMOOTHING_SPLINES_H
+#define SMOOTHING_SPLINES_H
 
 #include "Solvers.h"
 #include "cmath"
@@ -52,7 +52,7 @@ namespace math
     //smooth data using linear interpolation on equally spaced mesh (h = 1)
         (
             int n, //number of data points
-            DataType* y, //initial data array
+            const DataType* y, //initial data array
             DataType* w, //weightings
             DataType lambda, //smoothing parameter
             DataType* yy //smoothed data
@@ -163,8 +163,8 @@ namespace math
     //if one of y values is not, then function returns 1
         (
             int n, //number of data points
-            DataType* y, //initial data array
-            DataType* w, //weightings
+            const DataType* y, //initial data array
+            const DataType* w, //weightings
             DataType lambda, //smoothness parameter
             DataType* yy //smoothed data
         )

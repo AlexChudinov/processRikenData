@@ -53,6 +53,8 @@ void PlotForm::addMassSpecGraph()
     QCPGraph * graph = m_pPlot->addGraph();
     graph->setPen(QPen(Qt::blue, 2));
     addCompressedDataToGraph(graph, m_pMassSpec.data());
+    m_pPlot->rescaleAxes();
+    m_pPlot->replot();
 }
 
 void PlotForm::addSmoothedGraph()
@@ -64,6 +66,7 @@ void PlotForm::addSmoothedGraph()
     QCPGraph * graph = m_pPlot->addGraph();
     graph->setPen(QPen(Qt::red, 3));
     addCompressedDataToGraph(graph, m_pSmoothedData.data());
+    m_pPlot->replot();
 }
 
 void PlotForm::adjustRangeToLimits(QCPRange)
@@ -130,8 +133,6 @@ void PlotForm::addCompressedDataToGraph(QCPGraph *g, const CompressedMS *ms) con
     }
 
     g->addData(x, y);
-    m_pPlot->rescaleAxes();
-    m_pPlot->replot();
 }
 
 void PlotForm::importTextDataToFile(QTextStream &out, const QCPGraphDataContainer * tab) const

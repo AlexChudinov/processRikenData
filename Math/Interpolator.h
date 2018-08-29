@@ -1,5 +1,5 @@
-#ifndef _INTERPOLATOR_
-#define _INTERPOLATOR_
+#ifndef INTERPOLATOR_H
+#define INTERPOLATOR_H
 
 #include <map>
 #include <memory>
@@ -21,7 +21,7 @@ class Interpolator
 
 public:
 	using String = std::string;
-    using Map = std::map<int, int>;
+    using Map = std::map<size_t, size_t>;
     using Pointer = std::unique_ptr<Interpolator>;
 
     Interpolator() : m_fXFactor(1.0), m_fYFactor(1.0) {}

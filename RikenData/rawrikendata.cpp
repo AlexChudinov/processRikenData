@@ -81,7 +81,7 @@ MassSpec RawRikenData::accumulateMassSpec(size_t idx0, size_t idx1) const
     return MassSpec(m_nMinTime, std::move(vFreqs));
 }
 
-CompressedMS RawRikenData::accumulateMassSpec(size_t idx0, size_t idx1, size_t step) const
+CompressedMS RawRikenData::accumulateMassSpec(size_t idx0, size_t idx1, size_t step, size_t peakWidth) const
 {
     size_t FirstIdx = idx0, LastIdx = qMin(idx0 + step, idx1);
     //Accumulate reference mass spectrum
@@ -92,7 +92,7 @@ CompressedMS RawRikenData::accumulateMassSpec(size_t idx0, size_t idx1, size_t s
     {
         LastIdx = qMin(FirstIdx + step, idx1);
         CompressedMS msNext(accumulateMassSpec(FirstIdx, LastIdx).compress());
-        double s = msNext.bestMatch(msRef, m_nMaxTime);
+        double s = msNext.bestMatch(msRef, m_nMaxTime, peakWidth);
         msNext.squeezeXScale(s);
         msNext.rescale();
         msNext.addToAcc(msAcc);
@@ -106,4 +106,11 @@ CompressedMS RawRikenData::accumulateMassSpec(size_t idx0, size_t idx1, size_t s
 CompressedMS MassSpec::compress() const
 {
     return CompressedMS(m_vFreqs, m_nMinTime);
+}
+
+quint32 MassSpec::totalIonCount() const
+{
+    quint32 res = 0;
+    for(quint32 e : m_vFreqs) res += e;
+    return res;
 }

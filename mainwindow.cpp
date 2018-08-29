@@ -105,7 +105,7 @@ void MainWindow::plotSubwindow(PlotForm *form)
 {
     connect(form, SIGNAL(mouseCoordNotify(QString)),
             this->statusBar(), SLOT(showMessage(QString)));
-    ui->mdiArea->addSubWindow(form)->show();
+    ui->mdiArea->addSubWindow(form)->showMaximized();
 }
 
 void MainWindow::on_actionShowDataHeader_triggered()
@@ -127,8 +127,11 @@ void MainWindow::on_actionSimpleMassSpecAcc_triggered()
         QPair<int, int> pairAccLims = dialog.getAccumulationLimits();
         MassSpec massSpec = m_pData->accumulateMassSpec(pairAccLims.first,
                                                         pairAccLims.second);
-        QString strDescription = m_strRikenFileName + tr(" sum [%1 .. %2]").
-                arg(pairAccLims.first).arg(pairAccLims.second);
+        QString strDescription = m_strRikenFileName
+                + tr(" sum [%1 .. %2] TIC: %3")
+                .arg(pairAccLims.first)
+                .arg(pairAccLims.second)
+                .arg(massSpec.totalIonCount());
         plotSubwindow(new PlotForm(massSpec.compress(), strDescription));
     }
 }
@@ -141,14 +144,19 @@ void MainWindow::on_actionTimeShiftAcc_triggered()
     {
         AccumScaleCorrectionDialog::DialogReturnParams params =
                 dialog.getDialogParams();
-        QString strDescr = m_strRikenFileName + tr(" sum with shift [%1 .. %2] step %3").
-                arg(params.minSweepIdx).arg(params.maxSweepIdx).arg(params.step);
         CompressedMS ms = m_pData->accumulateMassSpec
         (
             params.minSweepIdx,
             params.maxSweepIdx,
-            params.step
+            params.step,
+            params.peakWidth
         );
+        QString strDescr = m_strRikenFileName
+                + tr(" sum with shift [%1 .. %2] step %3. TIC: %4")
+                .arg(params.minSweepIdx)
+                .arg(params.maxSweepIdx)
+                .arg(params.step)
+                .arg(ms.totalIonCount());
         plotSubwindow(new PlotForm(ms, strDescr));
     }
 }

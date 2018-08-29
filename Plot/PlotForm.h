@@ -26,12 +26,13 @@ public:
     explicit PlotForm(const CompressedMS &ms, const QString &strDscrpt, QWidget *parent = 0);
     ~PlotForm();
 
-private slots:
-    void on_actionSavePicture_triggered();
-
-    void on_actionDragXAxisLim_triggered();
+    Q_SIGNAL void mouseCoordNotify(const QString& str);
 
 private:
+    Q_SLOT void on_actionSavePicture_triggered();
+
+    Q_SLOT void on_actionDragXAxisLim_triggered();
+
     Q_SLOT void on_actionZoomOut_triggered();
 
     Q_SLOT void on_actionImport_triggered();
@@ -45,8 +46,6 @@ private:
     Q_SLOT void printMouseCoordinates(QMouseEvent * event);
 
     Q_SLOT void mouseClick(QMouseEvent * event);
-
-    Q_SIGNAL void mouseCoordNotify(const QString& str);
 
     Ui::PlotForm *ui;
 

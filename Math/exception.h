@@ -1,5 +1,5 @@
-#ifndef _MATRIX_EXCEPT_
-#define _MATRIX_EXCEPT_
+#ifndef MATRIX_EXCEPT_H
+#define MATRIX_EXCEPT_H
 
 #include <sstream>
 #include <exception>

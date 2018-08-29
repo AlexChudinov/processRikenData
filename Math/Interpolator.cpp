@@ -5,7 +5,7 @@ Linear::Linear(const Map& tab) : m_table(tab)
 {
     std::pair<Map::const_iterator, Map::const_iterator>
             minMax = std::minmax_element(tab.begin(), tab.end(),
-    [](const Map::const_reference a, const Map::const_reference b)->bool
+    [](Map::const_reference a, Map::const_reference b)->bool
     {
         return a.second < b.second;
     });
@@ -17,7 +17,7 @@ Linear::Linear(Map&& tab) : m_table(tab)
 {
     std::pair<Map::const_iterator, Map::const_iterator>
             minMax = std::minmax_element(tab.begin(), tab.end(),
-    [](const Map::const_reference a, const Map::const_reference b)->bool
+    [](Map::const_reference a, Map::const_reference b)->bool
     {
         return a.second < b.second;
     });
@@ -34,7 +34,7 @@ double Linear::interpolate(double xVal) const
 {
     xVal /= xFactor();
     if (xVal < minX() || xVal >= maxX()) return 0.0;
-    Map::const_iterator it1 = m_table.upper_bound(xVal), it0 = std::prev(it1);
+    Map::const_iterator it1 = m_table.upper_bound(static_cast<size_t>(xVal)), it0 = std::prev(it1);
     double yVal = interpolate(it0, it1, xVal);
     return yVal;
 }
@@ -79,8 +79,8 @@ Interpolator::Pointer Interpolator::create(InterpType type, const Map &tab)
     switch(type)
     {
     case LinearType: return Pointer(new Linear(tab));
-    default: return Pointer();
     }
+    return Pointer();
 }
 
 Interpolator::Pointer Interpolator::create(InterpType type, Map &tab)
@@ -88,6 +88,6 @@ Interpolator::Pointer Interpolator::create(InterpType type, Map &tab)
     switch(type)
     {
     case LinearType: return Pointer(new Linear(tab));
-    default: return Pointer();
     }
+    return Pointer();
 }

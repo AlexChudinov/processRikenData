@@ -37,6 +37,12 @@ public:
      * @return
      */
     CompressedMS compress() const;
+
+    /**
+     * @brief totalIonCount returns total number of counts
+     * @return
+     */
+    quint32 totalIonCount() const;
 private:
     quint32 m_nMinTime;
     VectorInt m_vFreqs;
@@ -93,7 +99,13 @@ public:
      * @param step step size
      * @return
      */
-    CompressedMS accumulateMassSpec(size_t idx0, size_t idx1, size_t step) const;
+    CompressedMS accumulateMassSpec
+    (
+        size_t idx0,
+        size_t idx1,
+        size_t step,
+        size_t peakWidth
+    ) const;
 private:
     QStringList m_strListHeader;
     quint32 m_nMaxTime;

@@ -39,6 +39,7 @@ public:
         size_t minSweepIdx;
         size_t maxSweepIdx;
         size_t step;
+        size_t peakWidth;
     };
 
     DialogReturnParams getDialogParams() const;
