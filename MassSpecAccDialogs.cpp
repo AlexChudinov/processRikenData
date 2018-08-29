@@ -38,7 +38,7 @@ AccumScaleCorrectionDialog::AccumScaleCorrectionDialog(int nSweepsNum, QWidget *
     ui->minSweepIdxSpinBox->setRange(0, nSweepsNum);
     ui->maxSweepIdxSpinBox->setRange(0, nSweepsNum);
     ui->stepSizeSpinBox->setRange(0, nSweepsNum);
-    ui->stepSizeSpinBox->setRange(0, nSweepsNum);
+    ui->peakWidthSpinBox->setRange(0, nSweepsNum);
     ui->minSweepIdxSpinBox->setValue(0);
     ui->maxSweepIdxSpinBox->setValue(nSweepsNum);
     ui->stepSizeSpinBox->setValue(nSweepsNum/10);
