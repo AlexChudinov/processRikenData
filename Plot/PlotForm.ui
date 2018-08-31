@@ -126,18 +126,34 @@
      <normaloff>:/Icons/openHand</normaloff>:/Icons/openHand</iconset>
    </property>
    <property name="text">
-    <string>Drag x axis limit</string>
+    <string>Change x axis limits</string>
    </property>
    <property name="toolTip">
-    <string>Drags the current x-axes limits</string>
+    <string>Click to change current x-axes limits</string>
    </property>
   </action>
   <action name="actionCalculatePeaks">
+   <property name="icon">
+    <iconset resource="../resources.qrc">
+     <normaloff>:/Icons/peak</normaloff>:/Icons/peak</iconset>
+   </property>
    <property name="text">
     <string>Calculate peaks</string>
    </property>
    <property name="toolTip">
     <string>Calculates peak positions</string>
+   </property>
+  </action>
+  <action name="actionMassSpecProps">
+   <property name="icon">
+    <iconset resource="../resources.qrc">
+     <normaloff>:/Icons/propertyList</normaloff>:/Icons/propertyList</iconset>
+   </property>
+   <property name="text">
+    <string>Mass spec properties</string>
+   </property>
+   <property name="toolTip">
+    <string>Mass spec properties</string>
    </property>
   </action>
  </widget>

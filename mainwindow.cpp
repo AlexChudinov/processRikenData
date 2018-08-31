@@ -129,10 +129,9 @@ void MainWindow::on_actionSimpleMassSpecAcc_triggered()
         MassSpec massSpec = m_pData->accumulateMassSpec(pairAccLims.first,
                                                         pairAccLims.second);
         QString strDescription = m_strRikenFileName
-                + tr(" sum [%1 .. %2] TIC: %3")
+                + tr(" sum [%1 .. %2]")
                 .arg(pairAccLims.first)
-                .arg(pairAccLims.second)
-                .arg(massSpec.totalIonCount());
+                .arg(pairAccLims.second);
         plotSubwindow(new PlotForm(massSpec.compress(), strDescription));
     }
 }
@@ -153,11 +152,10 @@ void MainWindow::on_actionTimeShiftAcc_triggered()
             params.peakWidth
         );
         QString strDescr = m_strRikenFileName
-                + tr(" sum with shift [%1 .. %2] step %3. TIC: %4")
+                + tr(" sum with shift [%1 .. %2] step %3.")
                 .arg(params.minSweepIdx)
                 .arg(params.maxSweepIdx)
-                .arg(params.step)
-                .arg(ms.totalIonCount());
+                .arg(params.step);
         plotSubwindow(new PlotForm(ms, strDescr));
     }
 }

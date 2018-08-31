@@ -182,7 +182,7 @@ void CompressedMS::logSplineSmoothing(double p)
     *this = CompressedMS(vVals, tMin, interp()->type());
 }
 
-void CompressedMS::logSplineParamLessSmoothing()
+double CompressedMS::logSplineParamLessSmoothing()
 {
     uint64_t TIC = totalIonCount();
     double p = 1.; //Init. smooth param. val
@@ -282,18 +282,24 @@ void CompressedMS::logSplineParamLessSmoothing()
     }
 
     size_t tMin = static_cast<size_t>(interp()->minX());
-    *this = CompressedMS(yy, tMin, interp()->type());;
+    *this = CompressedMS(yy, tMin, interp()->type());
+    return p;
 }
 
 Peak::PeakCollection CompressedMS::getPeaks(double p) const
 {
     CompressedMS tmp(*this);
     tmp.rescale();
-    tmp.logSplineSmoothing(p);
-    VectorDouble y = tmp.transformToVector();
-    const size_t n = y.size();
+    //dy keeps original data here
+    VectorDouble dy = tmp.transformToVector();
+    const size_t n = dy.size();
+    //y preallocated for smoothed data
+    VectorDouble y(n);
+    const double tMin = tmp.interp()->minX();
+    ParSplineCalc::logSplinePoissonWeights(y,dy,p);
     VectorInt Idx(n);
-    VectorDouble dy(n);
+    std::iota(Idx.begin(), Idx.end(), 1);
+    //dy now keeps linear approximation for derivative
     dy[0] = y[1] - y[0];
     dy[n-1] = y[n-1] - y[n-2];
     QtConcurrent::map<VectorInt::const_iterator>
@@ -354,8 +360,20 @@ Peak::PeakCollection CompressedMS::getPeaks(double p) const
                     dy[rhi-1], dy[rhi], dy[rhi+1]
                 );
             //Write down new peak
+            if(intens > 1.0 && right - left > 2.0)
+            {
             QMutexLocker lock(&mutex);
-            res.insert(Peak(pos,left,right,intens));
+            res.insert
+            (
+                Peak
+                (
+                    tMin + pos,
+                    tMin + left,
+                    tMin + right,
+                    intens
+                )
+            );
+            }
         }
     }
     ).waitForFinished();

@@ -1,6 +1,6 @@
 #include "PlotForm.h"
 #include "ui_PlotForm.h"
-#include "RikenData/rawrikendata.h"
+#include "PropertiesListForm.h"
 
 #include <QToolBar>
 #include <algorithm>
@@ -11,8 +11,10 @@ PlotForm::PlotForm(const CompressedMS &ms, const QString& strDscrpt, QWidget *pa
     QWidget(parent),
     ui(new Ui::PlotForm),
     m_pPlot(new QCustomPlot(this)),
-    m_pMassSpec(new CompressedMS(ms))
+    m_pMassSpec(new CompressedMS(ms)),
+    m_props(new PropertiesListForm())
 {
+    m_props->setWindowTitle("Props: " + windowTitle());
     connect(m_pPlot, SIGNAL(mouseMove(QMouseEvent*)),
             this, SLOT(printMouseCoordinates(QMouseEvent*)));
     connect(m_pPlot, SIGNAL(mousePress(QMouseEvent*)),
@@ -41,6 +43,8 @@ PlotForm::PlotForm(const CompressedMS &ms, const QString& strDscrpt, QWidget *pa
     m_pPlot->yAxis->setLabelFont(QFont("Arial", 12));
     m_pPlot->xAxis->setLabel("time [bin]");
     m_pPlot->yAxis->setLabel("ion count");
+
+    fillPropertiesList();
 }
 
 PlotForm::~PlotForm()
@@ -114,9 +118,23 @@ void PlotForm::setUpToolBar(QToolBar * toolBar)
         }
     );
     toolBar->addSeparator();
-    toolBar->addActions({ui->actionSplineSmoothing, ui->actionAutoSplineSmoothing});
+    toolBar->addActions
+    (
+        {
+            ui->actionSplineSmoothing,
+            ui->actionAutoSplineSmoothing,
+            ui->actionCalculatePeaks
+        }
+    );
     toolBar->addSeparator();
-    toolBar->addActions({ui->actionSavePicture, ui->actionImport});
+    toolBar->addActions
+    (
+        {
+            ui->actionSavePicture,
+            ui->actionImport,
+            ui->actionMassSpecProps
+        }
+    );
 }
 
 void PlotForm::addCompressedDataToGraph(QCPGraph *g, const CompressedMS *ms) const
@@ -142,12 +160,47 @@ void PlotForm::importTextDataToFile(QTextStream &out, const QCPGraphDataContaine
     Iterator
             First = tab->findBegin(r.lower),
             Last = tab->findEnd(r.upper);
-    out << "x" << "\t\t" << "y" << "\n";
+    out << "#x:" << "\t\t" << "#y:" << "\n";
     for(Iterator i = First; i < Last; ++i)
     {
         size_t key = static_cast<size_t>(i->key);
         size_t val = static_cast<size_t>(i->value);
         out << key << "\t" << val << "\n";
+    }
+}
+
+void PlotForm::fillPropertiesList()
+{
+    m_props->clearList();
+    m_props->addListEntry
+    (
+        QString("TIC: %1").arg(m_pMassSpec->totalIonCount())
+    );
+    m_props->addListEntry
+    (
+        QString("Min time count: %1")
+                .arg(m_pMassSpec->interp()->minX())
+    );
+    m_props->addListEntry
+    (
+        QString("Max time count: %1")
+                .arg(m_pMassSpec->interp()->maxX())
+    );
+    if(m_pSmoothedData)
+    {
+        m_props->addListEntry
+        (
+            QString("Smooth. param.: %1")
+                    .arg(m_smoothParam)
+        );
+    }
+    if(m_peaks)
+    {
+        m_props->addListEntry
+        (
+            QString("Number of detected peaks: %1")
+                    .arg(m_peaks->size())
+        );
     }
 }
 
@@ -239,6 +292,22 @@ void PlotForm::on_actionImport_triggered()
                             = m_pPlot->graph(1)->data();
                     importTextDataToFile(out, graphData.data());
                 }
+                if(strData == "Peaks" && m_peaks)
+                {
+                    QCPRange r = m_pPlot->xAxis->range();
+                    Peak::PeakCollection::const_iterator First
+                            = m_peaks->lower_bound(r.lower);
+                    Peak::PeakCollection::const_iterator Last
+                            = m_peaks->lower_bound(r.upper);
+                    out << "#Center: \t" << "#Height: \t"
+                        << "#Left: \t" << "#Right: \n";
+                    out << qSetRealNumberPrecision(10);
+                    for(; First != Last; ++First)
+                    {
+                        out << First->center() << "\t" << First->height() << "\t"
+                            << First->left() << "\t" << First->right() << "\n";
+                    }
+                }
                 file.close();
             }
             else
@@ -252,21 +321,24 @@ void PlotForm::on_actionImport_triggered()
 void PlotForm::on_actionSplineSmoothing_triggered()
 {
     m_pSmoothedData.reset(new CompressedMS(*m_pMassSpec));
-    double p = QInputDialog::getDouble
+    m_smoothParam = QInputDialog::getDouble
     (
         this,
         "Plot",
         "Parameter of smoothing"
     );
-    m_pSmoothedData->logSplineSmoothing(p);
+    m_pSmoothedData->logSplineSmoothing(m_smoothParam);
     addSmoothedGraph();
+    fillPropertiesList();
 }
 
 void PlotForm::on_actionAutoSplineSmoothing_triggered()
 {
     m_pSmoothedData.reset(new CompressedMS(*m_pMassSpec));
-    m_pSmoothedData->logSplineParamLessSmoothing();
+    m_smoothParam =
+            m_pSmoothedData->logSplineParamLessSmoothing();
     addSmoothedGraph();
+    fillPropertiesList();
 }
 
 void PlotForm::on_actionSavePicture_triggered()
@@ -292,4 +364,28 @@ void PlotForm::on_actionSavePicture_triggered()
 void PlotForm::on_actionDragXAxisLim_triggered()
 {
     m_pPlot->setCursor(QCursor(Qt::OpenHandCursor));
+}
+
+void PlotForm::on_actionCalculatePeaks_triggered()
+{
+    if(m_pSmoothedData)
+    {
+        m_peaks.reset
+        (
+            new Peak::PeakCollection
+            (
+                m_pMassSpec->getPeaks(m_smoothParam)
+            )
+        );
+        fillPropertiesList();
+    }
+    else
+    {
+        msg("Peaks can be calculated only after smoothing procedure.");
+    }
+}
+
+void PlotForm::on_actionMassSpecProps_triggered()
+{
+    m_props->show();
 }

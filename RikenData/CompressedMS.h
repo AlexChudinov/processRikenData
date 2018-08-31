@@ -132,7 +132,7 @@ public:
      * @param p - smoothness param
      */
     void logSplineSmoothing(double p);
-    void logSplineParamLessSmoothing();
+    double logSplineParamLessSmoothing();
 
     /**
      * @brief getPeaks calculates peaks with parameters using logarithmic spline smoothing
@@ -177,7 +177,7 @@ private:
     {
         double c = y1;
         double b = .5 * (y2 - y0);
-        double a = .5 * (y2 - 2.*y1 + y1);
+        double a = .5 * (y2 - 2.*y1 + y0);
         position = x1 - b / (2. * a);
         intensity = c - b * b / (4. * a);
     }
