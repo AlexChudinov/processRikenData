@@ -21,7 +21,9 @@ SOURCES += main.cpp\
     Math/splines.cpp \
     MassSpecAccDialogs.cpp \
     Math/Interpolator.cpp \
-    RikenData/CompressedMS.cpp
+    RikenData/CompressedMS.cpp \
+    Math/ParSplineCalc.cpp \
+    CreditsDialog.cpp
 
 HEADERS  += mainwindow.h \
     RikenData/rawrikendata.h \
@@ -34,15 +36,21 @@ HEADERS  += mainwindow.h \
     Math/splines.h \
     MassSpecAccDialogs.h \
     Math/Interpolator.h \
-    RikenData/CompressedMS.h
+    RikenData/CompressedMS.h \
+    Math/ParSplineCalc.h \
+    CreditsDialog.h
 
 FORMS    += mainwindow.ui \
     Plot/PlotForm.ui \
     PropertiesListForm.ui \
     SimpleMassSpecAccDialog.ui \
-    AccumScaleCorrectionDialog.ui
+    AccumScaleCorrectionDialog.ui \
+    CreditsDialog.ui
 
 RESOURCES += \
     resources.qrc
 
 QMAKE_CXXFLAGS += -std=c++0x
+
+DISTFILES += \
+    QCustomPlot/GPL.txt

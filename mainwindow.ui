@@ -11,11 +11,11 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>QMS</string>
+   <string>Ion counter</string>
   </property>
   <property name="windowIcon">
    <iconset resource="resources.qrc">
-    <normaloff>:/Icons/mainAppIcon</normaloff>:/Icons/mainAppIcon</iconset>
+    <normaloff>:/Icons/mainIcon</normaloff>:/Icons/mainIcon</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="QMdiArea" name="mdiArea">
@@ -35,7 +35,7 @@
      <x>0</x>
      <y>0</y>
      <width>748</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -58,9 +58,16 @@
     <addaction name="actionSimpleMassSpecAcc"/>
     <addaction name="actionTimeShiftAcc"/>
    </widget>
+   <widget class="QMenu" name="menuAbout">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionCredits"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuMass_Spec"/>
    <addaction name="menuProperties"/>
+   <addaction name="menuAbout"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -77,7 +84,7 @@
   <action name="actionOpenRikenDataFile">
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/Icons/fileOpenIcon</normaloff>:/Icons/fileOpenIcon</iconset>
+     <normaloff>:/Icons/fileOpen</normaloff>:/Icons/fileOpen</iconset>
    </property>
    <property name="text">
     <string>Open</string>
@@ -116,7 +123,7 @@
   <action name="actionTileSubWindows">
    <property name="icon">
     <iconset resource="resources.qrc">
-     <normaloff>:/Icons/tilesIcon</normaloff>:/Icons/tilesIcon</iconset>
+     <normaloff>:/Icons/tileWindows</normaloff>:/Icons/tileWindows</iconset>
    </property>
    <property name="text">
     <string>Tile subwindows</string>
@@ -131,6 +138,11 @@
    </property>
    <property name="toolTip">
     <string>Adjusts time scale</string>
+   </property>
+  </action>
+  <action name="actionCredits">
+   <property name="text">
+    <string>Credits</string>
    </property>
   </action>
  </widget>

@@ -1,4 +1,5 @@
 #include "CompressedMS.h"
+#include "Math/ParSplineCalc.h"
 #include "Math/smoothing_splines.h"
 #include <QtConcurrent>
 #include <cmath>
@@ -34,6 +35,21 @@ CompressedMS::CompressedMS(const CompressedMS::VectorInt &vVals,
         x0 = x1++;
     }
     m_pInterpolator.reset(Interpolator::create(type, std::move(tab)).release());
+}
+
+CompressedMS::CompressedMS
+(
+    const CompressedMS::VectorDouble &vVals,
+    size_t tMin,
+    Interpolator::InterpType type
+)
+{
+    VectorInt vValsInt(vVals.size());
+    for(size_t i = 0; i < vVals.size(); ++i)
+    {
+        vValsInt[i] = static_cast<size_t>(std::round(vVals[i]));
+    }
+    *this = CompressedMS(vValsInt, tMin, type);
 }
 
 CompressedMS::CompressedMS(const Map& data, Interpolator::InterpType type)
@@ -149,70 +165,38 @@ void CompressedMS::rescale()
 
 void CompressedMS::logSplineSmoothing(double p)
 {
-    uint32_t tMin = static_cast<uint32_t>(interp()->minX());
-    uint32_t tMax = static_cast<uint32_t>(interp()->maxX());
-    VectorDouble w(tMax - tMin + 1, 1.0);
-    VectorDouble y(tMax - tMin + 1, 1.0);
 
-    for(Map::const_reference e : interp()->table())
+    size_t
+            tMin = static_cast<size_t>(interp()->minX()),
+            tMax = static_cast<size_t>(interp()->maxX());
+    VectorDouble yOut(tMax - tMin + 1);
+    ParSplineCalc::logSplinePoissonWeights(yOut, transformToVector(), p);
+
+    VectorInt vVals(yOut.size());
+    for(size_t i = 0; i < vVals.size(); ++i)
     {
-        w[static_cast<size_t>(e.first) - tMin] = e.second <= 1 ? 1.0 : e.second;
-        y[static_cast<size_t>(e.first) - tMin] += e.second;
+        vVals[i] = static_cast<size_t>(std::round(yOut[i]));
     }
+    yOut.clear();
 
-    std::vector<double> yy(tMax - tMin + 1);
-    math::log_third_order_smoothing_spline_eq
-    (
-        static_cast<int>(y.size()),
-        y.data(),
-        w.data(),
-        p,
-        yy.data()
-    );
-    w.clear();
-    y.clear();
-
-    VectorInt vVals(tMax - tMin + 1, 1);
-    VectorInt Idx(vVals.size()); //prepare vector of array indices
-    std::iota(Idx.begin(), Idx.end(), 0);
-    QtConcurrent::map<VectorInt>(Idx, [&](size_t i)->void
-    {
-        vVals[i] = static_cast<size_t>(std::round(yy[i] - 1));
-    }).waitForFinished();
-
-    yy.clear();
     *this = CompressedMS(vVals, tMin, interp()->type());
 }
 
 void CompressedMS::logSplineParamLessSmoothing()
 {
-    uint32_t tMin = static_cast<uint32_t>(interp()->minX());
-    uint32_t tMax = static_cast<uint32_t>(interp()->maxX());
-
     uint64_t TIC = totalIonCount();
     double p = 1.; //Init. smooth param. val
 
-    VectorDouble w(tMax - tMin + 1, 1.0);
-    VectorDouble y(w.size(), 1.0);
+    VectorDouble y = transformToVector();
 
-    for(Map::const_reference e : interp()->table())
+    VectorDouble yy(y.size()); //prepare vector to hold smoothed vals
+
+    ParSplineCalc::logSplinePoissonWeights(yy, y, p);
+
+    auto sqDiffFun = [](double a, double b)->double
     {
-        w[static_cast<size_t>(e.first) - tMin] = e.second <= 1 ? 1.0 : e.second;
-        y[static_cast<size_t>(e.first) - tMin] += e.second;
-    }
-
-    VectorDouble yy(w.size()); //prepare vector to hold smoothed vals
-
-    math::log_third_order_smoothing_spline_eq
-    (
-        static_cast<int>(y.size()),
-        y.data(),
-        w.data(),
-        p,
-        yy.data()
-    );
-
-    auto sqDiffFun = [](double a, double b)->double{ return (a-b)*(a-b); };
+        return (a-b)*(a-b);
+    };
 
     double s = std::inner_product
     (
@@ -229,13 +213,11 @@ void CompressedMS::logSplineParamLessSmoothing()
     {
         while (s > TIC)
         {
-            math::log_third_order_smoothing_spline_eq
+            ParSplineCalc::logSplinePoissonWeights
             (
-                static_cast<int>(y.size()),
-                y.data(),
-                w.data(),
-                p /= 10.,
-                yy.data()
+                yy,
+                y,
+                p /= 10.
             );
 
             s = std::inner_product
@@ -254,13 +236,11 @@ void CompressedMS::logSplineParamLessSmoothing()
     {
         while(s < TIC)
         {
-            math::log_third_order_smoothing_spline_eq
+            ParSplineCalc::logSplinePoissonWeights
             (
-                static_cast<int>(y.size()),
-                y.data(),
-                w.data(),
-                p *= 10.,
-                yy.data()
+                yy,
+                y,
+                p *= 10.
             );
 
             s = std::inner_product
@@ -279,13 +259,11 @@ void CompressedMS::logSplineParamLessSmoothing()
     if(static_cast<size_t>(std::round(s)) != TIC)
     while(std::abs(a - b) > 1.0)
     {
-        math::log_third_order_smoothing_spline_eq
+        ParSplineCalc::logSplinePoissonWeights
         (
-            static_cast<int>(y.size()),
-            y.data(),
-            w.data(),
-            p = .5 * (a + b),
-            yy.data()
+            yy,
+            y,
+            p = .5 * (a + b)
         );
 
         s = std::inner_product
@@ -303,7 +281,8 @@ void CompressedMS::logSplineParamLessSmoothing()
         else break;
     }
 
-    logSplineSmoothing(p);
+    size_t tMin = static_cast<size_t>(interp()->minX());
+    *this = CompressedMS(yy, tMin, interp()->type());;
 }
 
 Peak::PeakCollection CompressedMS::getPeaks(double p) const
@@ -312,6 +291,76 @@ Peak::PeakCollection CompressedMS::getPeaks(double p) const
     tmp.rescale();
     tmp.logSplineSmoothing(p);
     VectorDouble y = tmp.transformToVector();
+    const size_t n = y.size();
+    VectorInt Idx(n);
+    VectorDouble dy(n);
+    dy[0] = y[1] - y[0];
+    dy[n-1] = y[n-1] - y[n-2];
+    QtConcurrent::map<VectorInt::const_iterator>
+    (
+        std::next(Idx.begin()),
+        std::prev(Idx.end()),
+        [&](size_t i)->void
+    {
+        dy[i] = y[i+1] - y[i-1];
+    }
+    ).waitForFinished();
+
+    QMutex mutex;
+    Peak::PeakCollection res;
+    QtConcurrent::map<VectorInt::const_iterator>
+    (
+        std::next(Idx.begin()),
+        std::prev(Idx.end()),
+        [&](size_t i)->void
+    {
+        if(y[i-1] < y[i] && y[i+1] < y[i])
+        {
+            double
+                    intens,
+                    pos,
+                    left = 0.0,
+                    right = static_cast<double>(n-1);
+            parabolicMaximum
+            (
+                intens,
+                pos,
+                static_cast<double>(i),
+                y[i-1], y[i], y[i+1]
+            );
+            //look for right and left peak sides
+            size_t lhi = i, rhi = i;
+            while(lhi != 0 &&
+                  (dy[lhi-1] > dy[lhi] || dy[lhi+1] > dy[lhi]))
+                --lhi;
+            while (rhi != n-1 &&
+                   (dy[rhi-1] < dy[rhi] || dy[rhi+1] < dy[rhi]))
+                ++rhi;
+            double dummy;
+            if(lhi != 0)
+                parabolicMaximum
+                (
+                    dummy,
+                    left,
+                    static_cast<double>(lhi),
+                    dy[lhi-1], dy[lhi], dy[lhi+1]
+                );
+            if(rhi != n-1)
+                parabolicMaximum
+                (
+                    dummy,
+                    right,
+                    static_cast<double>(rhi),
+                    dy[rhi-1], dy[rhi], dy[rhi+1]
+                );
+            //Write down new peak
+            QMutexLocker lock(&mutex);
+            res.insert(Peak(pos,left,right,intens));
+        }
+    }
+    ).waitForFinished();
+
+    return res;
 }
 
 CompressedMS::uint64_t CompressedMS::sumSqDev(const CompressedMS &ms) const

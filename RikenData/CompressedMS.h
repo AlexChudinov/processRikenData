@@ -36,6 +36,12 @@ public:
     double height() const;
     void setHeight(double height);
 
+    /**
+     * @brief operator < is needed to store peaks in a set addressing them by
+     * their positions
+     * @param pr
+     * @return
+     */
     inline bool operator < (const Peak& pr) const { return m_center < pr.center(); }
 };
 
@@ -53,11 +59,27 @@ public:
     using VectorDouble = std::vector<double>;
 
     //Compress vector
-    CompressedMS(const VectorInt& vVals, size_t tMin,
-                 Interpolator::InterpType type = Interpolator::LinearType);
+    CompressedMS
+    (
+        const VectorInt& vVals, size_t tMin,
+        Interpolator::InterpType type = Interpolator::LinearType
+    );
+    CompressedMS
+    (
+        const VectorDouble& vVals, size_t tMin,
+        Interpolator::InterpType type = Interpolator::LinearType
+    );
 
-    CompressedMS(const Map& data, Interpolator::InterpType type = Interpolator::LinearType);
-    CompressedMS(Map&& data, Interpolator::InterpType type = Interpolator::LinearType);
+    CompressedMS
+    (
+        const Map& data,
+        Interpolator::InterpType type = Interpolator::LinearType
+    );
+    CompressedMS
+    (
+        Map&& data,
+        Interpolator::InterpType type = Interpolator::LinearType
+    );
     //Impement copy constructors because pointer for Interpolator was used
     CompressedMS(const CompressedMS& ms);
     CompressedMS(CompressedMS&& ms);
@@ -140,6 +162,25 @@ private:
      * @return vector of intensities
      */
     VectorDouble transformToVector() const;
+
+    /**
+     * @brief parabolicMaximum calculates maxima position and height
+     * using three points
+     */
+    static inline void parabolicMaximum
+    (
+        double& intensity,
+        double& position,
+        double x1,
+        double y0, double y1, double y2
+    )
+    {
+        double c = y1;
+        double b = .5 * (y2 - y0);
+        double a = .5 * (y2 - 2.*y1 + y1);
+        position = x1 - b / (2. * a);
+        intensity = c - b * b / (4. * a);
+    }
 };
 
 #endif // COMPRESSEDMS_H

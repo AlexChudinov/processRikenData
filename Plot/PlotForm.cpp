@@ -154,7 +154,7 @@ void PlotForm::importTextDataToFile(QTextStream &out, const QCPGraphDataContaine
 void PlotForm::on_actionHorizontalZoom_triggered()
 {
     m_pPlot->setSelectionRectMode(QCP::srmZoom);
-    m_pPlot->setCursor(QCursor(QPixmap("://Icons//hZoomIcon")));
+    m_pPlot->setCursor(QCursor(QPixmap("://Icons//zoomIn")));
 }
 
 void PlotForm::printMouseCoordinates(QMouseEvent *event)

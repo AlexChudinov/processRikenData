@@ -20,6 +20,9 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+private slots:
+    void on_actionCredits_triggered();
+
 private:
 
     Q_SLOT void on_actionTimeShiftAcc_triggered();

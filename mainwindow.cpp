@@ -5,6 +5,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 
+#include "CreditsDialog.h"
 #include "PropertiesListForm.h"
 #include "MassSpecAccDialogs.h"
 #include "RikenData/rawrikendata.h"
@@ -159,4 +160,10 @@ void MainWindow::on_actionTimeShiftAcc_triggered()
                 .arg(ms.totalIonCount());
         plotSubwindow(new PlotForm(ms, strDescr));
     }
+}
+
+void MainWindow::on_actionCredits_triggered()
+{
+    CreditsDialog dialog;
+    dialog.exec();
 }

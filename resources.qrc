@@ -1,14 +1,14 @@
 <RCC>
     <qresource prefix="/Icons">
-        <file alias="fileOpenIcon">Icons/file_open_icon.png</file>
-        <file alias="hZoomIcon">Icons/hzoom_icon.png</file>
-        <file alias="zoomOutIcon">Icons/zoom_out_icon.png</file>
-        <file alias="tilesIcon">Icons/tiles_icon.png</file>
         <file alias="importTextData">Icons/import_text_data.png</file>
         <file alias="splineSmoothing">Icons/spline.png</file>
         <file alias="splineAutoSmoothing">Icons/splineAuto.png</file>
-        <file alias="mainAppIcon">Icons/qms.ico</file>
-        <file alias="importSaveIcon">Icons/importSaveIcon.jpg</file>
-        <file alias="qtOpenHandIcon">Icons/qtOpenHand.png</file>
+        <file alias="fileOpen">Icons/open-folder-with-document.png</file>
+        <file alias="mainIcon">Icons/appIco.png</file>
+        <file alias="tileWindows">Icons/large-symbol-of-four-black-tiles-square.png</file>
+        <file alias="zoomIn">Icons/zoom-in.png</file>
+        <file alias="zoomOut">Icons/zoom-out.png</file>
+        <file alias="openHand">Icons/open-hand.png</file>
+        <file alias="image">Icons/img.png</file>
     </qresource>
 </RCC>
