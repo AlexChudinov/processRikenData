@@ -11,6 +11,6 @@
         <file alias="openHand">Icons/open-hand.png</file>
         <file alias="image">Icons/img.png</file>
         <file alias="peak">Icons/peak.png</file>
-        <file alias="propertyList">Icons/document-symbol-with-text-lines.png</file>
+        <file alias="massSpecQuestion">Icons/massSpecWithQ.png</file>
     </qresource>
 </RCC>

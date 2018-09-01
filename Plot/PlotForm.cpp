@@ -321,15 +321,24 @@ void PlotForm::on_actionImport_triggered()
 void PlotForm::on_actionSplineSmoothing_triggered()
 {
     m_pSmoothedData.reset(new CompressedMS(*m_pMassSpec));
+    bool ok;
     m_smoothParam = QInputDialog::getDouble
     (
         this,
         "Plot",
-        "Parameter of smoothing"
+        "Parameter of smoothing",
+        0.0,
+        0.0,
+        std::numeric_limits<double>::max(),
+        1,
+        &ok
     );
-    m_pSmoothedData->logSplineSmoothing(m_smoothParam);
-    addSmoothedGraph();
-    fillPropertiesList();
+    if(ok)
+    {
+        m_pSmoothedData->logSplineSmoothing(m_smoothParam);
+        addSmoothedGraph();
+        fillPropertiesList();
+    }
 }
 
 void PlotForm::on_actionAutoSplineSmoothing_triggered()

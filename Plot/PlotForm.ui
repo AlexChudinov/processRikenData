@@ -147,7 +147,7 @@
   <action name="actionMassSpecProps">
    <property name="icon">
     <iconset resource="../resources.qrc">
-     <normaloff>:/Icons/propertyList</normaloff>:/Icons/propertyList</iconset>
+     <normaloff>:/Icons/massSpecQuestion</normaloff>:/Icons/massSpecQuestion</iconset>
    </property>
    <property name="text">
     <string>Mass spec properties</string>
