@@ -1,6 +1,6 @@
 #include "CompressedMS.h"
+#include "Math/Smoother.h"
 #include "Math/ParSplineCalc.h"
-#include "Math/smoothing_splines.h"
 #include <QtConcurrent>
 #include <cmath>
 
@@ -165,117 +165,41 @@ void CompressedMS::rescale()
 
 void CompressedMS::logSplineSmoothing(double p)
 {
+    Smoother::Pointer calc
+    (
+        Smoother::create
+        (
+            Smoother::LogSplinePoissonWeightType,
+            QVariantMap({{ "Smoothness param.", QVariant(p) }})
+        )
+    );
 
-    size_t
-            tMin = static_cast<size_t>(interp()->minX()),
-            tMax = static_cast<size_t>(interp()->maxX());
-    VectorDouble yOut(tMax - tMin + 1);
+    VectorDouble yOut;
 
-    {
-        ParSplineCalc::InstanceLocker calc = ParSplineCalc::lockInstance();
-        calc->logSplinePoissonWeights(yOut, transformToVector(), p);
-    }
+    calc->run(yOut, transformToVector());
 
-    VectorInt vVals(yOut.size());
-    for(size_t i = 0; i < vVals.size(); ++i)
-    {
-        vVals[i] = static_cast<size_t>(std::round(yOut[i]));
-    }
-    yOut.clear();
-
-    *this = CompressedMS(vVals, tMin, interp()->type());
+    size_t tMin = static_cast<size_t>(interp()->minX());
+    *this = CompressedMS(yOut, tMin, interp()->type());
 }
 
 double CompressedMS::logSplineParamLessSmoothing()
 {
-    ParSplineCalc::InstanceLocker calc
-            = ParSplineCalc::lockInstance();
-
-    uint64_t TIC = totalIonCount();
-    double p = 1.; //Init. smooth param. val
-
-    VectorDouble y = transformToVector();
-
-    VectorDouble yy(y.size()); //prepare vector to hold smoothed vals
-
-    calc->logSplinePoissonWeights(yy, y, p);
-
-    auto sqDiffFun = [](double a, double b)->double
-    {
-        return (a-b)*(a-b);
-    };
-
-    double s = std::inner_product
+    Smoother::Pointer calc
     (
-        y.begin(),
-        y.end(),
-        yy.begin(),
-        0.0,
-        std::plus<double>(),
-        sqDiffFun
+        Smoother::create
+        (
+            Smoother::LogSplinePoissonWeightPoissonNoiseType,
+            QVariantMap()
+        )
     );
 
-    double a, b;
-    if(s > TIC)
-    {
-        while (s > TIC)
-        {
-            calc->logSplinePoissonWeights(yy,y,p /= 10.);
+    VectorDouble yOut;
 
-            s = std::inner_product
-            (
-                y.begin(),
-                y.end(),
-                yy.begin(),
-                0.0,
-                std::plus<double>(),
-                sqDiffFun
-            );
-        }
-        a = p; b = p * 10.;
-    }
-    else
-    {
-        while(s < TIC)
-        {
-            calc->logSplinePoissonWeights(yy, y, p *= 10.);
-
-            s = std::inner_product
-            (
-                y.begin(),
-                y.end(),
-                yy.begin(),
-                0.0,
-                std::plus<double>(),
-                sqDiffFun
-            );
-        }
-        a = p / 10.; b = p;
-    }
-
-    if(static_cast<size_t>(std::round(s)) != TIC)
-    while(std::abs(a - b) > 1.0)
-    {
-        calc->logSplinePoissonWeights(yy, y, p = .5 * (a + b));
-
-        s = std::inner_product
-        (
-            y.begin(),
-            y.end(),
-            yy.begin(),
-            0.0,
-            std::plus<double>(),
-            sqDiffFun
-        );
-
-        if(static_cast<size_t>(std::round(s)) < TIC) a = p;
-        else if (static_cast<size_t>(std::round(s)) > TIC) b = p;
-        else break;
-    }
+    calc->run(yOut, transformToVector());
 
     size_t tMin = static_cast<size_t>(interp()->minX());
-    *this = CompressedMS(yy, tMin, interp()->type());
-    return p;
+    *this = CompressedMS(yOut, tMin, interp()->type());
+    return calc->params().begin().value().toDouble();
 }
 
 Peak::PeakCollection CompressedMS::getPeaks(double p) const

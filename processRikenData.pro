@@ -23,7 +23,9 @@ SOURCES += main.cpp\
     Math/Interpolator.cpp \
     RikenData/CompressedMS.cpp \
     Math/ParSplineCalc.cpp \
-    CreditsDialog.cpp
+    CreditsDialog.cpp \
+    Math/Smoother.cpp \
+    Math/LogSplinePoissonWeight.cpp
 
 HEADERS  += mainwindow.h \
     RikenData/rawrikendata.h \
@@ -38,7 +40,9 @@ HEADERS  += mainwindow.h \
     Math/Interpolator.h \
     RikenData/CompressedMS.h \
     Math/ParSplineCalc.h \
-    CreditsDialog.h
+    CreditsDialog.h \
+    Math/Smoother.h \
+    Math/LogSplinePoissonWeight.h
 
 FORMS    += mainwindow.ui \
     Plot/PlotForm.ui \

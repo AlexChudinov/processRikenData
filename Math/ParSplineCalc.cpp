@@ -7,8 +7,10 @@ QMutex ParSplineCalc::s_mutex;
 
 ParSplineCalc::InstanceLocker ParSplineCalc::lockInstance()
 {
-    s_mutex.lock();
-    return InstanceLocker(&s_instance);
+    if(s_mutex.tryLock())
+        return InstanceLocker(&s_instance);
+    else
+        return InstanceLocker();
 }
 
 void ParSplineCalc::freeInstance()

@@ -11,8 +11,10 @@
 class ParSplineCalc
 {
 private:
-    friend class CompressedMS;
+    friend class LogSplinePoissonWeight;
+    friend class LogSplinePoissonWeightPoissonNoise;
     friend class InstanceLocker;
+    friend class CompressedMS;
 
     ParSplineCalc(){}
 
@@ -26,7 +28,10 @@ private:
     {
         ParSplineCalc * m_instance;
     public:
-        InstanceLocker(ParSplineCalc * instance)
+        InstanceLocker
+        (
+            ParSplineCalc * instance = Q_NULLPTR
+        )
             : m_instance(instance)
         {}
 
@@ -37,6 +42,8 @@ private:
         }
 
         ParSplineCalc * operator -> () { return m_instance; }
+
+        operator bool () const { return m_instance; }
     };
 
     static ParSplineCalc s_instance;
