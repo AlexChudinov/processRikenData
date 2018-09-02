@@ -1,6 +1,31 @@
 #include "ParSplineCalc.h"
 #include "Solvers.h"
-#include <QtConcurrent>
+
+ParSplineCalc ParSplineCalc::s_instance;
+
+QMutex ParSplineCalc::s_mutex;
+
+ParSplineCalc::InstanceLocker ParSplineCalc::lockInstance()
+{
+    s_mutex.lock();
+    return InstanceLocker(&s_instance);
+}
+
+void ParSplineCalc::freeInstance()
+{
+    s_mutex.unlock();
+}
+
+void ParSplineCalc::clear()
+{
+    a.clear();
+    b.clear();
+    c.clear();
+    d.clear();
+    e.clear();
+    r.clear();
+    bb.clear();
+}
 
 void ParSplineCalc::logSplinePoissonWeights
 (
@@ -11,8 +36,8 @@ void ParSplineCalc::logSplinePoissonWeights
 {
     using VectorIdx = std::vector<size_t>;
     const size_t n = yIn.size();
-    VectorDouble bb(n);
-    VectorDouble r(n); //right-hand side values
+    bb.resize(n);
+    r.resize(n); //right-hand side values
     r[0]  = 0.0;
     r[n-1]= 0.0;
     //yOut keeps weights
@@ -37,11 +62,11 @@ void ParSplineCalc::logSplinePoissonWeights
     }).waitForFinished();
 
     //Allocate coefficients for a linear equations system
-    VectorDouble a(n - 2);
-    VectorDouble b(n - 1);
-    VectorDouble c(n);
-    VectorDouble d(n - 1);
-    VectorDouble e(n - 2);
+    a.resize(n - 2);
+    b.resize(n - 1);
+    c.resize(n);
+    d.resize(n - 1);
+    e.resize(n - 2);
     //Boundary coefficients
     b[0] = -yOut[0] - 2*yOut[1] + 1.0;
     c[0] = 1.0;
@@ -80,8 +105,6 @@ void ParSplineCalc::logSplinePoissonWeights
         r.data(),
         bb.data()
     );
-
-    a.clear(); b.clear(); c.clear(); d.clear(); e.clear(); r.clear();
 
     yOut[0]  = std::log(yIn[0] + 1.) - (bb[1]  - bb[0])  * yOut[0];
     yOut[n-1]= std::log(yIn[n-1] + 1.) - (bb[n-2]- bb[n-1])* yOut[n-1];

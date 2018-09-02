@@ -234,9 +234,9 @@ void PlotForm::mouseClick(QMouseEvent *event)
             QCPRange range = m_pPlot->xAxis->range();
             double x0 = .5 * (range.upper + range.lower);
             if(x < x0)
-                range.lower += (x - x0);
+                (range.lower *= 2) -= x;
             else
-                range.upper += (x - x0);
+                (range.upper *= 2) -= x;
             range.lower = qMax(range.lower, static_cast<double>(m_nXMin));
             range.upper = qMin(range.upper, static_cast<double>(m_nXMax));
             m_pPlot->xAxis->setRange(range);

@@ -170,7 +170,11 @@ void CompressedMS::logSplineSmoothing(double p)
             tMin = static_cast<size_t>(interp()->minX()),
             tMax = static_cast<size_t>(interp()->maxX());
     VectorDouble yOut(tMax - tMin + 1);
-    ParSplineCalc::logSplinePoissonWeights(yOut, transformToVector(), p);
+
+    {
+        ParSplineCalc::InstanceLocker calc = ParSplineCalc::lockInstance();
+        calc->logSplinePoissonWeights(yOut, transformToVector(), p);
+    }
 
     VectorInt vVals(yOut.size());
     for(size_t i = 0; i < vVals.size(); ++i)
@@ -184,6 +188,9 @@ void CompressedMS::logSplineSmoothing(double p)
 
 double CompressedMS::logSplineParamLessSmoothing()
 {
+    ParSplineCalc::InstanceLocker calc
+            = ParSplineCalc::lockInstance();
+
     uint64_t TIC = totalIonCount();
     double p = 1.; //Init. smooth param. val
 
@@ -191,7 +198,7 @@ double CompressedMS::logSplineParamLessSmoothing()
 
     VectorDouble yy(y.size()); //prepare vector to hold smoothed vals
 
-    ParSplineCalc::logSplinePoissonWeights(yy, y, p);
+    calc->logSplinePoissonWeights(yy, y, p);
 
     auto sqDiffFun = [](double a, double b)->double
     {
@@ -213,12 +220,7 @@ double CompressedMS::logSplineParamLessSmoothing()
     {
         while (s > TIC)
         {
-            ParSplineCalc::logSplinePoissonWeights
-            (
-                yy,
-                y,
-                p /= 10.
-            );
+            calc->logSplinePoissonWeights(yy,y,p /= 10.);
 
             s = std::inner_product
             (
@@ -236,12 +238,7 @@ double CompressedMS::logSplineParamLessSmoothing()
     {
         while(s < TIC)
         {
-            ParSplineCalc::logSplinePoissonWeights
-            (
-                yy,
-                y,
-                p *= 10.
-            );
+            calc->logSplinePoissonWeights(yy, y, p *= 10.);
 
             s = std::inner_product
             (
@@ -259,12 +256,7 @@ double CompressedMS::logSplineParamLessSmoothing()
     if(static_cast<size_t>(std::round(s)) != TIC)
     while(std::abs(a - b) > 1.0)
     {
-        ParSplineCalc::logSplinePoissonWeights
-        (
-            yy,
-            y,
-            p = .5 * (a + b)
-        );
+        calc->logSplinePoissonWeights(yy, y, p = .5 * (a + b));
 
         s = std::inner_product
         (
@@ -296,7 +288,13 @@ Peak::PeakCollection CompressedMS::getPeaks(double p) const
     //y preallocated for smoothed data
     VectorDouble y(n);
     const double tMin = tmp.interp()->minX();
-    ParSplineCalc::logSplinePoissonWeights(y,dy,p);
+
+    {
+        ParSplineCalc::InstanceLocker calc
+            = ParSplineCalc::lockInstance();
+        calc->logSplinePoissonWeights(y,dy,p);
+    }
+
     VectorInt Idx(n);
     std::iota(Idx.begin(), Idx.end(), 1);
     //dy now keeps linear approximation for derivative
