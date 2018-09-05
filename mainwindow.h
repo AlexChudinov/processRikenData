@@ -21,6 +21,7 @@ public:
     ~MainWindow();
 
 private:
+    Q_SLOT void on_actionAbout_triggered();
     Q_SLOT void on_actionCredits_triggered();
     Q_SLOT void on_actionTimeShiftAcc_triggered();
     Q_SLOT void on_actionTileSubWindows_triggered();

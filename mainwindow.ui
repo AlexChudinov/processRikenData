@@ -63,6 +63,7 @@
      <string>Help</string>
     </property>
     <addaction name="actionCredits"/>
+    <addaction name="actionAbout"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuMass_Spec"/>
@@ -143,6 +144,11 @@
   <action name="actionCredits">
    <property name="text">
     <string>Credits</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
    </property>
   </action>
  </widget>

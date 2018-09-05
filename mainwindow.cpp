@@ -5,6 +5,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 
+#include "DialogAbout.h"
 #include "QMapPropsDialog.h"
 #include "CreditsDialog.h"
 #include "PropertiesListForm.h"
@@ -166,5 +167,11 @@ void MainWindow::on_actionTimeShiftAcc_triggered()
 void MainWindow::on_actionCredits_triggered()
 {
     CreditsDialog dialog;
+    dialog.exec();
+}
+
+void MainWindow::on_actionAbout_triggered()
+{
+    DialogAbout dialog;
     dialog.exec();
 }
