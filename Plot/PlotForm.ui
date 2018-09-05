@@ -90,21 +90,6 @@
     <string>Ctrl+S</string>
    </property>
   </action>
-  <action name="actionAutoSplineSmoothing">
-   <property name="icon">
-    <iconset resource="../resources.qrc">
-     <normaloff>:/Icons/splineAutoSmoothing</normaloff>:/Icons/splineAutoSmoothing</iconset>
-   </property>
-   <property name="text">
-    <string>Auto spline smoothing</string>
-   </property>
-   <property name="toolTip">
-    <string>Spline smoothing without parameters</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Shift+S</string>
-   </property>
-  </action>
   <action name="actionSavePicture">
    <property name="icon">
     <iconset resource="../resources.qrc">
@@ -130,18 +115,6 @@
    </property>
    <property name="toolTip">
     <string>Click to change current x-axes limits</string>
-   </property>
-  </action>
-  <action name="actionCalculatePeaks">
-   <property name="icon">
-    <iconset resource="../resources.qrc">
-     <normaloff>:/Icons/peak</normaloff>:/Icons/peak</iconset>
-   </property>
-   <property name="text">
-    <string>Calculate peaks</string>
-   </property>
-   <property name="toolTip">
-    <string>Calculates peak positions</string>
    </property>
   </action>
   <action name="actionMassSpecProps">

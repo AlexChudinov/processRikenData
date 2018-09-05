@@ -13,6 +13,7 @@ class ParSplineCalc
 private:
     friend class LogSplinePoissonWeight;
     friend class LogSplinePoissonWeightPoissonNoise;
+    friend class LogSplinePoissonWeightOnePeak;
     friend class InstanceLocker;
     friend class CompressedMS;
 

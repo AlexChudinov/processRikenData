@@ -20,13 +20,13 @@ void ParSplineCalc::freeInstance()
 
 void ParSplineCalc::clear()
 {
-    a.clear();
-    b.clear();
-    c.clear();
-    d.clear();
-    e.clear();
-    r.clear();
-    bb.clear();
+    VectorDouble().swap(a);
+    VectorDouble().swap(b);
+    VectorDouble().swap(c);
+    VectorDouble().swap(d);
+    VectorDouble().swap(e);
+    VectorDouble().swap(r);
+    VectorDouble().swap(bb);
 }
 
 void ParSplineCalc::logSplinePoissonWeights

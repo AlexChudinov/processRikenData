@@ -1,16 +1,16 @@
 #include "LogSplinePoissonWeight.h"
 #include "ParSplineCalc.h"
 
+#define SMOOTH_PARAM "Smooth. param"
+#define PEAK_COUNT "Peak count"
+
 LogSplinePoissonWeight::LogSplinePoissonWeight
 (
     const QVariantMap &pars
 )
     :
-      Smoother(pars),
-      m_p
-      (
-        *reinterpret_cast<const double*>(params().begin().value().data())
-      )
+      Smoother(pars, paramsTemplate()),
+      m_p(paramPtr<double>(SMOOTH_PARAM))
 {}
 
 Smoother::Type LogSplinePoissonWeight::type() const
@@ -31,17 +31,26 @@ void LogSplinePoissonWeight::run
             ParSplineCalc::lockInstance()
         );
 
-        calc->logSplinePoissonWeights(yOut, yIn, m_p);
+        calc->logSplinePoissonWeights(yOut, yIn, *m_p);
     }
 }
 
-LogSplinePoissonWeightPoissonNoise::LogSplinePoissonWeightPoissonNoise
-(
-    const QVariantMap &
-)
+QVariantMap LogSplinePoissonWeight::paramsTemplate() const
+{
+    return QVariantMap({{SMOOTH_PARAM, QVariant(1.0)}});
+
+}
+
+void LogSplinePoissonWeight::setParams(const QVariantMap &params)
+{
+    this->Smoother::setParams(params);
+    m_p = paramPtr<double>(SMOOTH_PARAM);
+}
+
+LogSplinePoissonWeightPoissonNoise::LogSplinePoissonWeightPoissonNoise()
     :
-      Smoother(QVariantMap({{ "Smoothness parameter", QVariant(1.0) }})),
-      m_p(*reinterpret_cast<double*>(params().begin().value().data()))
+      Smoother(QVariantMap(), paramsTemplate()),
+      m_p(paramPtr<double>(SMOOTH_PARAM))
 {
 }
 
@@ -63,7 +72,7 @@ void LogSplinePoissonWeightPoissonNoise::run
             ParSplineCalc::lockInstance()
         );
         double TIC = std::accumulate(yIn.begin(), yIn.end(), 0.0);
-        calc->logSplinePoissonWeights(yOut, yIn, m_p);
+        calc->logSplinePoissonWeights(yOut, yIn, *m_p);
         double s = sqDif(yOut, yIn);
 
         double a, b;
@@ -75,11 +84,11 @@ void LogSplinePoissonWeightPoissonNoise::run
                 (
                     yOut,
                     yIn,
-                    m_p /= 10.
+                    *m_p /= 10.
                 );
                 s = sqDif(yOut, yIn);
             }
-            a = m_p; b = m_p * 10.;
+            a = *m_p; b = *m_p * 10.;
         }
         else
         {
@@ -89,11 +98,11 @@ void LogSplinePoissonWeightPoissonNoise::run
                 (
                     yOut,
                     yIn,
-                    m_p *= 10.
+                    *m_p *= 10.
                 );
                 s = sqDif(yOut, yIn);
             }
-            a = m_p / 10.; b = m_p;
+            a = *m_p / 10.; b = *m_p;
         }
 
         while(std::abs(a - b) > 1.0)
@@ -102,14 +111,25 @@ void LogSplinePoissonWeightPoissonNoise::run
             (
                 yOut,
                 yIn,
-                m_p = .5 * (a + b)
+                *m_p = .5 * (a + b)
             );
             s = sqDif(yOut, yIn);
-            if(s < TIC) a = m_p;
-            else if (s > TIC) b = m_p;
+            if(s < TIC) a = *m_p;
+            else if (s > TIC) b = *m_p;
             else break;
         }
     }
+}
+
+QVariantMap LogSplinePoissonWeightPoissonNoise::paramsTemplate() const
+{
+    return LogSplinePoissonWeight(QVariantMap()).paramsTemplate();
+}
+
+void LogSplinePoissonWeightPoissonNoise::setParams(const QVariantMap &params)
+{
+    this->Smoother::setParams(params);
+    m_p = paramPtr<double>(SMOOTH_PARAM);
 }
 
 double LogSplinePoissonWeightPoissonNoise::sqDif
@@ -124,4 +144,65 @@ double LogSplinePoissonWeightPoissonNoise::sqDif
         res += (y1[i] - y2[i]) * (y1[i] - y2[i]);
     }
     return res;
+}
+
+
+LogSplinePoissonWeightOnePeak::LogSplinePoissonWeightOnePeak
+(
+    const QVariantMap &pars
+)
+:
+  Smoother(pars, paramsTemplate()),
+  m_p(paramPtr<double>(SMOOTH_PARAM)),
+  m_peakCount(paramPtr<size_t>(PEAK_COUNT))
+{
+}
+
+Smoother::Type LogSplinePoissonWeightOnePeak::type() const
+{
+    return LogSplinePoissonWeightOnePeakType;
+}
+
+void LogSplinePoissonWeightOnePeak::run
+(
+    Smoother::VectorDouble &yOut,
+    const Smoother::VectorDouble &yIn
+)
+{
+    if(inputCheck(yOut, yIn) && *m_peakCount != 0)
+    {
+        ParSplineCalc::InstanceLocker calc
+        (
+            ParSplineCalc::lockInstance()
+        );
+
+        calc->logSplinePoissonWeights(yOut, yIn, *m_p);
+
+        while(peakCount(yOut) > *m_peakCount)
+            calc->logSplinePoissonWeights(yOut, yIn, *m_p *= 10.);
+
+        double a = *m_p / 10., b = *m_p;
+
+        while(b - a > 1.0)
+        {
+            calc->logSplinePoissonWeights(yOut, yIn, *m_p = .5*(a + b));
+            if(peakCount(yOut) > *m_peakCount) a = *m_p;
+            else b = *m_p;
+        }
+        calc->logSplinePoissonWeights(yOut, yIn, b);
+    }
+}
+
+QVariantMap LogSplinePoissonWeightOnePeak::paramsTemplate() const
+{
+    QVariantMap res = LogSplinePoissonWeight(QVariantMap()).paramsTemplate();
+    res[PEAK_COUNT] = QVariant::fromValue<size_t>(1ul);
+    return res;
+}
+
+void LogSplinePoissonWeightOnePeak::setParams(const QVariantMap &params)
+{
+    this->Smoother::setParams(params);
+    m_p = paramPtr<double>(SMOOTH_PARAM);
+    m_peakCount = paramPtr<size_t>(PEAK_COUNT);
 }

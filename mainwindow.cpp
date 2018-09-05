@@ -5,6 +5,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 
+#include "QMapPropsDialog.h"
 #include "CreditsDialog.h"
 #include "PropertiesListForm.h"
 #include "MassSpecAccDialogs.h"
@@ -83,7 +84,7 @@ void MainWindow::readRikenDataFile()
 
 void MainWindow::msg(const QString &msg)
 {
-    QMessageBox::warning(this,"Process Riken Data", msg);
+    QMessageBox::warning(this,"Ion counter", msg);
 }
 
 void MainWindow::disableRikenDataFileActions()
@@ -106,7 +107,9 @@ void MainWindow::plotSubwindow(PlotForm *form)
 {
     connect(form, SIGNAL(mouseCoordNotify(QString)),
             this->statusBar(), SLOT(showMessage(QString)));
-    ui->mdiArea->addSubWindow(form)->showMaximized();
+    QMdiSubWindow * w = ui->mdiArea->addSubWindow(form);
+    w->showMaximized();
+    w->setAttribute(Qt::WA_DeleteOnClose);
 }
 
 void MainWindow::on_actionShowDataHeader_triggered()

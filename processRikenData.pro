@@ -25,7 +25,8 @@ SOURCES += main.cpp\
     Math/ParSplineCalc.cpp \
     CreditsDialog.cpp \
     Math/Smoother.cpp \
-    Math/LogSplinePoissonWeight.cpp
+    Math/LogSplinePoissonWeight.cpp \
+    QMapPropsDialog.cpp
 
 HEADERS  += mainwindow.h \
     RikenData/rawrikendata.h \
@@ -42,14 +43,16 @@ HEADERS  += mainwindow.h \
     Math/ParSplineCalc.h \
     CreditsDialog.h \
     Math/Smoother.h \
-    Math/LogSplinePoissonWeight.h
+    Math/LogSplinePoissonWeight.h \
+    QMapPropsDialog.h
 
 FORMS    += mainwindow.ui \
     Plot/PlotForm.ui \
     PropertiesListForm.ui \
     SimpleMassSpecAccDialog.ui \
     AccumScaleCorrectionDialog.ui \
-    CreditsDialog.ui
+    CreditsDialog.ui \
+    QMapPropsDialog.ui
 
 RESOURCES += \
     resources.qrc

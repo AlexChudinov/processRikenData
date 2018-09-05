@@ -1,7 +1,9 @@
+#include "Math/Smoother.h"
 #include "PlotForm.h"
 #include "ui_PlotForm.h"
 #include "PropertiesListForm.h"
 
+#include "QMapPropsDialog.h"
 #include <QToolBar>
 #include <algorithm>
 #include <QFileDialog>
@@ -121,9 +123,7 @@ void PlotForm::setUpToolBar(QToolBar * toolBar)
     toolBar->addActions
     (
         {
-            ui->actionSplineSmoothing,
-            ui->actionAutoSplineSmoothing,
-            ui->actionCalculatePeaks
+            ui->actionSplineSmoothing
         }
     );
     toolBar->addSeparator();
@@ -214,7 +214,9 @@ void PlotForm::printMouseCoordinates(QMouseEvent *event)
 {
     double x = m_pPlot->xAxis->pixelToCoord(event->pos().x());
     double y = m_pPlot->yAxis->pixelToCoord(event->pos().y());
-    QString strMousePos = QString("x: %1, y: %2").arg(x).arg(y);
+    QString strMousePos = QString("x: %1, y: %2")
+            .arg(x, 0, 'E', 8)
+            .arg(y);
     Q_EMIT mouseCoordNotify(strMousePos);
 }
 
@@ -320,34 +322,76 @@ void PlotForm::on_actionImport_triggered()
 
 void PlotForm::on_actionSplineSmoothing_triggered()
 {
-    m_pSmoothedData.reset(new CompressedMS(*m_pMassSpec));
+    QStringList items
+    {
+        "Parametric spline",
+        "Parameterless Poisson noise spline",
+        "Peak counter spline"
+    };
     bool ok;
-    m_smoothParam = QInputDialog::getDouble
+    QString strData = QInputDialog::getItem
     (
         this,
-        "Plot",
-        "Parameter of smoothing",
-        0.0,
-        0.0,
-        std::numeric_limits<double>::max(),
-        1,
-        &ok
+        "Plot Dialog",
+        "Type of smoothing",
+         items, 0, false, &ok
     );
-    if(ok)
-    {
-        m_pSmoothedData->logSplineSmoothing(m_smoothParam);
-        addSmoothedGraph();
-        fillPropertiesList();
-    }
-}
 
-void PlotForm::on_actionAutoSplineSmoothing_triggered()
-{
-    m_pSmoothedData.reset(new CompressedMS(*m_pMassSpec));
-    m_smoothParam =
-            m_pSmoothedData->logSplineParamLessSmoothing();
-    addSmoothedGraph();
-    fillPropertiesList();
+    if(ok && !strData.isEmpty())
+    {
+        Smoother::Pointer calc;
+        if(strData == items[0])
+            calc.reset
+            (
+                Smoother::create
+                (
+                    Smoother::LogSplinePoissonWeightType
+                ).release()
+            );
+        else if(strData == items[1])
+            calc.reset
+            (
+                Smoother::create
+                (
+                    Smoother::LogSplinePoissonWeightPoissonNoiseType
+                ).release()
+            );
+        else if(strData == items[2])
+            calc.reset
+            (
+                Smoother::create
+                (
+                    Smoother::LogSplinePoissonWeightOnePeakType
+                ).release()
+            );
+
+        QCPRange range = m_pPlot->xAxis->range();
+        m_pSmoothedData.reset
+        (
+            new CompressedMS
+            (
+                m_pMassSpec->cutRange(range.lower, range.upper)
+            )
+        );
+
+        QMapPropsDialog dialog;
+        dialog.setProps(calc->params());
+        dialog.exec();
+
+        if(dialog.result() == QDialog::Accepted)
+        {
+            calc->setParams(dialog.props());
+            m_peaks.reset
+            (
+                new Peak::PeakCollection
+                (
+                    m_pSmoothedData->smooth(calc.get())
+                )
+            );
+            addSmoothedGraph();
+            fillPropertiesList();
+        }
+    }
 }
 
 void PlotForm::on_actionSavePicture_triggered()
@@ -373,25 +417,6 @@ void PlotForm::on_actionSavePicture_triggered()
 void PlotForm::on_actionDragXAxisLim_triggered()
 {
     m_pPlot->setCursor(QCursor(Qt::OpenHandCursor));
-}
-
-void PlotForm::on_actionCalculatePeaks_triggered()
-{
-    if(m_pSmoothedData)
-    {
-        m_peaks.reset
-        (
-            new Peak::PeakCollection
-            (
-                m_pMassSpec->getPeaks(m_smoothParam)
-            )
-        );
-        fillPropertiesList();
-    }
-    else
-    {
-        msg("Peaks can be calculated only after smoothing procedure.");
-    }
 }
 
 void PlotForm::on_actionMassSpecProps_triggered()

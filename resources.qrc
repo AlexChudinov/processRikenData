@@ -2,7 +2,6 @@
     <qresource prefix="/Icons">
         <file alias="importTextData">Icons/import_text_data.png</file>
         <file alias="splineSmoothing">Icons/spline.png</file>
-        <file alias="splineAutoSmoothing">Icons/splineAuto.png</file>
         <file alias="fileOpen">Icons/open-folder-with-document.png</file>
         <file alias="mainIcon">Icons/appIco.png</file>
         <file alias="tileWindows">Icons/large-symbol-of-four-black-tiles-square.png</file>
@@ -10,7 +9,6 @@
         <file alias="zoomOut">Icons/zoom-out.png</file>
         <file alias="openHand">Icons/open-hand.png</file>
         <file alias="image">Icons/img.png</file>
-        <file alias="peak">Icons/peak.png</file>
         <file alias="massSpecQuestion">Icons/massSpecWithQ.png</file>
     </qresource>
 </RCC>

@@ -2,8 +2,11 @@
 #define COMPRESSEDMS_H
 
 #include "Math/Interpolator.h"
+#include <QtConcurrent>
 #include <set>
 #include <vector>
+
+class Smoother;
 
 /**
  * @brief The Peak class defines peak, its position, height and width
@@ -127,19 +130,10 @@ public:
     void rescale();
 
     /**
-     * @brief logSplineSmoothing applies spline smoothing to mass spectrum
-     * data
-     * @param p - smoothness param
+     * @brief smooth applies smoothing to mass spectrum data
+     * @param s is smoother interface see @class Smoother in @file Smoother.h
      */
-    void logSplineSmoothing(double p);
-    double logSplineParamLessSmoothing();
-
-    /**
-     * @brief getPeaks calculates peaks with parameters using logarithmic spline smoothing
-     * @param p - spline smoothness param
-     * @return
-     */
-    Peak::PeakCollection getPeaks(double p) const;
+    Peak::PeakCollection smooth(Smoother * s);
 
     /**
      * @brief sumSqDev estimates sum of squares of deviations between two mass spectra
@@ -153,6 +147,14 @@ public:
      * @return
      */
     CompressedMS::uint64_t totalIonCount() const;
+
+    /**
+     * @brief cutRange cuts time interval from the mass spectrum
+     * @param tMin
+     * @param tMax
+     * @return
+     */
+    CompressedMS cutRange(double tMin, double tMax) const;
 private:
     Interpolator::Pointer m_pInterpolator;
 

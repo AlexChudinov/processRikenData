@@ -9,7 +9,7 @@
  */
 class LogSplinePoissonWeight : public Smoother
 {
-    const double& m_p;
+    const double* m_p;
 public:
 
     LogSplinePoissonWeight(const QVariantMap& pars);
@@ -17,6 +17,10 @@ public:
     Type type() const;
 
     void run(VectorDouble& yOut, const VectorDouble& yIn);
+
+    QVariantMap paramsTemplate() const;
+
+    void setParams(const QVariantMap &params);
 };
 
 /**
@@ -25,14 +29,18 @@ public:
  */
 class LogSplinePoissonWeightPoissonNoise : public Smoother
 {
-    double& m_p;
+    double* m_p;
 public:
 
-    LogSplinePoissonWeightPoissonNoise(const QVariantMap&);
+    LogSplinePoissonWeightPoissonNoise();
 
     Type type() const;
 
     void run(VectorDouble &yOut, const VectorDouble &yIn);
+
+    QVariantMap paramsTemplate() const;
+
+    void setParams(const QVariantMap &params);
 private:
     /**
      * @brief sqDif square deviances between two arrays
@@ -45,6 +53,36 @@ private:
         const VectorDouble& y1,
         const VectorDouble& y2
     );
+};
+
+/**
+ * @brief The LogSplinePoissonWeightOnePeak class regulates smoothness
+ * to fit one peak
+ */
+class LogSplinePoissonWeightOnePeak : public Smoother
+{
+    double * m_p;
+    const size_t * m_peakCount;
+public:
+
+    LogSplinePoissonWeightOnePeak(const QVariantMap& pars);
+
+    Type type() const;
+
+    void run(VectorDouble &yOut, const VectorDouble &yIn);
+
+    QVariantMap paramsTemplate() const;
+
+    void setParams(const QVariantMap &params);
+private:
+    //Checks that there is only one peak
+    static inline size_t peakCount(const VectorDouble& y)
+    {
+        size_t cnt = 0;
+        for(size_t i = 1; i < y.size() - 1; ++i)
+            if(y[i-1] < y[i] && y[i] > y[i+1] && y[i] > 1.0) cnt++;
+        return cnt;
+    }
 };
 
 #endif // LOGSPLINEPOISSONWEIGHT_H

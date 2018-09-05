@@ -33,13 +33,11 @@ public:
 
 private:
     Q_SLOT void on_actionMassSpecProps_triggered();
-    Q_SLOT void on_actionCalculatePeaks_triggered();
     Q_SLOT void on_actionSavePicture_triggered();
     Q_SLOT void on_actionDragXAxisLim_triggered();
     Q_SLOT void on_actionZoomOut_triggered();
     Q_SLOT void on_actionImport_triggered();
     Q_SLOT void on_actionSplineSmoothing_triggered();
-    Q_SLOT void on_actionAutoSplineSmoothing_triggered();
     Q_SLOT void on_actionHorizontalZoom_triggered();
     Q_SLOT void printMouseCoordinates(QMouseEvent * event);
     Q_SLOT void mouseClick(QMouseEvent * event);
