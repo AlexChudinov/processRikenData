@@ -1,5 +1,12 @@
 #include "LogSplinePoissonWeight.h"
 
+QMap<Smoother::Type, QString> Smoother::s_registry
+{
+    {Smoother::LogSplinePoissonWeightType, "LogSplinePoissonWeightType"},
+    {Smoother::LogSplinePoissonWeightPoissonNoiseType, "LogSplinePoissonWeightPoissonNoiseType"},
+    {Smoother::LogSplinePoissonWeightOnePeakType, "LogSplinePoissonWeightOnePeakType"}
+};
+
 Smoother::Smoother(const QVariantMap &pars, QVariantMap &&parsTemp)
 {
     //Checking of inputed table

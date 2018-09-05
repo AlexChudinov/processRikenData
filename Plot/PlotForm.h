@@ -50,7 +50,8 @@ private:
     QScopedPointer<CompressedMS> m_pMassSpec;
     QScopedPointer<CompressedMS> m_pSmoothedData;
     QScopedPointer<Peak::PeakCollection> m_peaks;
-    double m_smoothParam;
+    QVariantMap m_smoothProps;
+    QString m_smootherName;
     //Limits
     size_t m_nXMin, m_nXMax;
     size_t m_nYMin, m_nYMax;

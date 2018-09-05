@@ -75,6 +75,11 @@ public:
         );
     }
 
+    static inline const QMap<Type, QString>& registry()
+    {
+        return s_registry;
+    }
+
 protected:
     template <class T>
     inline T* paramPtr(const QString& key)
@@ -87,6 +92,7 @@ protected:
 
 private:
     QVariantMap m_params;
+    static QMap<Type, QString> s_registry;
 };
 
 #endif // SMOOTHER_H

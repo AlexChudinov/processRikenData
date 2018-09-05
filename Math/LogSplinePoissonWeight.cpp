@@ -154,7 +154,7 @@ LogSplinePoissonWeightOnePeak::LogSplinePoissonWeightOnePeak
 :
   Smoother(pars, paramsTemplate()),
   m_p(paramPtr<double>(SMOOTH_PARAM)),
-  m_peakCount(paramPtr<size_t>(PEAK_COUNT))
+  m_peakCount(paramPtr<int>(PEAK_COUNT))
 {
 }
 
@@ -196,7 +196,7 @@ void LogSplinePoissonWeightOnePeak::run
 QVariantMap LogSplinePoissonWeightOnePeak::paramsTemplate() const
 {
     QVariantMap res = LogSplinePoissonWeight(QVariantMap()).paramsTemplate();
-    res[PEAK_COUNT] = QVariant::fromValue<size_t>(1ul);
+    res[PEAK_COUNT] = QVariant::fromValue<int>(1ul);
     return res;
 }
 
@@ -204,5 +204,5 @@ void LogSplinePoissonWeightOnePeak::setParams(const QVariantMap &params)
 {
     this->Smoother::setParams(params);
     m_p = paramPtr<double>(SMOOTH_PARAM);
-    m_peakCount = paramPtr<size_t>(PEAK_COUNT);
+    m_peakCount = paramPtr<int>(PEAK_COUNT);
 }

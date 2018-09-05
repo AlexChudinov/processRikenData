@@ -62,7 +62,7 @@ private:
 class LogSplinePoissonWeightOnePeak : public Smoother
 {
     double * m_p;
-    const size_t * m_peakCount;
+    const int * m_peakCount;
 public:
 
     LogSplinePoissonWeightOnePeak(const QVariantMap& pars);
@@ -76,9 +76,9 @@ public:
     void setParams(const QVariantMap &params);
 private:
     //Checks that there is only one peak
-    static inline size_t peakCount(const VectorDouble& y)
+    static inline int peakCount(const VectorDouble& y)
     {
-        size_t cnt = 0;
+        int cnt = 0;
         for(size_t i = 1; i < y.size() - 1; ++i)
             if(y[i-1] < y[i] && y[i] > y[i+1] && y[i] > 1.0) cnt++;
         return cnt;

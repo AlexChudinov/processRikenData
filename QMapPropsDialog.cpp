@@ -52,10 +52,10 @@ void QMapPropsDialog::setProps(const QVariantMap &props)
             sb->setFont(appFont);
             break;
         }
-        case QVariant::UInt:
+        case QVariant::Int:
         {
             QSpinBox * sb = new QSpinBox;
-            sb->setValue(it.value().toUInt());
+            sb->setValue(it.value().toInt());
             sb->setRange(0, 1000000000);
             box->addWidget(sb);
             m_widgets.push_back(sb);
@@ -91,9 +91,9 @@ void QMapPropsDialog::readProps()
             );
             break;
         }
-        case QVariant::UInt:
+        case QVariant::Int:
         {
-            it.value().setValue<size_t>
+            it.value().setValue<int>
             (
                 qobject_cast<QSpinBox*>(w)->value()
             );

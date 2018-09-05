@@ -188,11 +188,14 @@ void PlotForm::fillPropertiesList()
     );
     if(m_pSmoothedData)
     {
-        m_props->addListEntry
-        (
-            QString("Smooth. param.: %1")
-                    .arg(m_smoothParam)
-        );
+        QVariantMap::ConstIterator it = m_smoothProps.begin();
+        m_props->addListEntry("[Smoothing properties]");
+        m_props->addListEntry("Object name: " + m_smootherName);
+        for(; it != m_smoothProps.end(); ++it)
+        {
+            m_props->addListEntry((it.key() + ": " + it.value().toString()));
+        }
+        m_props->addListEntry("[Smoothing properties]");
     }
     if(m_peaks)
     {
@@ -389,6 +392,8 @@ void PlotForm::on_actionSplineSmoothing_triggered()
                 )
             );
             addSmoothedGraph();
+            m_smoothProps = calc->params();
+            m_smootherName = Smoother::registry()[calc->type()];
             fillPropertiesList();
         }
     }
