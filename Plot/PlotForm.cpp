@@ -422,6 +422,7 @@ void PlotForm::on_actionSavePicture_triggered()
 void PlotForm::on_actionDragXAxisLim_triggered()
 {
     m_pPlot->setCursor(QCursor(Qt::OpenHandCursor));
+    m_pPlot->setSelectionRectMode(QCP::srmNone);
 }
 
 void PlotForm::on_actionMassSpecProps_triggered()
