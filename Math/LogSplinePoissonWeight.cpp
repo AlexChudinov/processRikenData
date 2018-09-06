@@ -199,6 +199,7 @@ void LogSplinePoissonWeightOnePeak::run
             else b = *m_p;
         }
         calc->logSplinePoissonWeights(yOut, yIn, b);
+        *m_p = b;
     }
 }
 
