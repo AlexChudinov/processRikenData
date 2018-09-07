@@ -300,19 +300,19 @@ void PlotForm::on_actionImport_triggered()
             if(file.open(QIODevice::WriteOnly | QIODevice::Text))
             {
                 QTextStream out(&file);
-                if(strData == "Raw data")
+                if(strData == items[0])
                 {
                     QSharedPointer<QCPGraphDataContainer> graphData
-                            = m_pPlot->graph(0)->data();
+                            = m_massSpecPlot->data();
                     importTextDataToFile(out, graphData.data());
                 }
-                if(strData == "Smoothed data" && m_pPlot->graphCount() == 2)
+                if(strData == items[1])
                 {
                     QSharedPointer<QCPGraphDataContainer>  graphData
-                            = m_pPlot->graph(1)->data();
+                            = m_smoothedDataPlot->data();
                     importTextDataToFile(out, graphData.data());
                 }
-                if(strData == "Peaks" && m_peaks)
+                if(strData == items[2] && m_peaks)
                 {
                     QCPRange r = m_pPlot->xAxis->range();
                     Peak::PeakCollection::const_iterator First
