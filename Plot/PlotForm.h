@@ -46,6 +46,9 @@ private:
 
     QCustomPlot * m_pPlot;
 
+    QCPGraph * m_massSpecPlot;
+    QCPGraph * m_smoothedDataPlot;
+    QCPGraph * m_peaksPlot;
     //Data
     QScopedPointer<CompressedMS> m_pMassSpec;
     QScopedPointer<CompressedMS> m_pSmoothedData;
@@ -71,6 +74,11 @@ private:
     void addSmoothedGraph();
 
     /**
+     * @brief addPeaks adds calculated peak on a plot
+     */
+    void addPeaks();
+
+    /**
      * @brief adjustRangeToLimits puts restriction on zooming
      */
     Q_SLOT void adjustRangeToLimits(QCPRange);
@@ -83,7 +91,7 @@ private:
 
     void setUpToolBar(QToolBar *toolBar);
 
-    void addCompressedDataToGraph(QCPGraph* g, const CompressedMS* ms) const;
+    void addCompressedDataToGraph(QCPGraph *g, const CompressedMS* ms) const;
 
     void importTextDataToFile(QTextStream &out, const QCPGraphDataContainer *tab) const;
 

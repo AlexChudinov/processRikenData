@@ -5,6 +5,11 @@
 #include <memory>
 #include <QVariant>
 
+//smoothing params
+const QString SMOOTH_PARAM = "Smooth. param";
+const QString PEAK_COUNT = "Peak count";
+const QString NOISE_LEVEL = "Noise level";
+
 /**
  * @brief The Smoother class provides basic interface for smoothing
  */

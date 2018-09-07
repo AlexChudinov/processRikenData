@@ -1,52 +1,13 @@
 #ifndef COMPRESSEDMS_H
 #define COMPRESSEDMS_H
 
+#include "peak.h"
 #include "Math/Interpolator.h"
+
 #include <QtConcurrent>
-#include <set>
 #include <vector>
 
 class Smoother;
-
-/**
- * @brief The Peak class defines peak, its position, height and width
- */
-class Peak
-{
-    double m_left;
-    double m_right;
-    double m_center;
-    double m_height;
-public:
-
-    using PeakCollection = std::set<Peak>;
-
-    Peak(double center, double left = 0.0, double right = 0.0, double height = 0.0)
-        :
-          m_left(left), m_right(right), m_center(center), m_height(height)
-    {}
-
-    double left() const;
-    void setLeft(double left);
-
-    double right() const;
-    void setRight(double right);
-
-
-    double center() const;
-    void setCenter(double center);
-
-    double height() const;
-    void setHeight(double height);
-
-    /**
-     * @brief operator < is needed to store peaks in a set addressing them by
-     * their positions
-     * @param pr
-     * @return
-     */
-    inline bool operator < (const Peak& pr) const { return m_center < pr.center(); }
-};
 
 /**
  * @brief The CompressedMS class defines mass spec with only none zero values stored
@@ -164,25 +125,6 @@ private:
      * @return vector of intensities
      */
     VectorDouble transformToVector() const;
-
-    /**
-     * @brief parabolicMaximum calculates maxima position and height
-     * using three points
-     */
-    static inline void parabolicMaximum
-    (
-        double& intensity,
-        double& position,
-        double x1,
-        double y0, double y1, double y2
-    )
-    {
-        double c = y1;
-        double b = .5 * (y2 - y0);
-        double a = .5 * (y2 - 2.*y1 + y0);
-        position = x1 - b / (2. * a);
-        intensity = c - b * b / (4. * a);
-    }
 };
 
 #endif // COMPRESSEDMS_H

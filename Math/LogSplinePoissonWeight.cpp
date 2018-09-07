@@ -1,9 +1,6 @@
 #include "LogSplinePoissonWeight.h"
 #include "ParSplineCalc.h"
 
-#define SMOOTH_PARAM "Smooth. param"
-#define PEAK_COUNT "Peak count"
-
 LogSplinePoissonWeight::LogSplinePoissonWeight
 (
     const QVariantMap &pars
@@ -154,7 +151,8 @@ LogSplinePoissonWeightOnePeak::LogSplinePoissonWeightOnePeak
 :
   Smoother(pars, paramsTemplate()),
   m_p(paramPtr<double>(SMOOTH_PARAM)),
-  m_peakCount(paramPtr<int>(PEAK_COUNT))
+  m_peakCount(paramPtr<int>(PEAK_COUNT)),
+  m_noiseLevel(paramPtr<double>(NOISE_LEVEL))
 {
 }
 
@@ -207,6 +205,7 @@ QVariantMap LogSplinePoissonWeightOnePeak::paramsTemplate() const
 {
     QVariantMap res = LogSplinePoissonWeight(QVariantMap()).paramsTemplate();
     res[PEAK_COUNT] = QVariant::fromValue<int>(1ul);
+    res[NOISE_LEVEL] = QVariant::fromValue<double>(1.0);
     return res;
 }
 
@@ -215,4 +214,9 @@ void LogSplinePoissonWeightOnePeak::setParams(const QVariantMap &params)
     this->Smoother::setParams(params);
     m_p = paramPtr<double>(SMOOTH_PARAM);
     m_peakCount = paramPtr<int>(PEAK_COUNT);
+    m_noiseLevel = paramPtr<double>(NOISE_LEVEL);
+    if(*m_noiseLevel == 0.0)
+    {
+        *const_cast<double*>(m_noiseLevel) = 1.0;
+    }
 }

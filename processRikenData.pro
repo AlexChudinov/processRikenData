@@ -27,7 +27,8 @@ SOURCES += main.cpp\
     Math/Smoother.cpp \
     Math/LogSplinePoissonWeight.cpp \
     QMapPropsDialog.cpp \
-    DialogAbout.cpp
+    DialogAbout.cpp \
+    RikenData/peak.cpp
 
 HEADERS  += mainwindow.h \
     RikenData/rawrikendata.h \
@@ -46,7 +47,8 @@ HEADERS  += mainwindow.h \
     Math/Smoother.h \
     Math/LogSplinePoissonWeight.h \
     QMapPropsDialog.h \
-    DialogAbout.h
+    DialogAbout.h \
+    RikenData/peak.h
 
 FORMS    += mainwindow.ui \
     Plot/PlotForm.ui \

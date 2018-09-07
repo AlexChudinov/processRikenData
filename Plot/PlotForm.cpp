@@ -13,6 +13,9 @@ PlotForm::PlotForm(const CompressedMS &ms, const QString& strDscrpt, QWidget *pa
     QWidget(parent),
     ui(new Ui::PlotForm),
     m_pPlot(new QCustomPlot(this)),
+    m_massSpecPlot(m_pPlot->addGraph()),
+    m_smoothedDataPlot(m_pPlot->addGraph()),
+    m_peaksPlot(m_pPlot->addGraph()),
     m_pMassSpec(new CompressedMS(ms)),
     m_props(new PropertiesListForm())
 {
@@ -47,6 +50,10 @@ PlotForm::PlotForm(const CompressedMS &ms, const QString& strDscrpt, QWidget *pa
     m_pPlot->yAxis->setLabel("ion count");
 
     fillPropertiesList();
+
+    m_massSpecPlot->setPen(QPen(Qt::blue, 3));
+    m_smoothedDataPlot->setPen(QPen(Qt::red, 3));
+    m_peaksPlot->setPen(QPen(Qt::black, 3));
 }
 
 PlotForm::~PlotForm()
@@ -56,22 +63,31 @@ PlotForm::~PlotForm()
 
 void PlotForm::addMassSpecGraph()
 {
-    QCPGraph * graph = m_pPlot->addGraph();
-    graph->setPen(QPen(Qt::blue, 2));
-    addCompressedDataToGraph(graph, m_pMassSpec.data());
+    addCompressedDataToGraph(m_massSpecPlot, m_pMassSpec.data());
     m_pPlot->rescaleAxes();
     m_pPlot->replot();
 }
 
 void PlotForm::addSmoothedGraph()
 {
-    if(m_pPlot->graphCount() == 2)
+    addCompressedDataToGraph(m_smoothedDataPlot, m_pSmoothedData.data());
+    m_pPlot->replot();
+}
+
+void PlotForm::addPeaks()
+{
+    QVector<double> x(m_peaks->size()*3), y(m_peaks->size()*3);
+    int i = 0;
+    for(const Peak& p: *m_peaks)
     {
-        m_pPlot->removeGraph(1);
+        x[i]  = 2*p.left() - p.center();
+        y[i++]= 0.0;
+        x[i]  = p.center();
+        y[i++]= p.height();
+        x[i]  = 2*p.right() - p.center();
+        y[i++] = 0.0;
     }
-    QCPGraph * graph = m_pPlot->addGraph();
-    graph->setPen(QPen(Qt::red, 3));
-    addCompressedDataToGraph(graph, m_pSmoothedData.data());
+    m_peaksPlot->setData(x, y);
     m_pPlot->replot();
 }
 
@@ -149,8 +165,7 @@ void PlotForm::addCompressedDataToGraph(QCPGraph *g, const CompressedMS *ms) con
         y[i] = it->second * ms->interp()->yFactor();
         ++it;
     }
-
-    g->addData(x, y);
+    g->setData(x, y, true);
 }
 
 void PlotForm::importTextDataToFile(QTextStream &out, const QCPGraphDataContainer * tab) const
@@ -392,6 +407,7 @@ void PlotForm::on_actionSplineSmoothing_triggered()
                 )
             );
             addSmoothedGraph();
+            addPeaks();
             m_smoothProps = calc->params();
             m_smootherName = Smoother::registry()[calc->type()];
             fillPropertiesList();

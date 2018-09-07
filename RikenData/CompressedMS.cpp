@@ -173,6 +173,9 @@ Peak::PeakCollection CompressedMS::smooth(Smoother *s)
         s->run(yOut, transformToVector());
         const size_t tMin = static_cast<size_t>(interp()->minX());
         const size_t n = yOut.size();
+        QVariantMap::ConstIterator it = s->params().find(NOISE_LEVEL);
+        const double noise = it != s->params().end() ?
+                    it.value().toDouble() : 1.0;
 
         QMutex mutex;
         QtConcurrent::map<VectorDouble::const_iterator>
@@ -189,38 +192,32 @@ Peak::PeakCollection CompressedMS::smooth(Smoother *s)
 
             if(yOut[i-1] < yOut[i] && yOut[i+1] < yOut[i])
             {
-                double intens, pos, left, right;
-                parabolicMaximum
+                double left, right;
+                Peak peak;
+                peak.parabolicMaximum
                 (
-                    intens,
-                    pos,
-                    static_cast<double>(i),
-                    yOut[i-1], yOut[i], yOut[i+1]
+                    static_cast<double>(i) + tMin,
+                    yOut[i-1],
+                    yOut[i],
+                    yOut[i+1]
                 );
                 //look for right and left peak sides
                 size_t lhi = i, rhi = i;
-                while(lhi != 0 && yOut[lhi] > intens/2.) --lhi;
-                while (rhi != n-1 && yOut[rhi] > intens/2.) ++rhi;
+                while(lhi != 0 && yOut[lhi] > peak.height()/2.) --lhi;
+                while (rhi != n-1 && yOut[rhi] > peak.height()/2.) ++rhi;
                 left = static_cast<double>(lhi);
                 right = static_cast<double>(rhi);
                 if(lhi != 0)
-                    left += (intens/2.0 - yOut[lhi])/(yOut[lhi+1] - yOut[lhi]);
+                    left += (peak.height()/2. - yOut[lhi])/(yOut[lhi+1] - yOut[lhi]);
                 if(rhi != n-1)
-                    right += (intens/2.0 - yOut[rhi])/(yOut[rhi-1] - yOut[rhi]);
+                    right += (peak.height()/2. - yOut[rhi])/(yOut[rhi-1] - yOut[rhi]);
+                peak.setLeft(left+tMin);
+                peak.setRight(right+tMin);
                 //Write down new peak
-                if(intens > 1.0 && right - left > 2.0)
+                if(yOut[i] > noise && right - left > 2.0)
                 {
-                QMutexLocker lock(&mutex);
-                res.insert
-                (
-                    Peak
-                    (
-                        tMin + pos,
-                        tMin + left,
-                        tMin + right,
-                        intens
-                    )
-                );
+                    QMutexLocker lock(&mutex);
+                    res.insert(peak);
                 }
             }
         }
@@ -279,45 +276,5 @@ CompressedMS::VectorDouble CompressedMS::transformToVector() const
     for(const auto& e : interp()->table())
         res[e.first - tMin] = e.second;
     return res;
-}
-
-double Peak::right() const
-{
-    return m_right;
-}
-
-void Peak::setRight(double right)
-{
-    m_right = right;
-}
-
-double Peak::center() const
-{
-    return m_center;
-}
-
-void Peak::setCenter(double center)
-{
-    m_center = center;
-}
-
-double Peak::height() const
-{
-    return m_height;
-}
-
-void Peak::setHeight(double height)
-{
-    m_height = height;
-}
-
-double Peak::left() const
-{
-    return m_left;
-}
-
-void Peak::setLeft(double left)
-{
-    m_left = left;
 }
 
