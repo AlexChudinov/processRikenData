@@ -320,12 +320,14 @@ void PlotForm::on_actionImport_triggered()
                     Peak::PeakCollection::const_iterator Last
                             = m_peaks->lower_bound(r.upper);
                     out << "#Center: \t" << "#Height: \t"
-                        << "#Left: \t" << "#Right: \n";
+                        << "#Left: \t" << "#Right: \t"
+                        << "#Uncertainty:\n";
                     out << qSetRealNumberPrecision(10);
                     for(; First != Last; ++First)
                     {
                         out << First->center() << "\t" << First->height() << "\t"
-                            << First->left() << "\t" << First->right() << "\n";
+                            << First->left() << "\t" << First->right() << "\t"
+                            << First->disp() << "\n";
                     }
                 }
                 file.close();
@@ -403,7 +405,7 @@ void PlotForm::on_actionSplineSmoothing_triggered()
             (
                 new Peak::PeakCollection
                 (
-                    m_pSmoothedData->smooth(calc.get())
+                    m_pSmoothedData->getPeaksWithErrors(calc.get())
                 )
             );
             addSmoothedGraph();

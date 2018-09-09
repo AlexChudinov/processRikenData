@@ -1,6 +1,7 @@
 #include "CompressedMS.h"
 #include "Math/Smoother.h"
 #include "Math/ParSplineCalc.h"
+#include <random>
 #include <cmath>
 
 CompressedMS::CompressedMS(const CompressedMS::VectorInt &vVals,
@@ -228,6 +229,39 @@ Peak::PeakCollection CompressedMS::smooth(Smoother *s)
     return res;
 }
 
+Peak::PeakCollection CompressedMS::getPeaksWithErrors
+(
+    Smoother *s,
+    size_t sigmaFactor
+)
+{
+    CompressedMS tempMS(*this);
+    Peak::PeakCollection res = this->smooth(s);
+
+    for(const Peak& p: res)
+    {
+        const Map& raw = tempMS.interp()->table();
+        Map::const_iterator
+                itR = raw.lower_bound(p.center()),
+                itL = itR;
+        int cntr = 0;
+        double dev = (p.height() - itR->second); dev *= dev;
+        do
+        {
+            itL--;
+            itR++;
+            double dl = p.height() - itR->second;
+            double dr = p.height() - itL->second;
+            dev += dr*dr + dl*dl;
+            cntr++;
+        }while(dev < sigmaFactor*(2*cntr + 1) * p.height());
+
+        const_cast<Peak&>(p).setDisp(static_cast<double>(cntr));
+    }
+
+    return res;
+}
+
 CompressedMS::uint64_t CompressedMS::sumSqDev(const CompressedMS &ms) const
 {
     CompressedMS::uint64_t res = 0;
@@ -265,6 +299,22 @@ CompressedMS CompressedMS::cutRange(double tMin, double tMax) const
     Map tabNew(it1, it2);
 
     return CompressedMS(tabNew, interp()->type());
+}
+
+CompressedMS CompressedMS::genRandMS() const
+{
+    std::mt19937_64 gen;
+    CompressedMS res(*this);
+    QtConcurrent::map<Map>
+    (
+        res.interp()->table(),
+        [&](Map::reference& e)
+        {
+            e.second
+                = std::poisson_distribution<int>(e.second)(gen);
+        }
+    ).waitForFinished();
+    return res;
 }
 
 CompressedMS::VectorDouble CompressedMS::transformToVector() const

@@ -18,7 +18,6 @@ SOURCES += main.cpp\
     QCustomPlot/qcustomplot.cpp \
     Plot/PlotForm.cpp \
     PropertiesListForm.cpp \
-    Math/splines.cpp \
     MassSpecAccDialogs.cpp \
     Math/Interpolator.cpp \
     RikenData/CompressedMS.cpp \
@@ -36,9 +35,7 @@ HEADERS  += mainwindow.h \
     Plot/PlotForm.h \
     PropertiesListForm.h \
     Math/exception.h \
-    Math/smoothing_splines.h \
     Math/Solvers.h \
-    Math/splines.h \
     MassSpecAccDialogs.h \
     Math/Interpolator.h \
     RikenData/CompressedMS.h \

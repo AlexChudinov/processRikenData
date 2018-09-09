@@ -33,6 +33,16 @@ void Peak::setHeight(double height)
     m_height = height;
 }
 
+double Peak::disp() const
+{
+    return m_disp;
+}
+
+void Peak::setDisp(double disp)
+{
+    m_disp = disp;
+}
+
 double Peak::left() const
 {
     return m_left;

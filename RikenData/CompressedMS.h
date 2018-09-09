@@ -97,6 +97,17 @@ public:
     Peak::PeakCollection smooth(Smoother * s);
 
     /**
+     * @brief getPeaksWithErrors calculates peaks simulating
+     * error distribution
+     * @return
+     */
+    Peak::PeakCollection getPeaksWithErrors
+    (
+        Smoother * s,
+        size_t sigmaFactor = 2
+    );
+
+    /**
      * @brief sumSqDev estimates sum of squares of deviations between two mass spectra
      * @param ms1
      * @return
@@ -116,6 +127,14 @@ public:
      * @return
      */
     CompressedMS cutRange(double tMin, double tMax) const;
+
+    /**
+     * @brief genRandMS genrerates random mass spectrum using this
+     * as a probability distribution
+     * @return
+     */
+    CompressedMS genRandMS() const;
+
 private:
     Interpolator::Pointer m_pInterpolator;
 
