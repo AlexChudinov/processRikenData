@@ -157,7 +157,7 @@ void CompressedMS::rescale()
     VectorInt vVals(tMax - tMin + 1);
     QtConcurrent::map<VectorInt>(vVals, [&](VectorInt::reference val)->void
     {
-        const size_t i = std::distance(vVals.begin(), VectorInt::iterator(&val));
+        const size_t i = &val - &vVals[0];
         val = static_cast<size_t>(std::round(interp()->interpolate(i+tMin)));
     }).waitForFinished();
 
@@ -185,11 +185,7 @@ Peak::PeakCollection CompressedMS::smooth(Smoother *s)
             std::prev(yOut.end()),
             [&](VectorDouble::const_reference yRef)->void
         {
-            const size_t i = std::distance
-            (
-                yOut.cbegin(),
-                VectorDouble::const_iterator(&yRef)
-            );
+			const size_t i = &yRef - &yOut[0];
 
             if(yOut[i-1] < yOut[i] && yOut[i+1] < yOut[i])
             {
