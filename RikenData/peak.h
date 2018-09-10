@@ -48,7 +48,7 @@ public:
     void setHeight(double height);
 
     double disp() const;
-    void setDisp(double disp);
+    void setDisp(double disp) const;
 
     /**
      * @brief operator < is needed to store peaks in a set addressing them by

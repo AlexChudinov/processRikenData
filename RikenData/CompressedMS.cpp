@@ -1,8 +1,11 @@
+#include <random>
+#include <cmath>
+
 #include "CompressedMS.h"
 #include "Math/Smoother.h"
 #include "Math/ParSplineCalc.h"
-#include <random>
-#include <cmath>
+
+std::mt19937_64 CompressedMS::s_gen;
 
 CompressedMS::CompressedMS(const CompressedMS::VectorInt &vVals,
                            size_t tMin, Interpolator::InterpType type)
@@ -128,14 +131,14 @@ double CompressedMS::bestMatch(const CompressedMS &msRef, size_t nMaxTime, size_
         vMatchVals[i] = temp.match(msRef);
     }).waitForFinished();
 
-    return sVals
-    [
-        std::distance
-        (
-            vMatchVals.begin(),
-            std::max_element(vMatchVals.begin(), vMatchVals.end())
-        )
-    ];
+	return sVals
+		[
+			std::distance
+			(
+				vMatchVals.begin(),
+				std::max_element(vMatchVals.begin(), vMatchVals.end())
+			)
+		];
 }
 
 void CompressedMS::addToAcc(CompressedMS &msAcc) const
@@ -231,29 +234,39 @@ Peak::PeakCollection CompressedMS::getPeaksWithErrors
     size_t sigmaFactor
 )
 {
-    CompressedMS tempMS(*this);
     Peak::PeakCollection res = this->smooth(s);
+	VectorDouble stdevs(res.size());
 
-    for(const Peak& p: res)
-    {
-        const Map& raw = tempMS.interp()->table();
-        Map::const_iterator
-                itR = raw.lower_bound(p.center()),
-                itL = itR;
-        int cntr = 0;
-        double dev = (p.height() - itR->second); dev *= dev;
-        do
-        {
-            itL--;
-            itR++;
-            double dl = p.height() - itR->second;
-            double dr = p.height() - itL->second;
-            dev += dr*dr + dl*dl;
-            cntr++;
-        }while(dev < sigmaFactor*(2*cntr + 1) * p.height());
+	for (size_t i = 0; i < 200; ++i)
+	{
+		CompressedMS randMS = this->genRandMS();
+		Peak::PeakCollection randPeaks = randMS.smooth(s);
+		size_t j = 0;
+		for (const Peak& p : res)
+		{
+			Peak::PeakCollection::const_iterator it
+				= randPeaks.lower_bound(p);
+			if (
+				it != randPeaks.begin() && 
+				(
+					it == randPeaks.end() ||
+					it->center() - p.center() > p.center() - std::prev(it)->center()
+					)
+				)
+			{
+				--it;
+			}
+			double d = it->center() - p.center();
+			stdevs[j] += d * d;
+			j++;
+		}
+	}
 
-        const_cast<Peak&>(p).setDisp(static_cast<double>(cntr));
-    }
+	size_t j = 0;
+	for (const Peak& p : res)
+	{
+		p.setDisp(sigmaFactor * stdevs[j++]/200.);
+	}
 
     return res;
 }
@@ -299,7 +312,6 @@ CompressedMS CompressedMS::cutRange(double tMin, double tMax) const
 
 CompressedMS CompressedMS::genRandMS() const
 {
-    std::mt19937_64 gen;
     CompressedMS res(*this);
     QtConcurrent::map<Map>
     (
@@ -307,7 +319,7 @@ CompressedMS CompressedMS::genRandMS() const
         [&](Map::reference& e)
         {
             e.second
-                = std::poisson_distribution<int>(e.second)(gen);
+                = std::poisson_distribution<int>(e.second)(s_gen);
         }
     ).waitForFinished();
     return res;

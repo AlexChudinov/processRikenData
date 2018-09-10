@@ -65,54 +65,39 @@
       <Extensions>cpp;moc</Extensions>
       <SourceControlFiles>False</SourceControlFiles>
     </Filter>
+    <Filter Include="Header Files\QCustomPlot">
+      <UniqueIdentifier>{16c773ba-ae9b-4507-b11d-7074930de8a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\QCustomPlot">
+      <UniqueIdentifier>{18e906cc-0bcd-4a5b-844b-344567a41a8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Math">
+      <UniqueIdentifier>{69a3a626-f893-4556-b2ea-3c2e8aec62b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Math">
+      <UniqueIdentifier>{83c715c3-c848-426b-aa5f-61916eb7e161}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ui">
+      <UniqueIdentifier>{e0a319df-b5ba-4a3f-ac68-33b6c4060f32}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ui">
+      <UniqueIdentifier>{c71be216-addf-458b-9f8d-283161febec7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Data">
+      <UniqueIdentifier>{8761348b-2b51-4e41-ae67-f8116bc507b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Data">
+      <UniqueIdentifier>{6052b31f-82d2-4eed-9a8e-fea1b11bf569}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Plot">
+      <UniqueIdentifier>{9ee558a2-584f-48da-a864-fea96b76223b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Plot">
+      <UniqueIdentifier>{0e70a72f-0fa1-4e76-95b2-7f768f1e88b2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="RikenData\CompressedMS.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CreditsDialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DialogAbout.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Math\Interpolator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Math\LogSplinePoissonWeight.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MassSpecAccDialogs.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Math\ParSplineCalc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Plot\PlotForm.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PropertiesListForm.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="QMapPropsDialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Math\Smoother.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mainwindow.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="RikenData\peak.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="QCustomPlot\qcustomplot.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="RikenData\rawrikendata.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Debug\moc_CreditsDialog.cpp">
@@ -172,59 +157,53 @@
     <ClCompile Include="GeneratedFiles\qrc_resources.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
+    <ClCompile Include="QCustomPlot\qcustomplot.cpp">
+      <Filter>Source Files\QCustomPlot</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Smoother.cpp">
+      <Filter>Source Files\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\ParSplineCalc.cpp">
+      <Filter>Source Files\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\LogSplinePoissonWeight.cpp">
+      <Filter>Source Files\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Interpolator.cpp">
+      <Filter>Source Files\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="CreditsDialog.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="DialogAbout.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="MassSpecAccDialogs.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="mainwindow.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="PropertiesListForm.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="QMapPropsDialog.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="RikenData\CompressedMS.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="RikenData\rawrikendata.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="RikenData\peak.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="Plot\PlotForm.cpp">
+      <Filter>Source Files\Plot</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="RikenData\CompressedMS.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <CustomBuild Include="CreditsDialog.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="DialogAbout.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
-    <ClInclude Include="Math\Interpolator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\LogSplinePoissonWeight.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <CustomBuild Include="MassSpecAccDialogs.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
-    <ClInclude Include="Math\ParSplineCalc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <CustomBuild Include="Plot\PlotForm.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="PropertiesListForm.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="QMapPropsDialog.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
-    <ClInclude Include="Math\Smoother.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\Solvers.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Math\exception.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <CustomBuild Include="mainwindow.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
-    <ClInclude Include="RikenData\peak.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <CustomBuild Include="QCustomPlot\qcustomplot.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="RikenData\rawrikendata.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
     <ClInclude Include="GeneratedFiles\ui_AccumScaleCorrectionDialog.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
@@ -249,6 +228,24 @@
     <ClInclude Include="GeneratedFiles\ui_mainwindow.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
+    <ClInclude Include="Math\ParSplineCalc.h">
+      <Filter>Header Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Interpolator.h">
+      <Filter>Header Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\exception.h">
+      <Filter>Header Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Smoother.h">
+      <Filter>Header Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Solvers.h">
+      <Filter>Header Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\LogSplinePoissonWeight.h">
+      <Filter>Header Files\Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="debug\moc_predefs.h.cbt">
@@ -256,6 +253,33 @@
     </CustomBuild>
     <CustomBuild Include="release\moc_predefs.h.cbt">
       <Filter>Generated Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="QCustomPlot\qcustomplot.h">
+      <Filter>Header Files\QCustomPlot</Filter>
+    </CustomBuild>
+    <CustomBuild Include="CreditsDialog.h">
+      <Filter>Header Files\ui</Filter>
+    </CustomBuild>
+    <CustomBuild Include="DialogAbout.h">
+      <Filter>Header Files\ui</Filter>
+    </CustomBuild>
+    <CustomBuild Include="MassSpecAccDialogs.h">
+      <Filter>Header Files\ui</Filter>
+    </CustomBuild>
+    <CustomBuild Include="mainwindow.h">
+      <Filter>Header Files\ui</Filter>
+    </CustomBuild>
+    <CustomBuild Include="PropertiesListForm.h">
+      <Filter>Header Files\ui</Filter>
+    </CustomBuild>
+    <CustomBuild Include="QMapPropsDialog.h">
+      <Filter>Header Files\ui</Filter>
+    </CustomBuild>
+    <CustomBuild Include="RikenData\rawrikendata.h">
+      <Filter>Header Files\Data</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Plot\PlotForm.h">
+      <Filter>Header Files\Plot</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
@@ -323,5 +347,13 @@
     <None Include="QCustomPlot\GPL.txt">
       <Filter>Distribution Files</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="RikenData\CompressedMS.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="RikenData\peak.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

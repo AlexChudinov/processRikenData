@@ -38,7 +38,7 @@ double Peak::disp() const
     return m_disp;
 }
 
-void Peak::setDisp(double disp)
+void Peak::setDisp(double disp) const
 {
     m_disp = disp;
 }

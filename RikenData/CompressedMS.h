@@ -101,11 +101,11 @@ public:
      * error distribution
      * @return
      */
-    Peak::PeakCollection getPeaksWithErrors
-    (
-        Smoother * s,
-        size_t sigmaFactor = 2
-    );
+	Peak::PeakCollection getPeaksWithErrors
+	(
+		Smoother * s,
+		size_t sigmaFactor = 1
+	);
 
     /**
      * @brief sumSqDev estimates sum of squares of deviations between two mass spectra
@@ -144,6 +144,9 @@ private:
      * @return vector of intensities
      */
     VectorDouble transformToVector() const;
+
+	//Static random generator
+	static std::mt19937_64 s_gen;
 };
 
 #endif // COMPRESSEDMS_H
