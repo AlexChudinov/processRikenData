@@ -169,6 +169,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Math\MathObject.cpp" />
+    <ClCompile Include="Math\PeakUncertainty.cpp" />
     <ClCompile Include="Release\moc_CreditsDialog.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -222,6 +224,8 @@
     <ClInclude Include="GeneratedFiles\ui_PropertiesListForm.h" />
     <ClInclude Include="GeneratedFiles\ui_QMapPropsDialog.h" />
     <ClInclude Include="GeneratedFiles\ui_SimpleMassSpecAccDialog.h" />
+    <ClInclude Include="Math\MathObject.h" />
+    <ClInclude Include="Math\PeakUncertainty.h" />
     <ClInclude Include="RikenData\CompressedMS.h" />
     <CustomBuild Include="CreditsDialog.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_WINDOWS -DUNICODE -D_UNICODE -DWIN32 -DWIN64 -DQT_NO_DEBUG -DQT_PRINTSUPPORT_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CONCURRENT_LIB -DQT_CORE_LIB -DNDEBUG  "-I." "-I.\..\..\..\..\Qt\5.11.1\msvc2015_64\include" "-I.\..\..\..\..\Qt\5.11.1\msvc2015_64\include\QtPrintSupport" "-I.\..\..\..\..\Qt\5.11.1\msvc2015_64\include\QtWidgets" "-I.\..\..\..\..\Qt\5.11.1\msvc2015_64\include\QtGui" "-I.\..\..\..\..\Qt\5.11.1\msvc2015_64\include\QtANGLE" "-I.\..\..\..\..\Qt\5.11.1\msvc2015_64\include\QtConcurrent" "-I.\..\..\..\..\Qt\5.11.1\msvc2015_64\include\QtCore" "-I.\release" "-I\include" "-I.\..\..\..\..\Qt\5.11.1\msvc2015_64\mkspecs\win32-msvc" "-I.\GeneratedFiles"</Command>

@@ -202,6 +202,12 @@
     <ClCompile Include="Plot\PlotForm.cpp">
       <Filter>Source Files\Plot</Filter>
     </ClCompile>
+    <ClCompile Include="Math\PeakUncertainty.cpp">
+      <Filter>Source Files\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\MathObject.cpp">
+      <Filter>Source Files\Math</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_AccumScaleCorrectionDialog.h">
@@ -244,6 +250,12 @@
       <Filter>Header Files\Math</Filter>
     </ClInclude>
     <ClInclude Include="Math\LogSplinePoissonWeight.h">
+      <Filter>Header Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\PeakUncertainty.h">
+      <Filter>Header Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\MathObject.h">
       <Filter>Header Files\Math</Filter>
     </ClInclude>
   </ItemGroup>

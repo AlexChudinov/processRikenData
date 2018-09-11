@@ -10,12 +10,8 @@
  */
 class ParSplineCalc
 {
-private:
-    friend class LogSplinePoissonWeight;
-    friend class LogSplinePoissonWeightPoissonNoise;
-    friend class LogSplinePoissonWeightOnePeak;
+public:
     friend class InstanceLocker;
-    friend class CompressedMS;
 
     ParSplineCalc(){}
 

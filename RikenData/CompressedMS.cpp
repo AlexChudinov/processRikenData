@@ -312,16 +312,15 @@ CompressedMS CompressedMS::cutRange(double tMin, double tMax) const
 
 CompressedMS CompressedMS::genRandMS() const
 {
-    CompressedMS res(*this);
-    QtConcurrent::map<Map>
-    (
-        res.interp()->table(),
-        [&](Map::reference& e)
-        {
-            e.second
-                = std::poisson_distribution<int>(e.second)(s_gen);
-        }
-    ).waitForFinished();
+	CompressedMS res(*this);
+	std::poisson_distribution<int> poisson;
+
+	for (Map::reference& e : res.interp()->table())
+	{
+		poisson.param(std::poisson_distribution<int>::param_type(e.second));
+		e.second = std::poisson_distribution<int>(e.second)(s_gen);
+	}
+
     return res;
 }
 
