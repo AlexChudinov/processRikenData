@@ -2,63 +2,58 @@
 #define PARSPLINECALC_H
 
 #include <vector>
-#include <QtConcurrent>
+#include "Base\ThreadPool.h"
 
 /**
  * @brief The ParSplineCalc class calculates spline in parallel using
  * optimized memory consumption. Error checking is minimal
  */
-class ParSplineCalc
+class ParSplineCalc : public BaseObject
 {
 public:
+	using VectorDouble = std::vector<double>;
+
+private:
+	//Vectors to store matrix values
+	VectorDouble a, b, c, d, e, bb, r;
+
+	Q_DISABLE_COPY(ParSplineCalc)
+	
+	BASE_OBJECT_DUMMY_STATE
+
+	//Only one thread can work with
+	static ThreadPool::Mutex s_mutex;
+	static size_t s_typeId;
+
+	ThreadPool * m_threadPool;
+
+public:
     friend class InstanceLocker;
+	/**
+	* @brief The InstanceLocker class locks and unlocks ParSplineCalc instance
+	* automatically
+	*/
+	class InstanceLocker
+	{
+		ParSplineCalc * m_instance;
+		bool m_clearMemory;
+	public:
+		InstanceLocker(ParSplineCalc * instance = nullptr, bool clearMemory = true);
 
-    ParSplineCalc(){}
+		~InstanceLocker();
 
-    Q_DISABLE_COPY(ParSplineCalc)
+		ParSplineCalc * operator -> () { return m_instance; }
 
-    /**
-     * @brief The InstanceLocker class locks and unlocks ParSplineCalc instance
-     * automatically
-     */
-    class InstanceLocker
-    {
-        ParSplineCalc * m_instance;
-    public:
-        InstanceLocker
-        (
-            ParSplineCalc * instance = Q_NULLPTR
-        )
-            : m_instance(instance)
-        {}
+		operator bool() const { return m_instance; }
+	};
 
-        ~InstanceLocker()
-        {
-            m_instance->clear();
-            m_instance->freeInstance();
-        }
-
-        ParSplineCalc * operator -> () { return m_instance; }
-
-        operator bool () const { return m_instance; }
-    };
-
-    static ParSplineCalc s_instance;
-
-    //Only one thread can work with
-    //the instance
-    static QMutex s_mutex;
-
-    using VectorDouble = std::vector<double>;
-
-    //Vectors to store matrix values
-    VectorDouble a, b, c, d, e, bb, r;
+	ParSplineCalc();
 
     /**
      * @brief getInstance locks mutex
      * @return
      */
-    static InstanceLocker lockInstance();
+    static InstanceLocker lockInstance(bool clearMemory = true);
 
     /**
      * @brief freeInstance releases mutex
@@ -83,6 +78,8 @@ public:
         const VectorDouble& yIn,
         double p
     );
+
+	virtual size_t typeId() const;
 };
 
 #endif // PARSPLINECALC_H

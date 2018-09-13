@@ -48,6 +48,7 @@ PlotForm::PlotForm(const CompressedMS &ms, const QString& strDscrpt, QWidget *pa
     m_pPlot->yAxis->setLabelFont(QFont("Arial", 12));
     m_pPlot->xAxis->setLabel("time [bin]");
     m_pPlot->yAxis->setLabel("ion count");
+	m_pPlot->yAxis->setScaleType(QCPAxis::stLogarithmic);
 
     fillPropertiesList();
 
@@ -80,11 +81,11 @@ void PlotForm::addPeaks()
     int i = 0;
     for(const Peak& p: *m_peaks)
     {
-        x[i]  = 2*p.left() - p.center();
+        x[i]  = p.center();
         y[i++]= 0.0;
         x[i]  = p.center();
         y[i++]= p.height();
-        x[i]  = 2*p.right() - p.center();
+		x[i] = p.center();
         y[i++] = 0.0;
     }
     m_peaksPlot->setData(x, y);
@@ -162,7 +163,7 @@ void PlotForm::addCompressedDataToGraph(QCPGraph *g, const CompressedMS *ms) con
     for(size_t i = 0; i < ms->interp()->table().size(); ++i)
     {
         x[i] = it->first * ms->interp()->xFactor();
-        y[i] = it->second * ms->interp()->yFactor();
+        y[i] = it->second * ms->interp()->yFactor() + 0.1;
         ++it;
     }
     g->setData(x, y, true);
@@ -346,7 +347,9 @@ void PlotForm::on_actionSplineSmoothing_triggered()
     {
         "Parametric spline",
         "Parameterless Poisson noise spline",
-        "Peak counter spline"
+        "Peak counter spline",
+		"Create peak shape",
+		"Apply peak shape"
     };
     bool ok;
     QString strData = QInputDialog::getItem
@@ -384,36 +387,62 @@ void PlotForm::on_actionSplineSmoothing_triggered()
                     Smoother::LogSplinePoissonWeightOnePeakType
                 ).release()
             );
+		else if (strData == items[3])
+		{
+			if (m_pSmoothedData)
+			{
+				m_peakShape.reset(new PeakShape(*m_pSmoothedData));
+			}
+		}
+		else if (strData == items[4])
+		{
+			if (m_peakShape)
+			{
+				QCPRange range = m_pPlot->xAxis->range();
+				PeakShape peak = m_peakShape->approximate
+				(
+					m_pMassSpec->cutRange(range.lower, range.upper)
+				);
+				m_pSmoothedData.reset(new CompressedMS(peak.shape()));
+			}
+		}
 
-        QCPRange range = m_pPlot->xAxis->range();
-        m_pSmoothedData.reset
-        (
-            new CompressedMS
-            (
-                m_pMassSpec->cutRange(range.lower, range.upper)
-            )
-        );
+		if (calc)
+		{
+			QCPRange range = m_pPlot->xAxis->range();
+			m_pSmoothedData.reset
+			(
+				new CompressedMS
+				(
+					m_pMassSpec->cutRange(range.lower, range.upper)
+				)
+			);
 
-        QMapPropsDialog dialog;
-        dialog.setProps(calc->params());
-        dialog.exec();
+			QMapPropsDialog dialog;
+			dialog.setProps(calc->params());
+			dialog.exec();
 
-        if(dialog.result() == QDialog::Accepted)
-        {
-            calc->setParams(dialog.props());
-            m_peaks.reset
-            (
-                new Peak::PeakCollection
-                (
-                    m_pSmoothedData->getPeaksWithErrors(calc.get())
-                )
-            );
-            addSmoothedGraph();
-            addPeaks();
-            m_smoothProps = calc->params();
-            m_smootherName = Smoother::registry()[calc->type()];
-            fillPropertiesList();
-        }
+			if (dialog.result() == QDialog::Accepted)
+			{
+				calc->setParams(dialog.props());
+				m_peaks.reset
+				(
+					new Peak::PeakCollection
+					(
+						m_pSmoothedData->getPeaksWithErrors(calc.get())
+					)
+				);
+				addSmoothedGraph();
+				addPeaks();
+				m_smoothProps = calc->params();
+				m_smootherName = Smoother::registry()[calc->type()];
+				fillPropertiesList();
+			}
+		}
+		else
+		{
+			addSmoothedGraph();
+		}
     }
 }
 

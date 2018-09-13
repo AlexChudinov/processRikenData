@@ -71,12 +71,16 @@ CompressedMS::CompressedMS(const CompressedMS &ms)
     :
       m_pInterpolator(Interpolator::create(ms.interp()->type(), ms.interp()->table()))
 {
+	m_pInterpolator->xFactor(ms.interp()->xFactor());
+	m_pInterpolator->yFactor(ms.interp()->yFactor());
 }
 
 CompressedMS::CompressedMS(CompressedMS&& ms)
     :
       m_pInterpolator(Interpolator::create(ms.interp()->type(), std::move(ms.interp()->table())))
 {
+	m_pInterpolator->xFactor(ms.interp()->xFactor());
+	m_pInterpolator->yFactor(ms.interp()->yFactor());
 }
 
 CompressedMS &CompressedMS::operator=(const CompressedMS &ms)
@@ -214,8 +218,9 @@ Peak::PeakCollection CompressedMS::smooth(Smoother *s)
                 peak.setLeft(left+tMin);
                 peak.setRight(right+tMin);
                 //Write down new peak
-                if(yOut[i] > noise && right - left > 2.0)
+                if(yOut[i] > 1.0 && right - left > 2.0)
                 {
+					peak.setHeight(peak.height() * noise);
                     QMutexLocker lock(&mutex);
                     res.insert(peak);
                 }
@@ -224,6 +229,7 @@ Peak::PeakCollection CompressedMS::smooth(Smoother *s)
         ).waitForFinished();
 
         *this = CompressedMS(yOut, tMin, interp()->type());
+		this->interp()->yFactor(noise);
     }
     return res;
 }
@@ -313,12 +319,11 @@ CompressedMS CompressedMS::cutRange(double tMin, double tMax) const
 CompressedMS CompressedMS::genRandMS() const
 {
 	CompressedMS res(*this);
-	std::poisson_distribution<int> poisson;
 
 	for (Map::reference& e : res.interp()->table())
 	{
-		poisson.param(std::poisson_distribution<int>::param_type(e.second));
-		e.second = std::poisson_distribution<int>(e.second)(s_gen);
+		e.second = e.second == 0.0 ? e.second
+			: std::poisson_distribution<int>(e.second)(s_gen);
 	}
 
     return res;

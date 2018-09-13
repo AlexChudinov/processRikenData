@@ -136,6 +136,9 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Base\BaseObject.cpp" />
+    <ClCompile Include="Base\ThreadPool.cpp" />
+    <ClCompile Include="Data\Reader.cpp" />
     <ClCompile Include="Debug\moc_CreditsDialog.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -163,13 +166,16 @@
     <ClCompile Include="Debug\moc_rawrikendata.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Debug\moc_Reader.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="GeneratedFiles\qrc_resources.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Math\MathObject.cpp" />
+    <ClCompile Include="Math\PeakShape.cpp" />
     <ClCompile Include="Math\PeakUncertainty.cpp" />
     <ClCompile Include="Release\moc_CreditsDialog.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -198,6 +204,9 @@
     <ClCompile Include="Release\moc_rawrikendata.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Release\moc_Reader.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="RikenData\CompressedMS.cpp" />
     <ClCompile Include="CreditsDialog.cpp" />
     <ClCompile Include="DialogAbout.cpp" />
@@ -216,6 +225,18 @@
     <ClCompile Include="RikenData\rawrikendata.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Base\BaseObject.h" />
+    <ClInclude Include="Base\ThreadPool.h" />
+    <CustomBuild Include="Data\Reader.h">
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing Reader.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_WINDOWS -DUNICODE -D_UNICODE -DWIN32 -DWIN64 -DQT_PRINTSUPPORT_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CONCURRENT_LIB -DQT_CORE_LIB "-I." "-I.\..\..\..\..\Qt\5.11.1\msvc2015_64\include" "-I.\..\..\..\..\Qt\5.11.1\msvc2015_64\include\QtPrintSupport" "-I.\..\..\..\..\Qt\5.11.1\msvc2015_64\include\QtWidgets" "-I.\..\..\..\..\Qt\5.11.1\msvc2015_64\include\QtGui" "-I.\..\..\..\..\Qt\5.11.1\msvc2015_64\include\QtANGLE" "-I.\..\..\..\..\Qt\5.11.1\msvc2015_64\include\QtConcurrent" "-I.\..\..\..\..\Qt\5.11.1\msvc2015_64\include\QtCore" "-I.\debug" "-I\include" "-I.\..\..\..\..\Qt\5.11.1\msvc2015_64\mkspecs\win32-msvc" "-I.\GeneratedFiles"</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing Reader.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o "$(ConfigurationName)\moc_%(Filename).cpp"  -D_WINDOWS -DUNICODE -D_UNICODE -DWIN32 -DWIN64 -DQT_NO_DEBUG -DQT_PRINTSUPPORT_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CONCURRENT_LIB -DQT_CORE_LIB -DNDEBUG "-I." "-I.\..\..\..\..\Qt\5.11.1\msvc2015_64\include" "-I.\..\..\..\..\Qt\5.11.1\msvc2015_64\include\QtPrintSupport" "-I.\..\..\..\..\Qt\5.11.1\msvc2015_64\include\QtWidgets" "-I.\..\..\..\..\Qt\5.11.1\msvc2015_64\include\QtGui" "-I.\..\..\..\..\Qt\5.11.1\msvc2015_64\include\QtANGLE" "-I.\..\..\..\..\Qt\5.11.1\msvc2015_64\include\QtConcurrent" "-I.\..\..\..\..\Qt\5.11.1\msvc2015_64\include\QtCore" "-I.\release" "-I\include" "-I.\..\..\..\..\Qt\5.11.1\msvc2015_64\mkspecs\win32-msvc" "-I.\GeneratedFiles"</Command>
+    </CustomBuild>
     <ClInclude Include="GeneratedFiles\ui_AccumScaleCorrectionDialog.h" />
     <ClInclude Include="GeneratedFiles\ui_CreditsDialog.h" />
     <ClInclude Include="GeneratedFiles\ui_DialogAbout.h" />
@@ -224,7 +245,7 @@
     <ClInclude Include="GeneratedFiles\ui_PropertiesListForm.h" />
     <ClInclude Include="GeneratedFiles\ui_QMapPropsDialog.h" />
     <ClInclude Include="GeneratedFiles\ui_SimpleMassSpecAccDialog.h" />
-    <ClInclude Include="Math\MathObject.h" />
+    <ClInclude Include="Math\PeakShape.h" />
     <ClInclude Include="Math\PeakUncertainty.h" />
     <ClInclude Include="RikenData\CompressedMS.h" />
     <CustomBuild Include="CreditsDialog.h">

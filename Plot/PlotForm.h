@@ -5,6 +5,7 @@
 
 #include "RikenData/rawrikendata.h"
 #include "QCustomPlot/qcustomplot.h"
+#include "Math/PeakShape.h"
 
 namespace Ui {
 class PlotForm;
@@ -53,6 +54,7 @@ private:
     QScopedPointer<CompressedMS> m_pMassSpec;
     QScopedPointer<CompressedMS> m_pSmoothedData;
     QScopedPointer<Peak::PeakCollection> m_peaks;
+	QScopedPointer<PeakShape> m_peakShape;
     QVariantMap m_smoothProps;
     QString m_smootherName;
     //Limits

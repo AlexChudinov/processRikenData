@@ -82,7 +82,7 @@ private:
         int cnt = 0;
         for(size_t i = 1; i < y.size() - 1; ++i)
             if(y[i-1] < y[i] && y[i] > y[i+1]
-                    && y[i] > *m_noiseLevel) cnt++;
+                    && y[i] > 1.0) cnt++;
         return cnt;
     }
 };

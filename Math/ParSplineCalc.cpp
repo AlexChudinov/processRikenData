@@ -1,14 +1,26 @@
 #include "ParSplineCalc.h"
 #include "Solvers.h"
 
-ParSplineCalc ParSplineCalc::s_instance;
+ThreadPool::Mutex ParSplineCalc::s_mutex;
+size_t ParSplineCalc::s_typeId;
 
-QMutex ParSplineCalc::s_mutex;
-
-ParSplineCalc::InstanceLocker ParSplineCalc::lockInstance()
+ParSplineCalc::ParSplineCalc()
 {
-    if(s_mutex.tryLock())
-        return InstanceLocker(&s_instance);
+	s_typeId = registerObj("ParSplineCalc", this);
+	if (!(m_threadPool = dynamic_cast<ThreadPool*>(getObj("ThreadPool"))))
+	{
+		throw std::runtime_error("ThreadPool should be created before ParSplineCalc.");
+	}
+}
+
+ParSplineCalc::InstanceLocker ParSplineCalc::lockInstance(bool clearMemory)
+{
+	if (s_mutex.try_lock())
+        return InstanceLocker
+		(
+			dynamic_cast<ParSplineCalc*>(getObj(s_typeId)),
+			clearMemory
+		);
     else
         return InstanceLocker();
 }
@@ -36,7 +48,6 @@ void ParSplineCalc::logSplinePoissonWeights
     double p
 )
 {
-    using VectorIdx = std::vector<size_t>;
     const size_t n = yIn.size();
     bb.resize(n);
     r.resize(n); //right-hand side values
@@ -48,20 +59,21 @@ void ParSplineCalc::logSplinePoissonWeights
     yOut[n-1] = yIn[n-1] < 1.0 ? p * (yIn[n-1] + 1.) * (yIn[n-1] + 1.)
         : p * (yIn[n-1] + 1.) * (yIn[n-1] + 1.) / yIn[n-1];
 
-    VectorIdx Idx(n);
-    std::iota(Idx.begin(), Idx.end(), 0);
-
-    QtConcurrent::map<VectorIdx::iterator>
-    (
-        std::next(Idx.begin()),
-        std::prev(Idx.end()),
-        [&](size_t i)->void
-    {
-        yOut[i] = yIn[i] < 1.0 ? p * (yIn[i] + 1.) * (yIn[i] + 1.)
-            : p * (yIn[i] + 1.) * (yIn[i] + 1.) / yIn[i];
-        r[i] = std::log((yIn[i-1] + 1.) * (yIn[i+1] + 1.)
-                / (yIn[i] + 1.) / (yIn[i] + 1.));
-    }).waitForFinished();
+	ThreadPool::FutureBunch futures
+	(
+		m_threadPool->parForAsync
+		(
+			n-2,
+			[&](size_t j)->void
+	{
+		size_t i = j + 1;
+		yOut[i] = yIn[i] < 1.0 ? p * (yIn[i] + 1.) * (yIn[i] + 1.)
+			: p * (yIn[i] + 1.) * (yIn[i] + 1.) / yIn[i];
+		r[i] = std::log((yIn[i - 1] + 1.) * (yIn[i + 1] + 1.)
+			/ (yIn[i] + 1.) / (yIn[i] + 1.));
+	}
+		)
+	);
 
     //Allocate coefficients for a linear equations system
     a.resize(n - 2);
@@ -80,21 +92,25 @@ void ParSplineCalc::logSplinePoissonWeights
     c[n-1] = 1.0;
     d[n-2] = -2*yOut[n-2] - yOut[n-1] + 1.0;
     //
-    QtConcurrent::map<VectorIdx::iterator>
-    (
-        Idx.begin(),
-        Idx.end() - 3,
-        [&](size_t i)->void
-    {
-        a[i]   = yOut[i+1];
-        b[i+1] = -2.0*yOut[i+1] - 2.0*yOut[i+2] + 1.0;
-        c[i+1] = yOut[i] + 4.0*yOut[i+1] + yOut[i+2] + 4.0;
-        d[i+1] = -2.0*yOut[i+1] - 2.0*yOut[i+2] + 1.0;
-        e[i+1] = yOut[i+2];
-    }).waitForFinished();
+	futures.wait();
 
+	futures = m_threadPool->parForAsync
+	(
+		n-3,
+		[&](size_t i)->void
+	{
+		a[i] = yOut[i + 1];
+		b[i + 1] = -2.0*yOut[i + 1] - 2.0*yOut[i + 2] + 1.0;
+		c[i + 1] = yOut[i] + 4.0*yOut[i + 1] + yOut[i + 2] + 4.0;
+		d[i + 1] = -2.0*yOut[i + 1] - 2.0*yOut[i + 2] + 1.0;
+		e[i + 1] = yOut[i + 2];
+	}
+	);
+    
     //set last one value at main diagonal
     c[n-2] = yOut[n-3] + 4.0*yOut[n-2] + yOut[n-1] + 4.0;
+
+	futures.wait();
 
     math::fivediagonalsolve
     (
@@ -114,13 +130,38 @@ void ParSplineCalc::logSplinePoissonWeights
     yOut[0] = std::exp(yOut[0]) - 1.;
     yOut[n-1] = std::exp(yOut[n-1]) - 1.;
 
-    QtConcurrent::map<VectorIdx::iterator>
+    m_threadPool->parFor
     (
-        std::next(Idx.begin()),
-        std::prev(Idx.end()),
-        [&](size_t i)->void
+        n-2,
+        [&](size_t j)->void
     {
+		size_t i = j + 1;
         yOut[i] = std::log(yIn[i] + 1.) - (bb[i-1] - 2.0*bb[i] + bb[i+1])*yOut[i];
         yOut[i] = std::exp(yOut[i]) - 1.;
-    }).waitForFinished();
+    });
+}
+
+size_t ParSplineCalc::typeId() const
+{
+	return s_typeId;
+}
+
+ParSplineCalc::InstanceLocker::InstanceLocker
+(
+	ParSplineCalc * instance,
+	bool clearMemory
+)
+	:
+	m_instance(instance),
+	m_clearMemory(clearMemory)
+{
+}
+
+ParSplineCalc::InstanceLocker::~InstanceLocker()
+{
+	m_instance->clear();
+	if (m_clearMemory)
+	{
+		m_instance->freeInstance();
+	}
 }

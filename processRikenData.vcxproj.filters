@@ -95,6 +95,12 @@
     <Filter Include="Source Files\Plot">
       <UniqueIdentifier>{0e70a72f-0fa1-4e76-95b2-7f768f1e88b2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Base">
+      <UniqueIdentifier>{2fb66620-d97d-4f09-9bf3-b3162d72591b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Base">
+      <UniqueIdentifier>{bd0d287b-7c49-46ce-9106-2495d8f263a9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -205,8 +211,23 @@
     <ClCompile Include="Math\PeakUncertainty.cpp">
       <Filter>Source Files\Math</Filter>
     </ClCompile>
-    <ClCompile Include="Math\MathObject.cpp">
+    <ClCompile Include="Math\PeakShape.cpp">
       <Filter>Source Files\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Data\Reader.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="Base\ThreadPool.cpp">
+      <Filter>Source Files\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug\moc_Reader.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Release\moc_Reader.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="Base\BaseObject.cpp">
+      <Filter>Source Files\Base</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -255,8 +276,14 @@
     <ClInclude Include="Math\PeakUncertainty.h">
       <Filter>Header Files\Math</Filter>
     </ClInclude>
-    <ClInclude Include="Math\MathObject.h">
+    <ClInclude Include="Math\PeakShape.h">
       <Filter>Header Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Base\ThreadPool.h">
+      <Filter>Header Files\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Base\BaseObject.h">
+      <Filter>Header Files\Base</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -292,6 +319,9 @@
     </CustomBuild>
     <CustomBuild Include="Plot\PlotForm.h">
       <Filter>Header Files\Plot</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Data\Reader.h">
+      <Filter>Header Files\Data</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>

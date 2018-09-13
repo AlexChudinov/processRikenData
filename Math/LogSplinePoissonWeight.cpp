@@ -169,34 +169,41 @@ void LogSplinePoissonWeightOnePeak::run
 {
     if(inputCheck(yOut, yIn) && *m_peakCount != 0)
     {
+		VectorDouble tmpYIn(yIn);
+
+		std::for_each(tmpYIn.begin(), tmpYIn.end(), [=](double& y) 
+		{
+			y = y / *m_noiseLevel;
+		});
+
         ParSplineCalc::InstanceLocker calc
         (
             ParSplineCalc::lockInstance()
         );
 
-        calc->logSplinePoissonWeights(yOut, yIn, *m_p);
+        calc->logSplinePoissonWeights(yOut, tmpYIn, *m_p);
 
         double a, b;
         if(peakCount(yOut) > *m_peakCount)
         {
             while(peakCount(yOut) > *m_peakCount)
-                calc->logSplinePoissonWeights(yOut, yIn, *m_p *= 10.);
+                calc->logSplinePoissonWeights(yOut, tmpYIn, *m_p *= 10.);
             a = *m_p / 10., b = *m_p;
         }
         else
         {
             while(peakCount(yOut) <= *m_peakCount)
-                calc->logSplinePoissonWeights(yOut, yIn, *m_p /= 10.);
+                calc->logSplinePoissonWeights(yOut, tmpYIn, *m_p /= 10.);
             a = *m_p, b = *m_p * 10.;
         }
 
         while((b - a) / (b + a) > std::numeric_limits<double>::epsilon())
         {
-            calc->logSplinePoissonWeights(yOut, yIn, *m_p = .5*(a + b));
+            calc->logSplinePoissonWeights(yOut, tmpYIn, *m_p = .5*(a + b));
             if(peakCount(yOut) > *m_peakCount) a = *m_p;
             else b = *m_p;
         }
-        calc->logSplinePoissonWeights(yOut, yIn, b);
+        calc->logSplinePoissonWeights(yOut, tmpYIn, b);
         *m_p = b;
     }
 }

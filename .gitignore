@@ -1,14 +1,11 @@
 ﻿################################################################################
 # Данный GITIGNORE-файл был автоматически создан Microsoft(R) Visual Studio.
 ################################################################################
-
 /debug
 /GeneratedFiles
-/.vs/processRikenData/v14
-/QCustomPlot
-/x64/Debug
 /Math/smoothing_splines.h.UBWXfp
 /Math/exception.h.GuhiCe
+/release
 /RikenData/CompressedMS.cpp.YrDxUy
 /RikenData/CompressedMS.cpp.xWBrNw
 /RikenData/CompressedMS.cpp.wxVHtQ
@@ -22,10 +19,12 @@
 /RikenData/CompressedMS.cpp.crmPsH
 /RikenData/CompressedMS.cpp.autosave.CzbSRG
 /RikenData/CompressedMS.cpp.AfWHgj
-/processRikenData.pro.user.XuPDZB
-/processRikenData.pro.user.RPdPRw
-/processRikenData.pro.user.fcFWhA
+/x64
 /processRikenData.pro.user.3.2-pre1
 /processRikenData.pro.user.18
-/release
-/x64/Release
+/processRikenData.pro.user.RPdPRw
+/processRikenData.pro.user.QtEtGV
+/processRikenData.pro.user.NVmGUZ
+/processRikenData.pro.user.fcFWhA
+/processRikenData.pro.user.XuPDZB
+/processRikenData.pro.user.tcypGL

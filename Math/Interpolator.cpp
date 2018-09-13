@@ -32,8 +32,8 @@ Interpolator::InterpType Linear::type() const
 
 double Linear::interpolate(double xVal) const
 {
-    xVal /= xFactor();
     if (xVal < minX() || xVal >= maxX()) return 0.0;
+	xVal /= xFactor();
     Map::const_iterator it1 = m_table.upper_bound(static_cast<size_t>(xVal)), it0 = std::prev(it1);
     double yVal = interpolate(it0, it1, xVal);
     return yVal;
@@ -76,18 +76,24 @@ Linear::Map &Linear::table()
 
 Interpolator::Pointer Interpolator::create(InterpType type, const Map &tab)
 {
-    switch(type)
-    {
-    case LinearType: return Pointer(new Linear(tab));
-    }
+	if (!tab.empty())
+	{
+		switch (type)
+		{
+		case LinearType: return Pointer(new Linear(tab));
+		}
+	}
     return Pointer();
 }
 
 Interpolator::Pointer Interpolator::create(InterpType type, Map &tab)
 {
-    switch(type)
-    {
-    case LinearType: return Pointer(new Linear(tab));
-    }
+	if (!tab.empty())
+	{
+		switch (type)
+		{
+		case LinearType: return Pointer(new Linear(tab));
+		}
+	}
     return Pointer();
 }
