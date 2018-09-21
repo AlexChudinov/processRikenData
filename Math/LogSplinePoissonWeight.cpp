@@ -188,13 +188,15 @@ void LogSplinePoissonWeightOnePeak::run
         {
             while(peakCount(yOut) > *m_peakCount)
                 calc->logSplinePoissonWeights(yOut, tmpYIn, *m_p *= 10.);
-            a = *m_p / 10., b = *m_p;
+            a = *m_p / 10.;
+            b = *m_p;
         }
         else
         {
             while(peakCount(yOut) <= *m_peakCount)
                 calc->logSplinePoissonWeights(yOut, tmpYIn, *m_p /= 10.);
-            a = *m_p, b = *m_p * 10.;
+            a = *m_p;
+            b = *m_p * 10.;
         }
 
         while((b - a) / (b + a) > std::numeric_limits<double>::epsilon())

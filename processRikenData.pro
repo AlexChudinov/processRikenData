@@ -27,7 +27,11 @@ SOURCES += main.cpp\
     Math/LogSplinePoissonWeight.cpp \
     QMapPropsDialog.cpp \
     DialogAbout.cpp \
-    RikenData/peak.cpp
+    RikenData/peak.cpp \
+    Base/BaseObject.cpp \
+    Math/PeakShape.cpp \
+    Base/ThreadPool.cpp \
+    Plot/BasePlot.cpp
 
 HEADERS  += mainwindow.h \
     RikenData/rawrikendata.h \
@@ -45,7 +49,11 @@ HEADERS  += mainwindow.h \
     Math/LogSplinePoissonWeight.h \
     QMapPropsDialog.h \
     DialogAbout.h \
-    RikenData/peak.h
+    RikenData/peak.h \
+    Base/BaseObject.h \
+    Math/PeakShape.h \
+    Base/ThreadPool.h \
+    Plot/BasePlot.h
 
 FORMS    += mainwindow.ui \
     Plot/PlotForm.ui \

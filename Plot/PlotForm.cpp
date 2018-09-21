@@ -48,7 +48,7 @@ PlotForm::PlotForm(const CompressedMS &ms, const QString& strDscrpt, QWidget *pa
     m_pPlot->yAxis->setLabelFont(QFont("Arial", 12));
     m_pPlot->xAxis->setLabel("time [bin]");
     m_pPlot->yAxis->setLabel("ion count");
-	m_pPlot->yAxis->setScaleType(QCPAxis::stLogarithmic);
+    //m_pPlot->yAxis->setScaleType(QCPAxis::stLogarithmic);
 
     fillPropertiesList();
 

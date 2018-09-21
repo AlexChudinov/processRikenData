@@ -2,32 +2,22 @@
 #define PARSPLINECALC_H
 
 #include <vector>
-#include "Base\ThreadPool.h"
+#include <QObject>
+
+class QMutex;
 
 /**
  * @brief The ParSplineCalc class calculates spline in parallel using
  * optimized memory consumption. Error checking is minimal
  */
-class ParSplineCalc : public BaseObject
+class ParSplineCalc : public QObject
 {
-public:
-	using VectorDouble = std::vector<double>;
-
-private:
-	//Vectors to store matrix values
-	VectorDouble a, b, c, d, e, bb, r;
-
-	Q_DISABLE_COPY(ParSplineCalc)
-	
-	BASE_OBJECT_DUMMY_STATE
-
-	//Only one thread can work with
-	static ThreadPool::Mutex s_mutex;
-	static size_t s_typeId;
-
-	ThreadPool * m_threadPool;
+    Q_OBJECT
 
 public:
+    using VectorDouble = std::vector<double>;
+    using VectorDoublePtr = QScopedPointer<VectorDouble>;
+
     friend class InstanceLocker;
 	/**
 	* @brief The InstanceLocker class locks and unlocks ParSplineCalc instance
@@ -47,7 +37,9 @@ public:
 		operator bool() const { return m_instance; }
 	};
 
-	ParSplineCalc();
+    ParSplineCalc(QObject * parent = nullptr);
+
+    ~ParSplineCalc();
 
     /**
      * @brief getInstance locks mutex
@@ -79,7 +71,15 @@ public:
         double p
     );
 
-	virtual size_t typeId() const;
+private:
+    //Vectors to store matrix values
+    VectorDoublePtr a, b, c, d, e, bb, r;
+
+    /**
+     * @brief s_mutex blocks current instance,
+     * because it has shared resources
+     */
+    static QMutex s_mutex;
 };
 
 #endif // PARSPLINECALC_H
