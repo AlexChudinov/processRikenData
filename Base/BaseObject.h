@@ -11,7 +11,8 @@ class MyInit : public QObject
 {
     Q_OBJECT
 
-    static MyInit s_instance;
+    static const MyInit * s_instance;
+
 public:
     MyInit(QObject * parent = nullptr);
 	~MyInit();

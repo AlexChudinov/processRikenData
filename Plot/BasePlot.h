@@ -1,11 +1,13 @@
 #ifndef BASEPLOT_H
 #define BASEPLOT_H
 
-#include <QMainWindow>
+#include <QObject>
 
 class QCustomPlot;
+class QToolBar;
+class QAction;
 
-class BasePlot : public QMainWindow
+class BasePlot : public QObject
 {
     Q_OBJECT
 

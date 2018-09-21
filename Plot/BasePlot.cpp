@@ -4,17 +4,14 @@
 #include "QCustomPlot/qcustomplot.h"
 
 BasePlot::BasePlot(QObject *parent)
-    : QMainWindow(nullptr),
+    : QObject (parent),
       m_plot(new QCustomPlot),
       m_toolBar(new QToolBar)
 {
-    QObject::setParent(parent);
     setObjectName("BasePlot");
     m_actions.append(new QAction(QIcon(":/Icons/zoomIn"), "Zoom In"));
     m_actions.append(new QAction(QIcon(":/Icons/zoomOut"), "Zoom Out"));
     m_actions.append(new QAction(QIcon(":/Icons/openHand"), "Shift x-axis"));
-    setCentralWidget(m_plot);
-    addToolBar(Qt::ToolBarArea::TopToolBarArea, m_toolBar);
     for(QAction * a : m_actions)
     {
         m_toolBar->addAction(a);
@@ -56,9 +53,9 @@ void BasePlot::updateLimits()
             std::pair<QCPGraphDataContainer::const_iterator,
                     QCPGraphDataContainer::const_iterator> minMaxPair
                     = std::minmax(firstIt, lastIt,
-                                  [](const QCPGraphData& a, QCPGraphData& b)->bool
+                                  [](const QCPGraphData* a, const QCPGraphData* b)->bool
             {
-                return a.value < b.value;
+                return a->value < b->value;
             });
             yRange.lower = minMaxPair.first->value;
             yRange.upper = minMaxPair.second->value;

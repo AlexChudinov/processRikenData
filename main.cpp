@@ -2,12 +2,20 @@
 #include "Base\BaseObject.h"
 
 #include <QApplication>
+#include <QMessageBox>
 
 int main(int argc, char *argv[])
 {
-    QApplication a(argc, argv);
-    MainWindow w;
-    w.show();
-
-    return a.exec();
+    try{
+        QApplication a(argc, argv);
+        MyInit init;
+        MainWindow w;
+        w.show();
+        return a.exec();
+    }
+    catch(std::exception& ex)
+    {
+        QMessageBox::warning(nullptr, "Exception", ex.what());
+        return 1;
+    }
 }
