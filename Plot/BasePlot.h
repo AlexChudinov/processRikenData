@@ -6,6 +6,7 @@
 class QCustomPlot;
 class QToolBar;
 class QAction;
+class QMouseEvent;
 
 class BasePlot : public QObject
 {
@@ -22,10 +23,15 @@ public:
     QToolBar * toolBar();
 
 private:
+    Q_SLOT void onZoomInAction();
+    Q_SLOT void onZoomOutAction();
+    Q_SLOT void onDragAxisAction();
+    Q_SLOT void onExportImageAction();
+    Q_SLOT void onMouseClick(QMouseEvent *event);
+
+    void createActions();
 
     QCustomPlot * m_plot;
-
-    QList<QAction*> m_actions;
 
     QToolBar * m_toolBar;
 
