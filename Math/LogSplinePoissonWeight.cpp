@@ -68,8 +68,8 @@ void LogSplinePoissonWeightPoissonNoise::run
         (
             ParSplineCalc::lockInstance()
         );
-        double TIC = std::accumulate(yIn.begin(), yIn.end(), 0.0);
         calc->logSplinePoissonWeights(yOut, yIn, *m_p);
+        double TIC = std::accumulate(yOut.begin(), yOut.end(), 0.0);
         double s = sqDif(yOut, yIn);
 
         double a, b;
@@ -84,6 +84,7 @@ void LogSplinePoissonWeightPoissonNoise::run
                     *m_p /= 10.
                 );
                 s = sqDif(yOut, yIn);
+                TIC = std::accumulate(yOut.begin(), yOut.end(), 0.0);
             }
             a = *m_p; b = *m_p * 10.;
         }
@@ -98,6 +99,7 @@ void LogSplinePoissonWeightPoissonNoise::run
                     *m_p *= 10.
                 );
                 s = sqDif(yOut, yIn);
+                TIC = std::accumulate(yOut.begin(), yOut.end(), 0.0);
             }
             a = *m_p / 10.; b = *m_p;
         }
@@ -110,6 +112,7 @@ void LogSplinePoissonWeightPoissonNoise::run
                 yIn,
                 *m_p = .5 * (a + b)
             );
+            TIC = std::accumulate(yOut.begin(), yOut.end(), 0.0);
             s = sqDif(yOut, yIn);
             if(s < TIC) a = *m_p;
             else if (s > TIC) b = *m_p;

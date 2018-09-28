@@ -2,6 +2,7 @@
 #define BASEPLOT_H
 
 #include <QObject>
+#include <QPointer>
 
 class QCustomPlot;
 class QToolBar;
@@ -31,9 +32,9 @@ private:
 
     void createActions();
 
-    QCustomPlot * m_plot;
+    QPointer<QCustomPlot> m_plot;
 
-    QToolBar * m_toolBar;
+    QPointer<QToolBar> m_toolBar;
 
     /**
      * @brief controlLimits watch that QCustomPlot should never
