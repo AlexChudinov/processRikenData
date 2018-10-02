@@ -1,26 +1,18 @@
 #include <algorithm>
-
 #include "BasePlot.h"
-#include "QCustomPlot/qcustomplot.h"
 
-BasePlot::BasePlot(QObject *parent)
-    : QObject (parent),
-      m_plot(new QCustomPlot),
+BasePlot::BasePlot(QWidget *parent)
+    : QCustomPlot(parent),
       m_toolBar(new QToolBar)
 {
     setObjectName("BasePlot");
-
-    connect(m_plot, SIGNAL(beforeReplot()), this, SLOT(updateLimits()));
+    connect(this, SIGNAL(beforeReplot()),
+            this, SLOT(updateLimits()));
 }
 
 BasePlot::~BasePlot()
 {
 
-}
-
-QCustomPlot *BasePlot::plot()
-{
-    return m_plot;
 }
 
 QToolBar *BasePlot::toolBar()
@@ -30,27 +22,27 @@ QToolBar *BasePlot::toolBar()
 
 void BasePlot::onZoomInAction()
 {
-    m_plot->setSelectionRectMode(QCP::srmZoom);
-    m_plot->setCursor(QCursor(QPixmap("://Icons//zoomIn")));
+    setSelectionRectMode(QCP::srmZoom);
+    setCursor(QCursor(QPixmap("://Icons//zoomIn")));
 }
 
 void BasePlot::onZoomOutAction()
 {
     //Do not update limits when it is zoom out
-    m_plot->blockSignals(true);
+    blockSignals(true);
 
-    m_plot->setSelectionRectMode(QCP::srmNone);
-    m_plot->setCursor(QCursor(Qt::ArrowCursor));
-    m_plot->rescaleAxes();
-    m_plot->replot();
+    setSelectionRectMode(QCP::srmNone);
+    setCursor(QCursor(Qt::ArrowCursor));
+    rescaleAxes();
+    replot();
 
-    m_plot->blockSignals(false);
+    blockSignals(false);
 }
 
 void BasePlot::onDragAxisAction()
 {
-    m_plot->setCursor(QCursor(Qt::OpenHandCursor));
-    m_plot->setSelectionRectMode(QCP::srmNone);
+    setCursor(QCursor(Qt::OpenHandCursor));
+    setSelectionRectMode(QCP::srmNone);
 }
 
 void BasePlot::onExportImageAction()
@@ -58,7 +50,7 @@ void BasePlot::onExportImageAction()
     QString fileFilt;
     QString fileName = QFileDialog::getSaveFileName
     (
-        m_plot,
+        this,
         "Save as an image",
         QString(),
         tr("PNG (*.png);;JPG (*.jpg);;BMP (*.bmp);;PDF (*.pdf)"),
@@ -66,10 +58,10 @@ void BasePlot::onExportImageAction()
     );
     if(!fileName.isEmpty())
     {
-        if(fileFilt == "PNG (*.png)") m_plot->savePng(fileName);
-        if(fileFilt == "JPG (*.jpg)") m_plot->saveJpg(fileName);
-        if(fileFilt == "BMP (*.bmp)") m_plot->saveBmp(fileName);
-        if(fileFilt == "PDF (*.pdf)") m_plot->savePng(fileName);
+        if(fileFilt == "PNG (*.png)") savePng(fileName);
+        if(fileFilt == "JPG (*.jpg)") saveJpg(fileName);
+        if(fileFilt == "BMP (*.bmp)") saveBmp(fileName);
+        if(fileFilt == "PDF (*.pdf)") savePng(fileName);
     }
 }
 
@@ -77,22 +69,22 @@ void BasePlot::onMouseClick(QMouseEvent * event)
 {
     if(event->button() == Qt::RightButton)
     {
-        m_plot->setSelectionRectMode(QCP::srmNone);
-        m_plot->setCursor(QCursor(Qt::ArrowCursor));
+        setSelectionRectMode(QCP::srmNone);
+        setCursor(QCursor(Qt::ArrowCursor));
     }
     else
     {
-        if(m_plot->cursor().shape() == Qt::OpenHandCursor)
+        if(cursor().shape() == Qt::OpenHandCursor)
         {
             QPoint pt = event->pos();
-            double x = m_plot->xAxis->pixelToCoord(pt.x());
-            QCPRange range = m_plot->xAxis->range();
+            double x = xAxis->pixelToCoord(pt.x());
+            QCPRange range = xAxis->range();
             double x0 = .5 * (range.upper + range.lower);
             if(x < x0)
                 (range.lower *= 2) -= x;
             else
                 (range.upper *= 2) -= x;
-            m_plot->xAxis->setRange(range);
+            xAxis->setRange(range);
         }
     }
 }
@@ -111,15 +103,15 @@ void BasePlot::createActions()
 
 void BasePlot::updateLimits()
 {
-    int nGraphs = m_plot->graphCount();
-    QCPRange xRange = m_plot->xAxis->range();
+    int nGraphs = graphCount();
+    QCPRange xRange = xAxis->range();
     QCPRange yRange;
     if(nGraphs != 0)
     {
         for(int i = 0; i < nGraphs; ++i)
         {
             QSharedPointer<QCPGraphDataContainer> data
-                    = m_plot->graph(i)->data();
+                    = graph(i)->data();
             xRange.lower = qMax(xRange.lower, data->begin()->key);
             xRange.upper = qMin(xRange.upper, std::prev(data->end())->key);
             QCPGraphDataContainer::const_iterator
@@ -135,7 +127,7 @@ void BasePlot::updateLimits()
             yRange.lower = minMaxPair.first->value;
             yRange.upper = minMaxPair.second->value;
         }
-        m_plot->xAxis->setRange(xRange);
-        m_plot->yAxis->setRange(yRange);
+        xAxis->setRange(xRange);
+        yAxis->setRange(yRange);
     }
 }

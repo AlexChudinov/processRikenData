@@ -1,25 +1,17 @@
 #ifndef BASEPLOT_H
 #define BASEPLOT_H
 
-#include <QObject>
-#include <QPointer>
+#include "QCustomPlot/qcustomplot.h"
 
-class QCustomPlot;
-class QToolBar;
-class QAction;
-class QMouseEvent;
-
-class BasePlot : public QObject
+class BasePlot : public QCustomPlot
 {
     Q_OBJECT
 
 public:
 
-    explicit BasePlot(QObject *parent = nullptr);
+    explicit BasePlot(QWidget *parent = nullptr);
 
     virtual ~BasePlot();
-
-    QCustomPlot * plot();
 
     QToolBar * toolBar();
 
@@ -31,8 +23,6 @@ private:
     Q_SLOT void onMouseClick(QMouseEvent *event);
 
     void createActions();
-
-    QPointer<QCustomPlot> m_plot;
 
     QPointer<QToolBar> m_toolBar;
 

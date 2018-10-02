@@ -6,6 +6,15 @@
 #include <vector>
 #include <map>
 
+//Base object properties
+class Props
+{
+public:
+    virtual ~Props();
+    virtual QVariantMap getProps() const = 0;
+    virtual void setProps(const QVariantMap& props) const = 0;
+};
+
 //Initialises objects
 class MyInit : public QObject
 {
