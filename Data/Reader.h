@@ -17,8 +17,11 @@ public:
 
 	virtual ~Reader() {}
 
-protected:
+    virtual void open(const QString& fileName) = 0;
 
+    virtual void close() = 0;
+
+    virtual void run() = 0;
 };
 
 #endif // !TIME_EVENTS_H

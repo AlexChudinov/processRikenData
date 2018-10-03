@@ -32,7 +32,8 @@ SOURCES += main.cpp\
     Math/PeakShape.cpp \
     Base/ThreadPool.cpp \
     Plot/BasePlot.cpp \
-    Data/Reader.cpp
+    Data/Reader.cpp \
+    Data/TimeEvents.cpp
 
 HEADERS  += mainwindow.h \
     RikenData/rawrikendata.h \
@@ -55,7 +56,8 @@ HEADERS  += mainwindow.h \
     Math/PeakShape.h \
     Base/ThreadPool.h \
     Plot/BasePlot.h \
-    Data/Reader.h
+    Data/Reader.h \
+    Data/TimeEvents.h
 
 FORMS    += mainwindow.ui \
     Plot/PlotForm.ui \

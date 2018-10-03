@@ -8,7 +8,7 @@ MyInit::MyInit(QObject * parent)
       QObject(parent)
 {
     if(s_instance) throw std::runtime_error
-            ("Try to create second MyInit instance!");
+            ("Tryed to create second MyInit instance!");
     new ParSplineCalc(this);
     s_instance = this;
 }
