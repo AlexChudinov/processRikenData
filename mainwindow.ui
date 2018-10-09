@@ -65,10 +65,17 @@
     <addaction name="actionCredits"/>
     <addaction name="actionAbout"/>
    </widget>
+   <widget class="QMenu" name="menuNew">
+    <property name="title">
+     <string>New</string>
+    </property>
+    <addaction name="actionnewFileOpen"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuMass_Spec"/>
    <addaction name="menuProperties"/>
    <addaction name="menuAbout"/>
+   <addaction name="menuNew"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -149,6 +156,11 @@
   <action name="actionAbout">
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="actionnewFileOpen">
+   <property name="text">
+    <string>newFileOpen</string>
    </property>
   </action>
  </widget>

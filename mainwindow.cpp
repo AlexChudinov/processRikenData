@@ -4,6 +4,7 @@
 #include <QMdiSubWindow>
 #include <QFileDialog>
 #include <QMessageBox>
+#include "Data/Reader.h"
 
 #include "DialogAbout.h"
 #include "QMapPropsDialog.h"
@@ -174,4 +175,22 @@ void MainWindow::on_actionAbout_triggered()
 {
     DialogAbout dialog;
     dialog.exec();
+}
+
+void MainWindow::on_actionnewFileOpen_triggered()
+{
+    m_strRikenFilePath =
+            QFileDialog::getOpenFileName(this, tr("Open File"),
+                                         QString(),
+                                         tr("RIKEN Data (*.lst)"));
+
+    if(!m_strRikenFilePath.isEmpty())
+    {
+        QFileInfo fileInfo(m_strRikenFilePath);
+        m_strRikenFileName = fileInfo.fileName();
+        QScopedPointer<Reader> reader(new RikenFileReader(this));
+        reader->open(m_strRikenFilePath);
+        reader->run();
+        reader->close();
+    }
 }

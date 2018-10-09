@@ -17,10 +17,11 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QWidget *parent = Q_NULLPTR);
     ~MainWindow();
 
 private:
+    Q_SLOT void on_actionnewFileOpen_triggered();
     Q_SLOT void on_actionAbout_triggered();
     Q_SLOT void on_actionCredits_triggered();
     Q_SLOT void on_actionTimeShiftAcc_triggered();

@@ -2,7 +2,7 @@
 
 TimeEvents::TimeEvents(QObject *parent) : QObject(parent)
 {
-
+    setObjectName("TimeEvents");
 }
 
 TimeEvents::~TimeEvents()
@@ -10,9 +10,16 @@ TimeEvents::~TimeEvents()
 
 }
 
-void TimeEvents::addEvent(size_t event)
+void TimeEvents::blockingAddEvent(size_t start, size_t stop)
 {
-    m_timeEvents.push(event);
-    emit timeEventAdd();
-    emit timeEventsAdd(m_timeEvents.size());
+    Locker lock(mMutex);
+    mTimeEvents.push_back({start, stop});
+    Q_EMIT eventsUpdateNotify(mTimeEvents.size());
+}
+
+void TimeEvents::blockingAddProps(QVariantMap props)
+{
+    Locker lock(mMutex);
+    mProps.reset(new QVariantMap(props));
+    Q_EMIT propsUpdateNotify();
 }

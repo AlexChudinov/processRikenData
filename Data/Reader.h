@@ -1,14 +1,17 @@
 #pragma once
 #ifndef TIME_EVENTS_H
 #define TIME_EVENTS_H
+#include <QFile>
 #include <QObject>
+#include <QRunnable>
+
 #include <vector>
 #include <map>
 
 /**
 	@class TimeEventsReader is an interface to read time events from file or etc.
 */
-class Reader: public QObject
+class Reader: public QObject, public QRunnable
 {
 	Q_OBJECT
 
@@ -21,7 +24,42 @@ public:
 
     virtual void close() = 0;
 
-    virtual void run() = 0;
+    Q_SIGNAL void started();
+    Q_SIGNAL void finished();
+};
+
+class QFile;
+class TimeEvents;
+class QTextStream;
+
+class TimeEventsReader : public Reader
+{
+    Q_OBJECT
+
+public:
+    TimeEventsReader(QObject * parent = Q_NULLPTR);
+
+protected:
+    TimeEvents * mTimeEvents;
+};
+
+class RikenFileReader : public TimeEventsReader
+{
+    Q_OBJECT
+
+public:
+    RikenFileReader(QObject * parent = Q_NULLPTR);
+
+    void open(const QString& fileName);
+
+    void close();
+
+    void run();
+private:
+    QScopedPointer<QFile> mFile;
+
+    static QVariantMap readProps(QTextStream& in);
+    static void readPropsSegment(QTextStream& in, QVariantMap& seg);
 };
 
 #endif // !TIME_EVENTS_H
