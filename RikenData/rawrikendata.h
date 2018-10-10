@@ -12,18 +12,18 @@ class QFile;
 /**
  * @brief The MassSpec class implements histogram of counts
  */
-class MassSpec
+class MassSpec_old
 {
 public:
     using VectorInt = std::vector<quint32>;
 
-    MassSpec(quint32 nMinTime, const VectorInt& vFreqs)
+    MassSpec_old(quint32 nMinTime, const VectorInt& vFreqs)
         :
           m_nMinTime(nMinTime),
           m_vFreqs(vFreqs)
     {}
 
-    MassSpec(quint32 nMinTime, VectorInt&& vFreqs)
+    MassSpec_old(quint32 nMinTime, VectorInt&& vFreqs)
         :
           m_nMinTime(nMinTime),
           m_vFreqs(vFreqs)
@@ -89,7 +89,7 @@ public:
      * @param idx1 last sweep index
      * @return
      */
-    MassSpec accumulateMassSpec(size_t idx0, size_t idx1) const;
+    MassSpec_old accumulateMassSpec(size_t idx0, size_t idx1) const;
 
     /**
      * @brief accumulateMassSpec accumulates mass specs step by step with

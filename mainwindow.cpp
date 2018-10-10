@@ -131,7 +131,7 @@ void MainWindow::on_actionSimpleMassSpecAcc_triggered()
     if(dialog.result() == QDialog::Accepted)
     {
         QPair<int, int> pairAccLims = dialog.getAccumulationLimits();
-        MassSpec massSpec = m_pData->accumulateMassSpec(pairAccLims.first,
+        MassSpec_old massSpec = m_pData->accumulateMassSpec(pairAccLims.first,
                                                         pairAccLims.second);
         QString strDescription = m_strRikenFileName
                 + tr(" sum [%1 .. %2]")

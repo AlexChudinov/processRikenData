@@ -49,10 +49,21 @@ void RikenFileReader::run()
 
     bool ok = true;
     QString line;
+    size_t prevStartIdx = 0;
+    mTimeEvents->blockingAddEvent(0); //add first start
     while(!(line = in.readLine()).isNull() && ok)
     {
         quint64 count = line.toULongLong(&ok, 16);
-        mTimeEvents->blockingAddEvent(MID(count, 32, 48), MID(count, 4, 32));
+        size_t curStartIdx = MID(count, 32, 48);
+        if(curStartIdx != prevStartIdx)
+        {
+            size_t diffStartIdx = curStartIdx >= prevStartIdx ? curStartIdx - prevStartIdx :
+                                                                curStartIdx + std::numeric_limits<uint16_t>::max() - prevStartIdx;
+            prevStartIdx = curStartIdx;
+            for(size_t i = 0; i < diffStartIdx; ++i)
+                mTimeEvents->blockingAddEvent(0);
+        }
+        mTimeEvents->blockingAddEvent(MID(count, 4, 32));
     }
     Q_EMIT finished();
 }

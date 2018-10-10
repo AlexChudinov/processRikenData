@@ -64,10 +64,10 @@ void RawRikenData::readFile(QFile &file)
     for(auto& d : m_vData) d.shrink_to_fit();
 }
 
-MassSpec RawRikenData::accumulateMassSpec(size_t idx0, size_t idx1) const
+MassSpec_old RawRikenData::accumulateMassSpec(size_t idx0, size_t idx1) const
 {
     std::pair<size_t, size_t> pairMinMax = std::minmax(idx0, idx1);
-    MassSpec::VectorInt vFreqs(m_nMaxTime - m_nMinTime + 1);
+    MassSpec_old::VectorInt vFreqs(m_nMaxTime - m_nMinTime + 1);
     if(pairMinMax.second <= m_vData.size())
     {
         for(size_t i = pairMinMax.first; i < pairMinMax.second; ++i)
@@ -78,7 +78,7 @@ MassSpec RawRikenData::accumulateMassSpec(size_t idx0, size_t idx1) const
             }
         }
     }
-    return MassSpec(m_nMinTime, std::move(vFreqs));
+    return MassSpec_old(m_nMinTime, std::move(vFreqs));
 }
 
 CompressedMS RawRikenData::accumulateMassSpec(size_t idx0, size_t idx1, size_t step, size_t peakWidth) const
@@ -103,12 +103,12 @@ CompressedMS RawRikenData::accumulateMassSpec(size_t idx0, size_t idx1, size_t s
 
 
 
-CompressedMS MassSpec::compress() const
+CompressedMS MassSpec_old::compress() const
 {
     return CompressedMS(m_vFreqs, m_nMinTime);
 }
 
-quint32 MassSpec::totalIonCount() const
+quint32 MassSpec_old::totalIonCount() const
 {
     quint32 res = 0;
     for(quint32 e : m_vFreqs) res += e;

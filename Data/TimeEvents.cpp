@@ -10,11 +10,11 @@ TimeEvents::~TimeEvents()
 
 }
 
-void TimeEvents::blockingAddEvent(size_t start, size_t stop)
+void TimeEvents::blockingAddEvent(TimeEvent evt)
 {
     Locker lock(mMutex);
-    mTimeEvents.push_back({start, stop});
-    Q_EMIT eventsUpdateNotify(mTimeEvents.size());
+    mTimeEvents.push_back(evt);
+    Q_EMIT eventsUpdateNotify(static_cast<size_t>(mTimeEvents.size()));
 }
 
 void TimeEvents::blockingAddProps(QVariantMap props)
@@ -22,4 +22,11 @@ void TimeEvents::blockingAddProps(QVariantMap props)
     Locker lock(mMutex);
     mProps.reset(new QVariantMap(props));
     Q_EMIT propsUpdateNotify();
+}
+
+void TimeEvents::blockingClear()
+{
+    Locker lock(mMutex);
+    mTimeEvents.clear();
+    Q_EMIT cleared();
 }

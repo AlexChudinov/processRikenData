@@ -33,7 +33,8 @@ SOURCES += main.cpp\
     Base/ThreadPool.cpp \
     Plot/BasePlot.cpp \
     Data/Reader.cpp \
-    Data/TimeEvents.cpp
+    Data/TimeEvents.cpp \
+    Data/MassSpec.cpp
 
 HEADERS  += mainwindow.h \
     RikenData/rawrikendata.h \
@@ -57,7 +58,8 @@ HEADERS  += mainwindow.h \
     Base/ThreadPool.h \
     Plot/BasePlot.h \
     Data/Reader.h \
-    Data/TimeEvents.h
+    Data/TimeEvents.h \
+    Data/MassSpec.h
 
 FORMS    += mainwindow.ui \
     Plot/PlotForm.ui \

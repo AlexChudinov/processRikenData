@@ -14,13 +14,9 @@ public:
     /**
      * @brief The TimeEvent struct particular time event
      */
-    struct TimeEvent
-    {
-        size_t start;
-        size_t stop;
-    };
+    using TimeEvent = unsigned long long;
 
-    using TimeEventsContainer = std::list<TimeEvent>;
+    using TimeEventsContainer = QList<TimeEvent>;
     using Mutex = std::mutex;
     using Locker = std::unique_lock<Mutex>;
 
@@ -42,9 +38,12 @@ public:
 
     Q_SIGNAL void eventsUpdateNotify(size_t);
     Q_SIGNAL void propsUpdateNotify();
+    Q_SIGNAL void cleared();
 
-    Q_SLOT void blockingAddEvent(size_t start, size_t stop);
+    Q_SLOT void blockingAddEvent(TimeEvent evt);
     Q_SLOT void blockingAddProps(QVariantMap props);
+    Q_SLOT void blockingClear();
+
 private:
 
     Mutex mMutex;
@@ -52,6 +51,8 @@ private:
     TimeEventsContainer mTimeEvents;
 
     QScopedPointer<QVariantMap> mProps;
+
+    friend class MassSpec;
 };
 
 #endif // TIMEEVENTS_H
