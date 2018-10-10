@@ -45,8 +45,7 @@ void RikenFileReader::run()
 {
     Q_EMIT started();
     QTextStream in(mFile.data());
-    QVariantMap props = readProps(in);
-    mTimeEvents->blockingAddProps(props);
+    mTimeEvents->blockingAddProps(readProps(in));
 
     bool ok = true;
     QString line;
