@@ -30,7 +30,7 @@ ParSplineCalc::InstanceLocker ParSplineCalc::lockInstance(bool clearMemory)
 	if (s_mutex.try_lock())
         return InstanceLocker
 		(
-            MyInit::instance().findChild<ParSplineCalc*>("ParSplineCalc"),
+            MyInit::instance()->findChild<ParSplineCalc*>("ParSplineCalc"),
 			clearMemory
 		);
     else

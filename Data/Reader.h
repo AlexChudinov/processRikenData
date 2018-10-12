@@ -4,9 +4,10 @@
 #include <QFile>
 #include <QObject>
 #include <QRunnable>
-
 #include <vector>
 #include <map>
+
+#include "Data/TimeEvents.h"
 
 /**
 	@class TimeEventsReader is an interface to read time events from file or etc.
@@ -24,6 +25,7 @@ public:
 
     virtual void close() = 0;
 
+    Q_SIGNAL void objPropsRead(QVariantMap);
     Q_SIGNAL void started();
     Q_SIGNAL void finished();
 };
@@ -39,8 +41,7 @@ class TimeEventsReader : public Reader
 public:
     TimeEventsReader(QObject * parent = Q_NULLPTR);
 
-protected:
-    TimeEvents * mTimeEvents;
+    Q_SIGNAL void eventRead(TimeEvent evt);
 };
 
 class RikenFileReader : public TimeEventsReader
@@ -55,6 +56,7 @@ public:
     void close();
 
     void run();
+
 private:
     QScopedPointer<QFile> mFile;
 

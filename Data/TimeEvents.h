@@ -6,17 +6,13 @@
 #include <list>
 #include <mutex>
 
+using TimeEvent = unsigned long long;
+using TimeEventsContainer = QList<TimeEvent>;
+
 class TimeEvents : public QObject
 {
     Q_OBJECT
 public:
-
-    /**
-     * @brief The TimeEvent struct particular time event
-     */
-    using TimeEvent = unsigned long long;
-
-    using TimeEventsContainer = QList<TimeEvent>;
     using Mutex = std::mutex;
     using Locker = std::unique_lock<Mutex>;
 
@@ -39,20 +35,25 @@ public:
     Q_SIGNAL void eventsUpdateNotify(size_t);
     Q_SIGNAL void propsUpdateNotify();
     Q_SIGNAL void cleared();
+    Q_SIGNAL void sliceAccumulated(TimeEventsContainer);
 
-    Q_SLOT void blockingAddEvent(TimeEvent evt);
-    Q_SLOT void blockingAddProps(QVariantMap props);
+    Q_SLOT void blockingAddEvent(TimeEvent);
+    Q_SLOT void blockingAddProps(QVariantMap);
     Q_SLOT void blockingClear();
-
 private:
 
     Mutex mMutex;
 
     TimeEventsContainer mTimeEvents;
+    /**
+     * @brief mTimeEventsSlice accumulation of time events for  mStartsPerHist
+     */
+    TimeEventsContainer mTimeEventsSlice;
 
     QScopedPointer<QVariantMap> mProps;
 
-    friend class MassSpec;
+    size_t mStartsPerHist;
+    size_t mStartsCount;
 };
 
 #endif // TIMEEVENTS_H

@@ -1,25 +1,19 @@
 #include "Base/BaseObject.h"
 #include "MassSpec.h"
-#include "Data/TimeEvents.h"
+#include <QMessageBox>
 
 MassSpec::MassSpec(QObject *parent)
     :
-      QObject(parent),
-      mStartsCount(0),
-      mEventsCount(0),
-      mStartsPerHist(1000),
-      mData(1) //at least one mass spectrum by default
+      QObject(parent)
 {
     setObjectName("MassSpec");
-    Q_ASSERT(mEvents = MyInit::instance().findChild<TimeEvents*>("TimeEvents"));
 }
 
 void MassSpec::clear()
 {
-    mData.assign(1, MapUintUint());
-    mStartsCount = 0;
-    mEventsCount = 0;
+    mData.clear();
     Q_EMIT cleared();
+    Q_EMIT massSpecsNumNotify(0);
 }
 
 void MassSpec::blockingClear()
@@ -28,49 +22,25 @@ void MassSpec::blockingClear()
     clear();
 }
 
-void MassSpec::accumulateEvents(size_t nTimeEventsCount)
+void MassSpec::blockingNewHist(TimeEventsContainer evts)
 {
-    for(; mEventsCount < nTimeEventsCount; ++mEventsCount)
+    Locker lock(mMutex);
+    mData.push_back(MapUintUint());
+    HistCollection::reverse_iterator currHist = mData.rbegin();
+    for(auto evt : evts)
     {
-        TimeEvents::TimeEvent evt(mEvents->mTimeEvents[static_cast<int>(mEventsCount)]);
-        if(!evt)
+        if(evt)
         {
-            HistCollection::reverse_iterator currHist = mData.rbegin();
             MapUintUint::iterator it = currHist->find(evt);
-            if(it != currHist->end())
+            if(it == currHist->end())
             {
-                it->second ++;
+                currHist->operator[](evt) = 1;
             }
             else
             {
-                currHist->operator[](evt) ++;
+                it->second ++;
             }
         }
-        else
-        {
-            mStartsCount++;
-            if(mStartsCount / mStartsPerHist + 1 != mData.size())
-                mData.push_back(MapUintUint());
-        }
     }
-    Q_EMIT changed();
-}
-
-void MassSpec::blockingAccumulateEvents(size_t nTimeEventsCount)
-{
-    Locker lock(mMutex);
-    accumulateEvents(nTimeEventsCount);
-}
-
-void MassSpec::setStartsPerHist(size_t startsPerHist)
-{
-    clear();
-    mStartsPerHist = startsPerHist;
-    accumulateEvents(static_cast<size_t>(mEvents->mTimeEvents.size()));
-}
-
-void MassSpec::blockingSetStartsPerHist(size_t startsPerHist)
-{
-    Locker lock(mMutex);
-    setStartsPerHist(startsPerHist);
+    Q_EMIT massSpecsNumNotify(mData.size());
 }

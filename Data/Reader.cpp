@@ -15,7 +15,11 @@ TimeEventsReader::TimeEventsReader(QObject *parent)
     :
       Reader (parent)
 {
-    Q_ASSERT(mTimeEvents = MyInit::instance().findChild<TimeEvents*>("TimeEvents"));
+    qRegisterMetaType<TimeEvent>("TimeEvent");
+    connect(this, SIGNAL(eventRead(TimeEvent)),
+            MyInit::instance()->timeEvents(), SLOT(blockingAddEvent(TimeEvent)));
+    connect(this, SIGNAL(objPropsRead(QVariantMap)),
+            MyInit::instance()->timeEvents(), SLOT(blockingAddProps(QVariantMap)));
 }
 
 
@@ -45,12 +49,12 @@ void RikenFileReader::run()
 {
     Q_EMIT started();
     QTextStream in(mFile.data());
-    mTimeEvents->blockingAddProps(readProps(in));
+    Q_EMIT objPropsRead(readProps(in));
 
     bool ok = true;
     QString line;
     size_t prevStartIdx = 0;
-    mTimeEvents->blockingAddEvent(0); //add first start
+    Q_EMIT eventRead(0); //add first start
     while(!(line = in.readLine()).isNull() && ok)
     {
         quint64 count = line.toULongLong(&ok, 16);
@@ -61,9 +65,9 @@ void RikenFileReader::run()
                                                                 curStartIdx + std::numeric_limits<uint16_t>::max() - prevStartIdx;
             prevStartIdx = curStartIdx;
             for(size_t i = 0; i < diffStartIdx; ++i)
-                mTimeEvents->blockingAddEvent(0);
+                Q_EMIT eventRead(0);
         }
-        mTimeEvents->blockingAddEvent(MID(count, 4, 32));
+        Q_EMIT eventRead(MID(count, 4, 32));
     }
     Q_EMIT finished();
 }
