@@ -21,14 +21,11 @@ TimeEventsReader::TimeEventsReader(QObject *parent)
 
     connect(this, SIGNAL(eventRead(TimeEvent)),
             MyInit::instance()->timeEvents(), SLOT(blockingAddEvent(TimeEvent)));
+    connect(this, SIGNAL(finished()),
+            MyInit::instance()->timeEvents(), SLOT(blockingFlushTimeSlice()));
+
     connect(this, SIGNAL(objPropsRead(QVariantMap)),
             MyInit::instance()->timeEvents(), SLOT(blockingAddProps(QVariantMap)));
-
-    //Signalize about the rest events
-    connect(this, &TimeEventsReader::finished, [&]()
-    {
-        Q_EMIT MyInit::instance()->timeEvents()->sliceAccumulated(MyInit::instance()->timeEvents()->timeEventsSlice());
-    });
 }
 
 

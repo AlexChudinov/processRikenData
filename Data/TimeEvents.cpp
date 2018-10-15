@@ -24,10 +24,7 @@ void TimeEvents::blockingAddEvent(TimeEvent evt)
     if(!evt && mStartsCount++ == mStartsPerHist)
     {
         mStartsCount = 1;
-        mTimeEvents.append(mTimeEventsSlice);
-        Q_EMIT eventsUpdateNotify(static_cast<size_t>(mTimeEvents.size()));
-        Q_EMIT sliceAccumulated(mTimeEventsSlice);
-        mTimeEventsSlice.clear();
+        flushTimeSlice();
         mTimeEventsSlice.push_back(evt);
     }
     else
@@ -52,7 +49,18 @@ void TimeEvents::blockingClear()
     Q_EMIT cleared();
 }
 
-TimeEventsContainer TimeEvents::timeEventsSlice() const
+void TimeEvents::flushTimeSlice()
 {
-    return mTimeEventsSlice;
+    mTimeEvents.append(mTimeEventsSlice);
+    Q_EMIT eventsUpdateNotify(static_cast<size_t>(mTimeEvents.size()));
+    Q_EMIT sliceAccumulated(mTimeEventsSlice);
+    mTimeEventsSlice.clear();
+}
+
+
+
+void TimeEvents::blockingFlushTimeSlice()
+{
+    Locker lock(mMutex);
+    flushTimeSlice();
 }
