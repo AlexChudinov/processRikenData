@@ -14,6 +14,8 @@
 #include "RikenData/rawrikendata.h"
 #include "Plot/PlotForm.h"
 
+#include "Plot/MSPlot.h"
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
@@ -188,6 +190,9 @@ void MainWindow::on_actionnewFileOpen_triggered()
     {
         QFileInfo fileInfo(m_strRikenFilePath);
         m_strRikenFileName = fileInfo.fileName();
+        QMdiSubWindow * w = ui->mdiArea->addSubWindow(new MSPlot);
+        w->showMaximized();
+        w->setAttribute(Qt::WA_DeleteOnClose);
         QScopedPointer<Reader> reader(new RikenFileReader(this));
         reader->open(m_strRikenFilePath);
         reader->run();

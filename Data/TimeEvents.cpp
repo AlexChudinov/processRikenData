@@ -46,6 +46,13 @@ void TimeEvents::blockingAddProps(QVariantMap props)
 void TimeEvents::blockingClear()
 {
     Locker lock(mMutex);
+    mStartsCount = 0;
     mTimeEvents.clear();
+    mTimeEventsSlice.clear();
     Q_EMIT cleared();
+}
+
+TimeEventsContainer TimeEvents::timeEventsSlice() const
+{
+    return mTimeEventsSlice;
 }

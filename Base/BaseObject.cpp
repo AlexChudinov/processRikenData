@@ -9,8 +9,7 @@ MyInit::MyInit(QObject * parent)
     :
       QObject(parent)
 {
-    if(sizeof(size_t) == 32) qRegisterMetaType<unsigned long>("size_t");
-    else qRegisterMetaType<unsigned long long>("size_t");
+    qRegisterMetaType<size_t>("size_t");
     if(s_instance) throw std::runtime_error
             ("Tryed to create second MyInit instance!");
     s_instance = this;
@@ -23,6 +22,9 @@ MyInit::MyInit(QObject * parent)
 
     connect(timeEvents(), SIGNAL(sliceAccumulated(TimeEventsContainer)),
             massSpec(), SLOT(blockingNewHist(TimeEventsContainer)));
+
+    connect(timeEvents(), SIGNAL(cleared()),
+            massSpec(), SLOT(blockingClear()));
 }
 
 MyInit::~MyInit()

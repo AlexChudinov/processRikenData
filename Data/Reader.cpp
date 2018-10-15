@@ -16,10 +16,19 @@ TimeEventsReader::TimeEventsReader(QObject *parent)
       Reader (parent)
 {
     qRegisterMetaType<TimeEvent>("TimeEvent");
+
+    MyInit::instance()->timeEvents()->blockingClear();
+
     connect(this, SIGNAL(eventRead(TimeEvent)),
             MyInit::instance()->timeEvents(), SLOT(blockingAddEvent(TimeEvent)));
     connect(this, SIGNAL(objPropsRead(QVariantMap)),
             MyInit::instance()->timeEvents(), SLOT(blockingAddProps(QVariantMap)));
+
+    //Signalize about the rest events
+    connect(this, &TimeEventsReader::finished, [&]()
+    {
+        Q_EMIT MyInit::instance()->timeEvents()->sliceAccumulated(MyInit::instance()->timeEvents()->timeEventsSlice());
+    });
 }
 
 
@@ -61,7 +70,7 @@ void RikenFileReader::run()
         size_t curStartIdx = MID(count, 32, 48);
         if(curStartIdx != prevStartIdx)
         {
-            size_t diffStartIdx = curStartIdx >= prevStartIdx ? curStartIdx - prevStartIdx :
+            size_t diffStartIdx = curStartIdx > prevStartIdx ? curStartIdx - prevStartIdx :
                                                                 curStartIdx + std::numeric_limits<uint16_t>::max() - prevStartIdx;
             prevStartIdx = curStartIdx;
             for(size_t i = 0; i < diffStartIdx; ++i)

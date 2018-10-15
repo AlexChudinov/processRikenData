@@ -40,6 +40,13 @@ public:
     Q_SLOT void blockingAddEvent(TimeEvent);
     Q_SLOT void blockingAddProps(QVariantMap);
     Q_SLOT void blockingClear();
+
+    /**
+     * @brief timeEventsSlice returns currently accumulated time slice
+     * @return
+     */
+    TimeEventsContainer timeEventsSlice() const;
+
 private:
 
     Mutex mMutex;

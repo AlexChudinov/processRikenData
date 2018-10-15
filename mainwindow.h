@@ -11,6 +11,7 @@ class MainWindow;
 class PlotForm;
 class RawRikenData;
 class PropertiesListForm;
+class MSPlot;
 
 class MainWindow : public QMainWindow
 {
