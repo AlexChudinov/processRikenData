@@ -193,9 +193,8 @@ void MainWindow::on_actionnewFileOpen_triggered()
         QMdiSubWindow * w = ui->mdiArea->addSubWindow(new MSPlot);
         w->showMaximized();
         w->setAttribute(Qt::WA_DeleteOnClose);
-        QScopedPointer<Reader> reader(new RikenFileReader(this));
+        RikenFileReader * reader = new RikenFileReader;
         reader->open(m_strRikenFilePath);
-        reader->run();
-        reader->close();
+        QThreadPool::globalInstance()->start(reader);
     }
 }

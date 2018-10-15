@@ -17,13 +17,12 @@ TimeEventsReader::TimeEventsReader(QObject *parent)
 {
     qRegisterMetaType<TimeEvent>("TimeEvent");
 
-    MyInit::instance()->timeEvents()->blockingClear();
-
+    connect(this, SIGNAL(started()),
+            MyInit::instance()->timeEvents(), SLOT(blockingClear()));
     connect(this, SIGNAL(eventRead(TimeEvent)),
             MyInit::instance()->timeEvents(), SLOT(blockingAddEvent(TimeEvent)));
     connect(this, SIGNAL(finished()),
             MyInit::instance()->timeEvents(), SLOT(blockingFlushTimeSlice()));
-
     connect(this, SIGNAL(objPropsRead(QVariantMap)),
             MyInit::instance()->timeEvents(), SLOT(blockingAddProps(QVariantMap)));
 }

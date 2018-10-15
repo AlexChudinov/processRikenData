@@ -8,6 +8,9 @@ BasePlot::BasePlot(QWidget *parent)
     setObjectName("BasePlot");
     connect(this, SIGNAL(beforeReplot()),
             this, SLOT(updateLimits()));
+    createActions();
+    connect(this, SIGNAL(mousePress(QMouseEvent*)),
+            this, SLOT(onMouseClick(QMouseEvent*)));
 }
 
 BasePlot::~BasePlot()
@@ -85,6 +88,7 @@ void BasePlot::onMouseClick(QMouseEvent * event)
             else
                 (range.upper *= 2) -= x;
             xAxis->setRange(range);
+            replot();
         }
     }
 }

@@ -1,12 +1,16 @@
 #include "MSPlot.h"
+#include "BasePlot.h"
 #include "Base/BaseObject.h"
 #include "Data/MassSpec.h"
 
 MSPlot::MSPlot(QWidget *parent)
     :
-      BasePlot (parent),
-      mMSGraph (addGraph())
+      QMainWindow (parent),
+      mPlot(new BasePlot(this))
 {
+    mPlot->addGraph();
+    setCentralWidget(mPlot.data());
+    addToolBar(Qt::TopToolBarArea, mPlot->toolBar());
     connect(MyInit::instance()->massSpec(), SIGNAL(massSpecsNumNotify(size_t)),
             this, SLOT(plotMS(size_t)));
     plotMS(MyInit::instance()->massSpec()->size());
@@ -42,9 +46,9 @@ void MSPlot::plotMS(size_t idx)
                 vXData.push_back(r.first);
                 vYData.push_back(r.second);
             }
-            mMSGraph->setData(vXData, vYData);
+            mPlot->graph(0)->setData(vXData, vYData);
         }
-        replot();
-        rescaleAxes();
+        mPlot->replot();
+        mPlot->rescaleAxes();
     }
 }

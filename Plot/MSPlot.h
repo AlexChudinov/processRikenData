@@ -1,9 +1,12 @@
 #ifndef MSPLOT_H
 #define MSPLOT_H
 
-#include "BasePlot.h"
+#include <QPointer>
+#include <QMainWindow>
 
-class MSPlot : public BasePlot
+class BasePlot;
+
+class MSPlot : public QMainWindow
 {
     Q_OBJECT
 
@@ -12,12 +15,7 @@ public:
 
     Q_SLOT void plotMS(size_t idx);
 private:
-    size_t mFirstMassIdx;
-    size_t mLastMassIdx;
-    size_t mFirstTimeIdx;
-    size_t mLastTimeIdx;
-
-    QCPGraph * mMSGraph;
+    QPointer<BasePlot> mPlot;
 };
 
 #endif // MSPLOT_H
