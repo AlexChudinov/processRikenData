@@ -13,8 +13,9 @@
 #include "MassSpecAccDialogs.h"
 #include "RikenData/rawrikendata.h"
 #include "Plot/PlotForm.h"
-
 #include "Plot/MSPlot.h"
+#include "Base/BaseObject.h"
+#include "Data/MassSpec.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -190,9 +191,12 @@ void MainWindow::on_actionnewFileOpen_triggered()
     {
         QFileInfo fileInfo(m_strRikenFilePath);
         m_strRikenFileName = fileInfo.fileName();
-        QMdiSubWindow * w = ui->mdiArea->addSubWindow(new MSPlot);
+        MSPlot * plot = new MSPlot;
+        QMdiSubWindow * w = ui->mdiArea->addSubWindow(plot);
         w->showMaximized();
         w->setAttribute(Qt::WA_DeleteOnClose);
+        connect(MyInit::instance()->massSpec(), SIGNAL(massSpecsNumNotify(size_t)),
+                plot, SLOT(updateLast()));
         RikenFileReader * reader = new RikenFileReader;
         reader->open(m_strRikenFilePath);
         QThreadPool::globalInstance()->start(reader);
