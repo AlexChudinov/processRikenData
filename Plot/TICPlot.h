@@ -9,17 +9,27 @@ class TICPlot : public QMainWindow
 {
     Q_OBJECT
 public:
+    using Uint = unsigned long long;
+
     TICPlot(QWidget * parent = Q_NULLPTR);
 
-    Q_SLOT void updateLast();
+    Q_SIGNAL void cursorPosNotify(size_t);
 
-    Q_SLOT void updateLimits(size_t first, size_t last);
+    Q_SLOT void updateLast(size_t msCount);
+
+    Q_SLOT void updateLimits(Uint first, Uint last);
 
     Q_SLOT void plot();
+
 private:
     QPointer<BasePlot> mPlot;
-    size_t mFirst;
-    size_t mLast;
+    Uint mFirstBin;
+    Uint mLastBin;
+    Uint mCursorPos;
+
+    void setCursorPos(size_t cursorPos);
+
+    Q_SLOT void onMouseClick(QMouseEvent * evt);
 };
 
 #endif // TICPLOT_H

@@ -14,6 +14,7 @@
 #include "RikenData/rawrikendata.h"
 #include "Plot/PlotForm.h"
 #include "Plot/MSPlot.h"
+#include "Plot/TICPlot.h"
 #include "Base/BaseObject.h"
 #include "Data/MassSpec.h"
 
@@ -195,8 +196,20 @@ void MainWindow::on_actionnewFileOpen_triggered()
         QMdiSubWindow * w = ui->mdiArea->addSubWindow(plot);
         w->showMaximized();
         w->setAttribute(Qt::WA_DeleteOnClose);
+        TICPlot * plotTic = new TICPlot;
+        w = ui->mdiArea->addSubWindow(plotTic);
+        w->showMaximized();
+        w->setAttribute(Qt::WA_DeleteOnClose);
+
         connect(MyInit::instance()->massSpec(), SIGNAL(massSpecsNumNotify(size_t)),
-                plot, SLOT(updateLast()));
+                plot, SLOT(updateLast(size_t)));
+        connect(MyInit::instance()->massSpec(), SIGNAL(massSpecsNumNotify(size_t)),
+                plotTic, SLOT(updateLast(size_t)));
+        connect(MyInit::instance()->massSpec(), SIGNAL(timeLimitsNotify(Uint, Uint)),
+                plotTic, SLOT(updateLimits(Uint, Uint)));
+        connect(plotTic, SIGNAL(cursorPosNotify(size_t)),
+                plot, SLOT(showMassSpec(size_t)));
+
         RikenFileReader * reader = new RikenFileReader;
         reader->open(m_strRikenFilePath);
         QThreadPool::globalInstance()->start(reader);

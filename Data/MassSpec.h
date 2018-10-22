@@ -10,7 +10,9 @@ class MassSpec : public QObject
 {
     Q_OBJECT
 public:
-    using MapUintUint = std::map<unsigned long long, unsigned long long>;
+    using Uint = unsigned long long;
+    using MapUintUint = std::map<Uint, Uint>;
+    using VectorUint = std::vector<Uint>;
     using HistCollection = std::vector<MapUintUint>;
     using Mutex = std::mutex;
     using Locker = std::unique_lock<Mutex>;
@@ -19,6 +21,7 @@ public:
 
     Q_SIGNAL void cleared();
     Q_SIGNAL void massSpecsNumNotify(size_t);
+    Q_SIGNAL void timeLimitsNotify(Uint minTimeBin, Uint maxTimeBin);
 
     Q_SLOT void clear();
     Q_SLOT void blockingClear();
@@ -40,8 +43,21 @@ public:
      * @param Last last time bin value
      * @return ion current inside chosen time bins
      */
-    MapUintUint getIonCurrent(size_t First, size_t Last) const;
-    MapUintUint blockingGetIonCurrent(size_t First, size_t Last);
+    VectorUint getIonCurrent(Uint First, Uint Last) const;
+    VectorUint blockingGetIonCurrent(Uint First, Uint Last);
+
+    /**
+     * @brief updateLastMS returns last mass spectrum
+     * @return
+     */
+    MapUintUint lastMS() const;
+    MapUintUint blockingLastMS();
+    /**
+     * @brief updateLastTic returns TIC in the last mass spectrum
+     * @return
+     */
+    double lastTic(Uint First, Uint Last) const;
+    double blockingLastTic(Uint First, Uint Last);
 
     /**
      * @brief size returns size of array of mass specs
@@ -50,13 +66,23 @@ public:
     size_t size() const;
     size_t blockingSize();
 
-    unsigned long long maxTime() const;
-    unsigned long long blockingMaxTime();
+    std::pair<Uint, Uint> minMaxTime() const;
+    std::pair<Uint, Uint> blockingMinMaxTime();
 private:
     /**
      * @brief mData accumulated events histograms
      */
     HistCollection mData;
+
+    /**
+     * @brief mMinTimeBin minimal time bin in histogram data
+     */
+    Uint mMinTimeBin;
+
+    /**
+     * @brief mMaxTimeBin maximal time bin in histogram data
+     */
+    Uint mMaxTimeBin;
 
     Mutex mMutex;
 };

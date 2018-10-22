@@ -1,5 +1,4 @@
 #include "MSPlot.h"
-#include "BasePlot.h"
 #include "Base/BaseObject.h"
 #include "Data/MassSpec.h"
 
@@ -10,7 +9,7 @@ MSPlot::MSPlot(QWidget *parent)
       mFirst(0),
       mLast(0)
 {
-    mPlot->addGraph();
+    mPlot->addGraph(QPen(Qt::blue, 3));
     setCentralWidget(mPlot.data());
     addToolBar(Qt::TopToolBarArea, mPlot->toolBar());
     plotMS();
@@ -18,35 +17,12 @@ MSPlot::MSPlot(QWidget *parent)
 
 void MSPlot::plotMS()
 {
-    MassSpec * ms = MyInit::instance()->massSpec();
-    const MassSpec::MapUintUint msData
-            = ms->blockingGetMassSpec(mFirst, mLast);
-
-    if(!msData.empty())
+    if(mFirst != mLast)
     {
-        QVector<double> vXData, vYData;
-        vXData.reserve(static_cast<int>(msData.size()) + 2);
-        vYData.reserve(vXData.size());
-        vXData.push_back(msData.begin()->first - 1);
-        vYData.push_back(0.0);
-        for(MassSpec::MapUintUint::const_reference r : msData)
-        {
-            if(*vXData.rbegin() + 1 < r.first)
-            {
-                if(r.first - 1 > *vXData.rbegin() + 1)
-                {
-                    vXData.push_back(*vXData.rbegin() + 1);
-                    vYData.push_back(0.0);
-                }
-                vXData.push_back(r.first - 1);
-                vYData.push_back(0.0);
-            }
-            vXData.push_back(r.first);
-            vYData.push_back(r.second);
-        }
-        mPlot->graph(0)->setData(vXData, vYData);
-        mPlot->replot();
-        mPlot->rescaleAxes();
+        MassSpec * ms = MyInit::instance()->massSpec();
+        const MassSpec::MapUintUint msData
+                = ms->blockingGetMassSpec(mFirst, mLast);
+        plotMassSpec(msData);
     }
 }
 
@@ -57,12 +33,22 @@ void MSPlot::setLimits(size_t first, size_t last)
     plotMS();
 }
 
-void MSPlot::updateLast()
+void MSPlot::updateLast(size_t msCount)
 {
-    MassSpec * ms = MyInit::instance()->massSpec();
-    const size_t n = ms->blockingSize();
-    if(n != 0)
+    if(msCount != 0)
     {
-        setLimits(n-1, n);
+        mFirst = msCount - 1;
+        mLast = msCount;
+        plotMassSpec(MyInit::instance()->massSpec()->blockingLastMS());
+    }
+}
+
+void MSPlot::showMassSpec(size_t num)
+{
+    if(num != 0 && num < static_cast<size_t>(-1))
+    {
+        mFirst = num;
+        mLast = num + 1;
+        plotMS();
     }
 }

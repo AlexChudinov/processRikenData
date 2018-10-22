@@ -23,6 +23,12 @@ QToolBar *BasePlot::toolBar()
     return m_toolBar;
 }
 
+void BasePlot::addGraph(const QPen &pen, GraphDescription desc)
+{
+    QCustomPlot::addGraph()->setPen(pen);
+    mGraphProps.append(desc);
+}
+
 void BasePlot::onZoomInAction()
 {
     setSelectionRectMode(QCP::srmZoom);
@@ -114,22 +120,25 @@ void BasePlot::updateLimits()
     {
         for(int i = 0; i < nGraphs; ++i)
         {
-            QSharedPointer<QCPGraphDataContainer> data
-                    = graph(i)->data();
-            xRange.lower = qMax(xRange.lower, data->begin()->key);
-            xRange.upper = qMin(xRange.upper, std::prev(data->end())->key);
-            QCPGraphDataContainer::const_iterator
-                    firstIt = data->findBegin(xRange.lower),
-                    lastIt = data->findEnd(xRange.upper);
-            std::pair<QCPGraphDataContainer::const_iterator,
-                    QCPGraphDataContainer::const_iterator> minMaxPair
-                    = std::minmax_element(firstIt, lastIt,
-                                  [](const QCPGraphData& a, const QCPGraphData& b)->bool
+            if(mGraphProps[i] == UpdateLimitsOn)
             {
-                return a.value < b.value;
-            });
-            yRange.lower = minMaxPair.first->value;
-            yRange.upper = minMaxPair.second->value;
+                QSharedPointer<QCPGraphDataContainer> data
+                        = graph(i)->data();
+                xRange.lower = qMax(xRange.lower, data->begin()->key);
+                xRange.upper = qMin(xRange.upper, std::prev(data->end())->key);
+                QCPGraphDataContainer::const_iterator
+                        firstIt = data->findBegin(xRange.lower),
+                        lastIt = data->findEnd(xRange.upper);
+                std::pair<QCPGraphDataContainer::const_iterator,
+                        QCPGraphDataContainer::const_iterator> minMaxPair
+                        = std::minmax_element(firstIt, lastIt,
+                                      [](const QCPGraphData& a, const QCPGraphData& b)->bool
+                {
+                    return a.value < b.value;
+                });
+                yRange.lower = minMaxPair.first->value;
+                yRange.upper = minMaxPair.second->value;
+            }
         }
         xAxis->setRange(xRange);
         yAxis->setRange(yRange);

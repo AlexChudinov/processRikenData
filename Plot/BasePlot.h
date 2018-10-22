@@ -9,12 +9,21 @@ class BasePlot : public QCustomPlot
 
 public:
 
+    enum GraphDescription
+    {
+        UpdateLimitsOn,
+        UpdateLimitsOff
+    };
+
+    Q_ENUM(GraphDescription)
+
     explicit BasePlot(QWidget *parent = nullptr);
 
     virtual ~BasePlot();
 
     QToolBar * toolBar();
 
+    void addGraph(const QPen& pen, GraphDescription desc = UpdateLimitsOn);
 private:
     Q_SLOT void onZoomInAction();
     Q_SLOT void onZoomOutAction();
@@ -25,6 +34,7 @@ private:
     void createActions();
 
     QPointer<QToolBar> m_toolBar;
+    QList<GraphDescription> mGraphProps;
 
     /**
      * @brief controlLimits watch that QCustomPlot should never

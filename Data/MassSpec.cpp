@@ -4,9 +4,12 @@
 
 MassSpec::MassSpec(QObject *parent)
     :
-      QObject(parent)
+      QObject(parent),
+      mMinTimeBin(0),
+      mMaxTimeBin(0)
 {
     setObjectName("MassSpec");
+    qRegisterMetaType<Uint>("Uint");
 }
 
 void MassSpec::clear()
@@ -42,11 +45,15 @@ void MassSpec::blockingNewHist(TimeEventsContainer evts)
             }
         }
     }
+    mMinTimeBin = qMin(mMinTimeBin, currHist->begin()->first);
+    mMaxTimeBin = qMax(mMaxTimeBin, currHist->rbegin()->first);
+    Q_EMIT timeLimitsNotify(mMinTimeBin, mMaxTimeBin);
     Q_EMIT massSpecsNumNotify(mData.size());
 }
 
 MassSpec::MapUintUint MassSpec::getMassSpec(size_t First, size_t Last) const
 {
+    Q_ASSERT(First < Last && Last <= mData.size());
     MapUintUint res;
     for(; First < Last; ++First)
     {
@@ -73,9 +80,9 @@ MassSpec::MapUintUint MassSpec::blockingGetMassSpec(size_t First, size_t Last)
     return getMassSpec(First, Last);
 }
 
-MassSpec::MapUintUint MassSpec::getIonCurrent(size_t First, size_t Last) const
+MassSpec::VectorUint MassSpec::getIonCurrent(Uint First, Uint Last) const
 {
-    MapUintUint res;
+    VectorUint res(mData.size());
     size_t i = 0;
     for(const MapUintUint& currHist : mData)
     {
@@ -92,10 +99,39 @@ MassSpec::MapUintUint MassSpec::getIonCurrent(size_t First, size_t Last) const
     return res;
 }
 
-MassSpec::MapUintUint MassSpec::blockingGetIonCurrent(size_t First, size_t Last)
+MassSpec::VectorUint MassSpec::blockingGetIonCurrent(Uint First, Uint Last)
 {
     Locker lock(mMutex);
     return getIonCurrent(First, Last);
+}
+
+MassSpec::MapUintUint MassSpec::lastMS() const
+{
+    Q_ASSERT(!mData.empty());
+    return *mData.rbegin();
+}
+
+MassSpec::MapUintUint MassSpec::blockingLastMS()
+{
+    Locker lock(mMutex);
+    return lastMS();
+}
+
+double MassSpec::lastTic(Uint First, Uint Last) const
+{
+    Q_ASSERT(!mData.empty());
+    return std::accumulate(mData.crbegin()->lower_bound(First),
+                           mData.crbegin()->upper_bound(Last), 0.0,
+                           [](double a, MapUintUint::const_reference r)->double
+    {
+        return a + r.second;
+    });
+}
+
+double MassSpec::blockingLastTic(Uint First, Uint Last)
+{
+    Locker lock(mMutex);
+    return lastTic(First, Last);
 }
 
 size_t MassSpec::size() const
@@ -109,24 +145,41 @@ size_t MassSpec::blockingSize()
     return size();
 }
 
-unsigned long long MassSpec::maxTime() const
+std::pair<MassSpec::Uint, MassSpec::Uint> MassSpec::minMaxTime() const
 {
-    unsigned long long res = 0;
-    for(const MapUintUint& currHist : mData)
+    std::pair<HistCollection::const_iterator, HistCollection::const_iterator> res;
+
+    res.first = std::min_element(mData.begin(), mData.end(),
+                                 [](HistCollection::const_reference a, HistCollection::const_reference b)->bool
     {
-        res = qMax(res, std::max_element
-                   (
-                       currHist.begin(),
-                       currHist.end(),
-                       [](MapUintUint::const_reference a, MapUintUint::const_reference b)->bool
-        { return a.second < b.second; }
-                   )->second);
-    }
-    return res;
+        if (!b.empty() && !a.empty())
+        {
+            return *a.begin() < *b.begin();
+        }
+        else
+        {
+            return b.empty();
+        }
+    });
+
+    res.second = std::max_element(mData.begin(), mData.end(),
+                                  [](HistCollection::const_reference a, HistCollection::const_reference b)->bool
+    {
+        if (!b.empty() && !a.empty())
+        {
+            return *a.begin() < *b.begin();
+        }
+        else
+        {
+            return a.empty();
+        }
+    });
+
+    return std::make_pair(res.first->cbegin()->first, res.second->crbegin()->first);
 }
 
-unsigned long long MassSpec::blockingMaxTime()
+std::pair<MassSpec::Uint, MassSpec::Uint> MassSpec::blockingMinMaxTime()
 {
     Locker lock(mMutex);
-    return maxTime();
+    return minMaxTime();
 }
