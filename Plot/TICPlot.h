@@ -4,6 +4,7 @@
 #include <QMainWindow>
 
 class BasePlot;
+class QCPRange;
 
 class TICPlot : public QMainWindow
 {
@@ -28,6 +29,11 @@ private:
     Uint mCursorPos;
 
     void setCursorPos(size_t cursorPos);
+
+    /**
+     * @brief setCursorLimits makes cursor height equal to screen
+     */
+    Q_SLOT void setCursorLimits(const QCPRange& range);
 
     Q_SLOT void onMouseClick(QMouseEvent * evt);
 };

@@ -18,6 +18,9 @@ TICPlot::TICPlot(QWidget *parent)
 
     connect(mPlot.data(), SIGNAL(mousePress(QMouseEvent*)),
             this, SLOT(onMouseClick(QMouseEvent*)));
+
+    connect(mPlot->yAxis, SIGNAL(rangeChanged(QCPRange)),
+            this, SLOT(setCursorLimits(QCPRange)));
 }
 
 void TICPlot::updateLast(size_t msCount)
@@ -29,8 +32,8 @@ void TICPlot::updateLast(size_t msCount)
         mFirstBin = minMaxTime.first;
         mLastBin = minMaxTime.second;
         double TIC = MyInit::instance()->massSpec()->blockingLastTic(mFirstBin, mLastBin);
-        double count = mPlot->graph(0)->data()->size();
-        mPlot->graph(0)->addData(count, TIC);
+        size_t count = static_cast<size_t>(mPlot->graph(0)->data()->size());
+        mPlot->graph(0)->addData(static_cast<double>(count), TIC);
         mPlot->rescaleAxes();
         setCursorPos(count);
         mPlot->replot();
@@ -77,12 +80,20 @@ void TICPlot::setCursorPos(size_t cursorPos)
     Q_EMIT cursorPosNotify(cursorPos);
 }
 
+void TICPlot::setCursorLimits(const QCPRange& range)
+{
+    double yVal1 = range.upper;
+    double yVal0 = range.lower;
+    double xVal = mPlot->graph(1)->data()->at(0)->key;
+    mPlot->graph(1)->setData({xVal, xVal, xVal},{yVal0, yVal1, yVal0});
+}
+
 void TICPlot::onMouseClick(QMouseEvent *evt)
 {
-    if(evt->button() == Qt::LeftButton && cursor() == Qt::ArrowCursor)
+    if(evt->button() == Qt::LeftButton && mPlot->cursor() == Qt::ArrowCursor)
     {
         double xPos = mPlot->xAxis->pixelToCoord(evt->pos().x());
-        setCursorPos(static_cast<size_t>(xPos));
+        setCursorPos(static_cast<size_t>(std::round(xPos)));
         mPlot->replot();
     }
 }
