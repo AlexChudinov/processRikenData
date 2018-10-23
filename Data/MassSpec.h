@@ -22,6 +22,7 @@ public:
     Q_SIGNAL void cleared();
     Q_SIGNAL void massSpecsNumNotify(size_t);
     Q_SIGNAL void timeLimitsNotify(Uint minTimeBin, Uint maxTimeBin);
+    Q_SIGNAL void updateMS(MapUintUint);
 
     Q_SLOT void clear();
     Q_SLOT void blockingClear();

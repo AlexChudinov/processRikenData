@@ -201,12 +201,12 @@ void MainWindow::on_actionnewFileOpen_triggered()
         w->showMaximized();
         w->setAttribute(Qt::WA_DeleteOnClose);
 
+        on_actionTileSubWindows_triggered();
+
         connect(MyInit::instance()->massSpec(), SIGNAL(massSpecsNumNotify(size_t)),
                 plot, SLOT(updateLast(size_t)));
         connect(MyInit::instance()->massSpec(), SIGNAL(massSpecsNumNotify(size_t)),
                 plotTic, SLOT(updateLast(size_t)));
-        connect(MyInit::instance()->massSpec(), SIGNAL(timeLimitsNotify(Uint, Uint)),
-                plotTic, SLOT(updateLimits(Uint, Uint)));
         connect(plotTic, SIGNAL(cursorPosNotify(size_t)),
                 plot, SLOT(showMassSpec(size_t)));
 

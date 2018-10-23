@@ -11,6 +11,11 @@ TICPlot::TICPlot(QWidget *parent)
       mLastBin(0),
       mCursorPos(0)
 {
+    std::pair<Uint, Uint> minMaxTime = MyInit::instance()->massSpec()->blockingMinMaxTime();
+
+    mFirstBin = minMaxTime.first;
+    mLastBin = minMaxTime.second;
+
     mPlot->addGraph(QPen(Qt::blue, 3));
     mPlot->addGraph(QPen(Qt::red, 3), BasePlot::UpdateLimitsOff);
     setCentralWidget(mPlot.data());
@@ -28,10 +33,15 @@ void TICPlot::updateLast(size_t msCount)
     if (msCount != 0)
     {
         blockSignals(true);
-        std::pair<Uint, Uint> minMaxTime = MyInit::instance()->massSpec()->minMaxTime();
-        mFirstBin = minMaxTime.first;
-        mLastBin = minMaxTime.second;
-        double TIC = MyInit::instance()->massSpec()->blockingLastTic(mFirstBin, mLastBin);
+        std::pair<Uint, Uint> minMaxTime = MyInit::instance()->massSpec()->blockingMinMaxTime();
+        mFirstBin = qMin(mFirstBin, minMaxTime.first);
+        mLastBin = qMax(mLastBin, minMaxTime.second);
+        const MassSpec::MapUintUint ms = MyInit::instance()->massSpec()->blockingGetMassSpec(msCount - 1, msCount);
+        double TIC = std::accumulate(ms.begin(), ms.end(), 0.0,
+                                     [](double a, MassSpec::MapUintUint::const_reference b)->double
+        {
+            return a + b.second;
+        });
         size_t count = static_cast<size_t>(mPlot->graph(0)->data()->size());
         mPlot->graph(0)->addData(static_cast<double>(count), TIC);
         mPlot->rescaleAxes();
@@ -43,10 +53,13 @@ void TICPlot::updateLast(size_t msCount)
 
 void TICPlot::updateLimits(Uint first, Uint last)
 {
-    std::pair<size_t, size_t> minMax = std::minmax(first, last);
-    mFirstBin = minMax.first;
-    mLastBin = minMax.second;
-    plot();
+    Q_ASSERT(last >= first);
+    if(mFirstBin != first || mLastBin != last)
+    {
+        mFirstBin = first;
+        mLastBin = last;
+        plot();
+    }
 }
 
 void TICPlot::plot()
@@ -92,8 +105,12 @@ void TICPlot::onMouseClick(QMouseEvent *evt)
 {
     if(evt->button() == Qt::LeftButton && mPlot->cursor() == Qt::ArrowCursor)
     {
-        double xPos = mPlot->xAxis->pixelToCoord(evt->pos().x());
-        setCursorPos(static_cast<size_t>(std::round(xPos)));
+        double fXPos = mPlot->xAxis->pixelToCoord(evt->pos().x());
+        fXPos = fXPos > 0.0 ? fXPos : 0.0;
+        size_t xPos = static_cast<size_t>(std::round(fXPos));
+        xPos = xPos < MyInit::instance()->massSpec()->blockingSize() ?
+                    xPos : MyInit::instance()->massSpec()->blockingSize() - 1;
+        setCursorPos(xPos);
         mPlot->replot();
     }
 }

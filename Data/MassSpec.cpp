@@ -5,8 +5,8 @@
 MassSpec::MassSpec(QObject *parent)
     :
       QObject(parent),
-      mMinTimeBin(0),
-      mMaxTimeBin(0)
+      mMinTimeBin(std::numeric_limits<Uint>::max()),
+      mMaxTimeBin(std::numeric_limits<Uint>::min())
 {
     setObjectName("MassSpec");
     qRegisterMetaType<Uint>("Uint");
@@ -14,9 +14,12 @@ MassSpec::MassSpec(QObject *parent)
 
 void MassSpec::clear()
 {
+    mMinTimeBin = std::numeric_limits<Uint>::max();
+    mMaxTimeBin = std::numeric_limits<Uint>::min();
     mData.clear();
     Q_EMIT cleared();
     Q_EMIT massSpecsNumNotify(0);
+    Q_EMIT timeLimitsNotify(mMinTimeBin, mMaxTimeBin);
 }
 
 void MassSpec::blockingClear()
@@ -147,35 +150,7 @@ size_t MassSpec::blockingSize()
 
 std::pair<MassSpec::Uint, MassSpec::Uint> MassSpec::minMaxTime() const
 {
-    std::pair<HistCollection::const_iterator, HistCollection::const_iterator> res;
-
-    res.first = std::min_element(mData.begin(), mData.end(),
-                                 [](HistCollection::const_reference a, HistCollection::const_reference b)->bool
-    {
-        if (!b.empty() && !a.empty())
-        {
-            return *a.begin() < *b.begin();
-        }
-        else
-        {
-            return b.empty();
-        }
-    });
-
-    res.second = std::max_element(mData.begin(), mData.end(),
-                                  [](HistCollection::const_reference a, HistCollection::const_reference b)->bool
-    {
-        if (!b.empty() && !a.empty())
-        {
-            return *a.begin() < *b.begin();
-        }
-        else
-        {
-            return a.empty();
-        }
-    });
-
-    return std::make_pair(res.first->cbegin()->first, res.second->crbegin()->first);
+    return std::make_pair(mMinTimeBin, mMaxTimeBin);
 }
 
 std::pair<MassSpec::Uint, MassSpec::Uint> MassSpec::blockingMinMaxTime()

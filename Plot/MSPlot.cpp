@@ -39,7 +39,7 @@ void MSPlot::updateLast(size_t msCount)
     {
         mFirst = msCount - 1;
         mLast = msCount;
-        plotMassSpec(MyInit::instance()->massSpec()->blockingLastMS());
+        plotMassSpec(MyInit::instance()->massSpec()->blockingGetMassSpec(msCount-1, msCount));
     }
 }
 
