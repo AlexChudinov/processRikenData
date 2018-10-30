@@ -243,7 +243,7 @@ Peak::PeakCollection CompressedMS::getPeaksWithErrors
     Peak::PeakCollection res = this->smooth(s);
 	VectorDouble stdevs(res.size());
 
-	for (size_t i = 0; i < 200; ++i)
+    for (size_t i = 0; i < 20; ++i)
 	{
 		CompressedMS randMS = this->genRandMS();
 		Peak::PeakCollection randPeaks = randMS.smooth(s);
@@ -271,7 +271,7 @@ Peak::PeakCollection CompressedMS::getPeaksWithErrors
 	size_t j = 0;
 	for (const Peak& p : res)
 	{
-		p.setDisp(sigmaFactor * stdevs[j++]/200.);
+        p.setDisp(sigmaFactor * stdevs[j++]/20.);
 	}
 
     return res;
