@@ -39,7 +39,8 @@ RikenFileReader::RikenFileReader(QObject *parent)
 void RikenFileReader::open(const QString &fileName)
 {
     mFile->setFileName(fileName);
-    Q_ASSERT(mFile->open(QIODevice::ReadOnly|QIODevice::Text));
+    bool fOpened = mFile->open(QIODevice::ReadOnly|QIODevice::Text);
+    Q_ASSERT(fOpened);
 }
 
 void RikenFileReader::close()
