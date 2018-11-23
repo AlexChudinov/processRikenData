@@ -36,6 +36,8 @@ private:
     Q_SLOT void setCursorLimits(const QCPRange& range);
 
     Q_SLOT void onMouseClick(QMouseEvent * evt);
+
+    void keyPressEvent(QKeyEvent * evt);
 };
 
 #endif // TICPLOT_H

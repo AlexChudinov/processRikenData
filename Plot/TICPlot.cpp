@@ -11,6 +11,7 @@ TICPlot::TICPlot(QWidget *parent)
       mLastBin(0),
       mCursorPos(0)
 {
+    setWindowTitle("TIC");
     std::pair<Uint, Uint> minMaxTime = MyInit::instance()->massSpec()->blockingMinMaxTime();
 
     mFirstBin = minMaxTime.first;
@@ -112,5 +113,27 @@ void TICPlot::onMouseClick(QMouseEvent *evt)
                     xPos : MyInit::instance()->massSpec()->blockingSize() - 1;
         setCursorPos(xPos);
         mPlot->replot();
+    }
+}
+
+void TICPlot::keyPressEvent(QKeyEvent *evt)
+{
+    if(evt->key() == Qt::Key_Left)
+    {
+        double fXPos = mPlot->graph(1)->data()->begin()->key;
+        fXPos = fXPos < 1.0 ? fXPos : fXPos - 1;
+        setCursorPos(static_cast<size_t>(fXPos));
+        mPlot->replot();
+    }
+    else if(evt->key() == Qt::Key_Right)
+    {
+        double fXPos = mPlot->graph(1)->data()->begin()->key;
+        fXPos = fXPos >= MyInit::instance()->massSpec()->blockingSize() ? fXPos : fXPos + 1;
+        setCursorPos(static_cast<size_t>(fXPos));
+        mPlot->replot();
+    }
+    else
+    {
+        QWidget::keyPressEvent(evt);
     }
 }
