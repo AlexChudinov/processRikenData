@@ -209,6 +209,8 @@ void MainWindow::on_actionnewFileOpen_triggered()
                 plotTic, SLOT(updateLast(size_t)));
         connect(plotTic, SIGNAL(cursorPosNotify(size_t)),
                 plot, SLOT(showMassSpec(size_t)));
+        connect(plotTic, SIGNAL(msLimitsNotify(size_t, size_t)),
+                plot, SLOT(setLimits(size_t, size_t)));
 
         RikenFileReader * reader = new RikenFileReader;
         reader->open(m_strRikenFilePath);

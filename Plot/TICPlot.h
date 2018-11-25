@@ -16,6 +16,8 @@ public:
 
     Q_SIGNAL void cursorPosNotify(size_t);
 
+    Q_SIGNAL void msLimitsNotify(size_t, size_t);
+
     Q_SLOT void updateLast(size_t msCount);
 
     Q_SLOT void updateLimits(Uint first, Uint last);

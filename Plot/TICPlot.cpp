@@ -22,7 +22,7 @@ TICPlot::TICPlot(QWidget *parent)
     setCentralWidget(mPlot.data());
     addToolBar(Qt::TopToolBarArea, mPlot->toolBar());
 
-    mPlot->toolBar()->addAction(QIcon("//Icons//selectMS"),
+    mPlot->toolBar()->addAction(QIcon("://Icons//selectMS"),
                                 "Select mass spectrum",
                                 this,
                                 &TICPlot::onSelectMS
@@ -93,7 +93,7 @@ void TICPlot::plot()
 
 void TICPlot::onSelectMS()
 {
-    setCursor(Qt::PointingHandCursor);
+    mPlot->setCursor(Qt::PointingHandCursor);
     mPlot->setSelectionRectMode(QCP::srmCustom);
 }
 
@@ -109,7 +109,7 @@ void TICPlot::onMouseRelease(QMouseEvent *evt)
         double xMax = mPlot->xAxis->pixelToCoord(rect.right());
         size_t First = static_cast<size_t>(std::round(xMin));
         size_t Last = static_cast<size_t>(std::round(xMax));
-        Q_EMIT updateLimits(First, Last);
+        Q_EMIT msLimitsNotify(First, Last);
     }
 }
 
