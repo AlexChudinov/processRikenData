@@ -10,5 +10,6 @@
         <file alias="openHand">Icons/open-hand.png</file>
         <file alias="image">Icons/img.png</file>
         <file alias="massSpecQuestion">Icons/massSpecWithQ.png</file>
+        <file alias="selectMS">Icons/selectMS.png</file>
     </qresource>
 </RCC>

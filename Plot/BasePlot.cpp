@@ -107,7 +107,7 @@ void BasePlot::createActions()
                          &BasePlot::onZoomOutAction);
     m_toolBar->addAction(QIcon("://Icons//openHand"), "Shift x-axis", this,
                          &BasePlot::onDragAxisAction);
-    m_toolBar->addAction(QIcon(":/Icons/image"), "Export image", this,
+    m_toolBar->addAction(QIcon("://Icons//image"), "Export image", this,
                          &BasePlot::onExportImageAction);
 }
 

@@ -22,6 +22,12 @@ TICPlot::TICPlot(QWidget *parent)
     setCentralWidget(mPlot.data());
     addToolBar(Qt::TopToolBarArea, mPlot->toolBar());
 
+    mPlot->toolBar()->addAction(QIcon("//Icons//selectMS"),
+                                "Select mass spectrum",
+                                this,
+                                &TICPlot::onSelectMS
+                                );
+
     connect(mPlot.data(), SIGNAL(mousePress(QMouseEvent*)),
             this, SLOT(onMouseClick(QMouseEvent*)));
 
@@ -83,6 +89,28 @@ void TICPlot::plot()
             setCursorPos(ticData.size() - 1);
             mPlot->replot();
         }
+}
+
+void TICPlot::onSelectMS()
+{
+    setCursor(Qt::PointingHandCursor);
+    mPlot->setSelectionRectMode(QCP::srmCustom);
+}
+
+void TICPlot::onMouseRelease(QMouseEvent *evt)
+{
+    if(evt->button() == Qt::LeftButton
+            && cursor() == Qt::PointingHandCursor)
+    {
+        QCPSelectionRect * qcpRect
+                = mPlot->selectionRect();
+        QRect rect = qcpRect->rect();
+        double xMin = mPlot->xAxis->pixelToCoord(rect.left());
+        double xMax = mPlot->xAxis->pixelToCoord(rect.right());
+        size_t First = static_cast<size_t>(std::round(xMin));
+        size_t Last = static_cast<size_t>(std::round(xMax));
+        Q_EMIT updateLimits(First, Last);
+    }
 }
 
 void TICPlot::setCursorPos(size_t cursorPos)

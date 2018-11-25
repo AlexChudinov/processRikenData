@@ -21,7 +21,6 @@ public:
     Q_SLOT void updateLimits(Uint first, Uint last);
 
     Q_SLOT void plot();
-
 private:
     QPointer<BasePlot> mPlot;
     Uint mFirstBin;
@@ -38,6 +37,13 @@ private:
     Q_SLOT void onMouseClick(QMouseEvent * evt);
 
     void keyPressEvent(QKeyEvent * evt);
+
+    /**
+     * @brief onSelectMS switch mode to Mass Spec selection
+     */
+    Q_SLOT void onSelectMS();
+
+    Q_SLOT void onMouseRelease(QMouseEvent * evt);
 };
 
 #endif // TICPLOT_H

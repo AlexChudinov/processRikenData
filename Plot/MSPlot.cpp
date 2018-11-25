@@ -27,7 +27,14 @@ void MSPlot::plotMS()
 
 void MSPlot::setLimits(size_t first, size_t last)
 {
-    mFirst = last == 0 ? mFirst = 0 : mFirst = first;
+    if(last == 0)
+    {
+        mFirst = last;
+    }
+    else
+    {
+        mFirst = first;
+    }
     mLast = last;
     setWindowTitle(QString("MS: %1 - %2").arg(mFirst).arg(mLast));
     plotMS();
