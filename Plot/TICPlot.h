@@ -46,6 +46,14 @@ private:
     Q_SLOT void onSelectMS();
 
     Q_SLOT void onMouseRelease(QMouseEvent * evt);
+
+    /**
+     * @brief checkLimits checks that mass spec indices are in the limits
+     * If it is not then sets them to maximum/minimum allowed
+     * @param xMin first index
+     * @param xMax last index
+     */
+    void checkLimits(double& xMin, double& xMax) const;
 };
 
 #endif // TICPLOT_H

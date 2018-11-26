@@ -80,6 +80,7 @@ void BasePlot::onMouseClick(QMouseEvent * event)
     {
         setSelectionRectMode(QCP::srmNone);
         setCursor(QCursor(Qt::ArrowCursor));
+        replot();
     }
     else
     {

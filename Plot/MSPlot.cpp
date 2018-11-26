@@ -11,10 +11,10 @@ MSPlot::MSPlot(QWidget *parent)
     mPlot->addGraph(QPen(Qt::blue, 3));
     setCentralWidget(mPlot.data());
     addToolBar(Qt::TopToolBarArea, mPlot->toolBar());
-    plotMS();
+    plot();
 }
 
-void MSPlot::plotMS()
+void MSPlot::plot()
 {
     if(mFirst != mLast)
     {
@@ -37,7 +37,7 @@ void MSPlot::setLimits(size_t first, size_t last)
     }
     mLast = last;
     setWindowTitle(QString("MS: %1 - %2").arg(mFirst).arg(mLast));
-    plotMS();
+    plot();
 }
 
 void MSPlot::updateLast(size_t msCount)
@@ -45,7 +45,7 @@ void MSPlot::updateLast(size_t msCount)
     if(msCount != 0)
     {
         setLimits(msCount - 1, msCount);
-        plotMS();
+        plot();
     }
 }
 
@@ -54,6 +54,6 @@ void MSPlot::showMassSpec(size_t num)
     if(num != 0 && num < static_cast<size_t>(-1))
     {
         setLimits(num, num + 1);
-        plotMS();
+        plot();
     }
 }

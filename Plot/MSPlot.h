@@ -15,7 +15,7 @@ class MSPlot : public QMainWindow
 public:
     MSPlot(QWidget * parent = Q_NULLPTR);
 
-    Q_SLOT void plotMS();
+    Q_SLOT void plot();
 
     /**
      * @brief setLimits change limits for mass spectrum calculation

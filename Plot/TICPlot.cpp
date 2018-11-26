@@ -33,6 +33,9 @@ TICPlot::TICPlot(QWidget *parent)
 
     connect(mPlot->yAxis, SIGNAL(rangeChanged(QCPRange)),
             this, SLOT(setCursorLimits(QCPRange)));
+
+    connect(mPlot.data(), SIGNAL(mouseRelease(QMouseEvent*)),
+            this, SLOT(onMouseRelease(QMouseEvent*)));
 }
 
 void TICPlot::updateLast(size_t msCount)
@@ -100,17 +103,26 @@ void TICPlot::onSelectMS()
 void TICPlot::onMouseRelease(QMouseEvent *evt)
 {
     if(evt->button() == Qt::LeftButton
-            && cursor() == Qt::PointingHandCursor)
+            && mPlot->cursor() == Qt::PointingHandCursor)
     {
         QCPSelectionRect * qcpRect
                 = mPlot->selectionRect();
         QRect rect = qcpRect->rect();
         double xMin = mPlot->xAxis->pixelToCoord(rect.left());
         double xMax = mPlot->xAxis->pixelToCoord(rect.right());
+        checkLimits(xMin, xMax);
         size_t First = static_cast<size_t>(std::round(xMin));
         size_t Last = static_cast<size_t>(std::round(xMax));
         Q_EMIT msLimitsNotify(First, Last);
     }
+}
+
+void TICPlot::checkLimits(double &xMin, double &xMax) const
+{
+    xMin = xMin < 0.0 ? 0.0 : xMin;
+    xMax = xMax > mPlot->graph(0)->data()->size() - 1 ?
+                mPlot->graph(0)->data()->size() - 1
+              : xMax;
 }
 
 void TICPlot::setCursorPos(size_t cursorPos)
