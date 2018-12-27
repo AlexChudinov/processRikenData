@@ -12,6 +12,7 @@ class PlotForm;
 class RawRikenData;
 class PropertiesListForm;
 class MSPlot;
+class QMdiSubWindow;
 
 class MainWindow : public QMainWindow
 {
@@ -21,31 +22,21 @@ public:
     explicit MainWindow(QWidget *parent = Q_NULLPTR);
     ~MainWindow();
 
+private slots:
+    void on_actionTileSubWindows_triggered();
+
+    void on_actionReaccumulate_mass_spectra_triggered();
+
 private:
-    Q_SLOT void on_actionnewFileOpen_triggered();
-    Q_SLOT void on_actionAbout_triggered();
-    Q_SLOT void on_actionCredits_triggered();
-    Q_SLOT void on_actionTimeShiftAcc_triggered();
-    Q_SLOT void on_actionTileSubWindows_triggered();
-    Q_SLOT void on_actionSimpleMassSpecAcc_triggered();
-    Q_SLOT void on_actionShowDataHeader_triggered();
-    Q_SLOT void on_actionShowDataProperties_triggered();
-    Q_SLOT void on_actionOpenRikenDataFile_triggered();
     Q_SLOT void msg(const QString& msg);
+    Q_SLOT void on_actionOpenDataFile_triggered();
 
     Ui::MainWindow *ui;
 
-    QString m_strRikenFilePath;
-    QString m_strRikenFileName;
-    RawRikenData* m_pData;
+    QVector<QMdiSubWindow*> mSubWindows;
+    void clearSubwindows();
 
-    void readRikenDataFile();
-    void disableRikenDataFileActions();
-    void enableRikenDataFileActions();
-    void plotSubwindow(PlotForm *plot);
-
-    QPointer<PropertiesListForm> m_pHeaderForm;
-    QPointer<PropertiesListForm> m_pPropForm;
+    void openRikenDataFile(const QString& fileName);
 };
 
 #endif // MAINWINDOW_H

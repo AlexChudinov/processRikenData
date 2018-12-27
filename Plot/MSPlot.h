@@ -68,7 +68,6 @@ void MSPlot::plotMassSpec(const MassSpecData &d)
         }
         mPlot->graph(0)->setData(vXData, vYData);
         mPlot->replot();
-        mPlot->rescaleAxes();
     }
 }
 

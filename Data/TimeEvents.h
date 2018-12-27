@@ -42,6 +42,13 @@ public:
     Q_SLOT void blockingClear();
     Q_SLOT void flushTimeSlice();
     Q_SLOT void blockingFlushTimeSlice();
+
+    /**
+     * @brief recalculateTimeSlices sets new starts count for accumulation and recalculates time slices
+     */
+    Q_SLOT void recalculateTimeSlices(size_t);
+
+    size_t startsPerHist();
 private:
 
     Mutex mMutex;

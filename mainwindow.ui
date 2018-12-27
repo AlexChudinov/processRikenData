@@ -42,21 +42,13 @@
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="actionOpenRikenDataFile"/>
-   </widget>
-   <widget class="QMenu" name="menuProperties">
-    <property name="title">
-     <string>Properties</string>
-    </property>
-    <addaction name="actionShowDataHeader"/>
-    <addaction name="actionShowDataProperties"/>
+    <addaction name="actionOpenDataFile"/>
    </widget>
    <widget class="QMenu" name="menuMass_Spec">
     <property name="title">
      <string>Mass Spec</string>
     </property>
-    <addaction name="actionSimpleMassSpecAcc"/>
-    <addaction name="actionTimeShiftAcc"/>
+    <addaction name="actionReaccumulate_mass_spectra"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
@@ -65,17 +57,9 @@
     <addaction name="actionCredits"/>
     <addaction name="actionAbout"/>
    </widget>
-   <widget class="QMenu" name="menuNew">
-    <property name="title">
-     <string>New</string>
-    </property>
-    <addaction name="actionnewFileOpen"/>
-   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuMass_Spec"/>
-   <addaction name="menuProperties"/>
    <addaction name="menuAbout"/>
-   <addaction name="menuNew"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -84,12 +68,12 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionOpenRikenDataFile"/>
+   <addaction name="actionOpenDataFile"/>
    <addaction name="separator"/>
    <addaction name="actionTileSubWindows"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <action name="actionOpenRikenDataFile">
+  <action name="actionOpenDataFile">
    <property name="icon">
     <iconset resource="resources.qrc">
      <normaloff>:/Icons/fileOpen</normaloff>:/Icons/fileOpen</iconset>
@@ -104,30 +88,6 @@
     <string>Ctrl+O</string>
    </property>
   </action>
-  <action name="actionShowDataHeader">
-   <property name="text">
-    <string>Data header</string>
-   </property>
-   <property name="toolTip">
-    <string>Shows textual information from the header</string>
-   </property>
-  </action>
-  <action name="actionShowDataProperties">
-   <property name="text">
-    <string>Data properties</string>
-   </property>
-   <property name="toolTip">
-    <string>Data properties calculated during loading</string>
-   </property>
-  </action>
-  <action name="actionSimpleMassSpecAcc">
-   <property name="text">
-    <string>Simple acc</string>
-   </property>
-   <property name="toolTip">
-    <string>Accumulation of mass spectrum using time counts</string>
-   </property>
-  </action>
   <action name="actionTileSubWindows">
    <property name="icon">
     <iconset resource="resources.qrc">
@@ -140,14 +100,6 @@
     <string>Tile subwindows</string>
    </property>
   </action>
-  <action name="actionTimeShiftAcc">
-   <property name="text">
-    <string>Time shift acc</string>
-   </property>
-   <property name="toolTip">
-    <string>Adjusts time scale</string>
-   </property>
-  </action>
   <action name="actionCredits">
    <property name="text">
     <string>Credits</string>
@@ -158,9 +110,9 @@
     <string>About</string>
    </property>
   </action>
-  <action name="actionnewFileOpen">
+  <action name="actionReaccumulate_mass_spectra">
    <property name="text">
-    <string>newFileOpen</string>
+    <string>Reaccumulate mass spectra</string>
    </property>
   </action>
  </widget>

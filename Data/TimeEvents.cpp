@@ -64,3 +64,37 @@ void TimeEvents::blockingFlushTimeSlice()
     Locker lock(mMutex);
     flushTimeSlice();
 }
+
+void TimeEvents::recalculateTimeSlices(size_t startsPerHist)
+{
+    Locker lock(mMutex);
+    if(!mTimeEvents.empty() && startsPerHist != 0 && mStartsPerHist != startsPerHist)
+    {
+        MyInit::instance()->massSpec()->blockingClear();
+        mStartsPerHist = startsPerHist;
+        mStartsCount = 0;
+        mTimeEventsSlice.clear();
+
+        for(TimeEvent evt : mTimeEvents)
+        {
+            if(!evt && mStartsCount++ == mStartsPerHist)
+            {
+                mStartsCount = 1;
+                Q_EMIT sliceAccumulated(mTimeEventsSlice);
+                mTimeEventsSlice.clear();
+                mTimeEventsSlice.push_back(evt);
+            }
+            else
+            {
+                mTimeEventsSlice.push_back(evt);
+            }
+        }
+        if(mTimeEventsSlice.size() != 1) Q_EMIT sliceAccumulated(mTimeEventsSlice);
+    }
+}
+
+size_t TimeEvents::startsPerHist()
+{
+    Locker lock(mMutex);
+    return mStartsPerHist;
+}

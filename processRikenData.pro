@@ -16,7 +16,6 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     RikenData/rawrikendata.cpp \
     QCustomPlot/qcustomplot.cpp \
-    Plot/PlotForm.cpp \
     PropertiesListForm.cpp \
     MassSpecAccDialogs.cpp \
     Math/Interpolator.cpp \
@@ -41,7 +40,6 @@ SOURCES += main.cpp\
 HEADERS  += mainwindow.h \
     RikenData/rawrikendata.h \
     QCustomPlot/qcustomplot.h \
-    Plot/PlotForm.h \
     PropertiesListForm.h \
     Math/exception.h \
     Math/Solvers.h \
