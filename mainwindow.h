@@ -37,6 +37,8 @@ private:
     void clearSubwindows();
 
     void openRikenDataFile(const QString& fileName);
+
+    void createTicAndMsGraphs();
 };
 
 #endif // MAINWINDOW_H

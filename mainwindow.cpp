@@ -68,6 +68,15 @@ void MainWindow::clearSubwindows()
 
 void MainWindow::openRikenDataFile(const QString &fileName)
 {
+    createTicAndMsGraphs();
+    Reader * reader = new RikenFileReader;
+    reader->open(fileName);
+    QThreadPool::globalInstance()->start(reader);
+    on_actionTileSubWindows_triggered();
+}
+
+void MainWindow::createTicAndMsGraphs()
+{
     clearSubwindows();
 
     MSPlot * msPlot = new MSPlot;
@@ -96,11 +105,6 @@ void MainWindow::openRikenDataFile(const QString &fileName)
         ticPlot, SIGNAL(msLimitsNotify(size_t, size_t)),
         msPlot, SLOT(setLimits(size_t, size_t))
     );
-
-    Reader * reader = new RikenFileReader;
-    reader->open(fileName);
-    QThreadPool::globalInstance()->start(reader);
-    on_actionTileSubWindows_triggered();
 }
 
 void MainWindow::on_actionTileSubWindows_triggered()
@@ -121,5 +125,8 @@ void MainWindow::on_actionReaccumulate_mass_spectra_triggered()
         "Number of starts:",
         static_cast<int>(MyInit::instance()->timeEvents()->startsPerHist())
     );
+
+    createTicAndMsGraphs();
+
     MyInit::instance()->timeEvents()->recalculateTimeSlices(static_cast<size_t>(val));
 }
