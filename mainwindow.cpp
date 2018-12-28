@@ -129,6 +129,8 @@ void MainWindow::on_actionReaccumulate_mass_spectra_triggered()
     createTicAndMsGraphs();
 
     MyInit::instance()->timeEvents()->recalculateTimeSlices(static_cast<size_t>(val));
+
+    on_actionTileSubWindows_triggered();
 }
 
 void MainWindow::on_actionCredits_triggered()

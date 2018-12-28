@@ -48,6 +48,8 @@ void MSPlot::updateLast(size_t msCount)
     if(msCount != 0)
     {
         setLimits(msCount - 1, msCount);
+        mPlot->rescaleAxes();
+        mPlot->replot();
     }
 }
 

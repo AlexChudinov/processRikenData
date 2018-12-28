@@ -171,7 +171,7 @@ void TICPlot::keyPressEvent(QKeyEvent *evt)
     {
         double fXPos = mPlot->graph(1)->data()->begin()->key;
         size_t msSz = MyInit::instance()->massSpec()->blockingSize();
-        fXPos = fXPos >= msSz ? msSz : fXPos + 1;
+        fXPos = fXPos >= msSz ? msSz - 1 : fXPos + 1;
         setCursorPos(static_cast<size_t>(fXPos));
         mPlot->replot();
     }
