@@ -64,7 +64,6 @@ HEADERS  += mainwindow.h \
     Plot/TICPlot.h
 
 FORMS    += mainwindow.ui \
-    Plot/PlotForm.ui \
     PropertiesListForm.ui \
     SimpleMassSpecAccDialog.ui \
     AccumScaleCorrectionDialog.ui \

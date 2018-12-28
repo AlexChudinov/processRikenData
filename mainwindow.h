@@ -27,6 +27,10 @@ private slots:
 
     void on_actionReaccumulate_mass_spectra_triggered();
 
+    void on_actionCredits_triggered();
+
+    void on_actionAbout_triggered();
+
 private:
     Q_SLOT void msg(const QString& msg);
     Q_SLOT void on_actionOpenDataFile_triggered();

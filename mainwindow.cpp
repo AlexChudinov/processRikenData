@@ -130,3 +130,19 @@ void MainWindow::on_actionReaccumulate_mass_spectra_triggered()
 
     MyInit::instance()->timeEvents()->recalculateTimeSlices(static_cast<size_t>(val));
 }
+
+void MainWindow::on_actionCredits_triggered()
+{
+    CreditsDialog dlg(this);
+    dlg.exec();
+    dlg.show();
+}
+
+
+
+void MainWindow::on_actionAbout_triggered()
+{
+    DialogAbout dlg(this);
+    dlg.exec();
+    dlg.show();
+}
