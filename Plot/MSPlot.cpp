@@ -19,6 +19,9 @@ void MSPlot::plot()
     if(mFirst != mLast)
     {
         MassSpec * ms = MyInit::instance()->massSpec();
+        size_t msSz = MyInit::instance()->massSpec()->blockingSize();
+        mLast = mLast > msSz ? msSz : mLast;
+        mFirst = mFirst >= msSz ? msSz - 1 : mFirst;
         const MassSpec::MapUintUint msData
                 = ms->blockingGetMassSpec(mFirst, mLast);
         plotMassSpec(msData);
@@ -45,7 +48,6 @@ void MSPlot::updateLast(size_t msCount)
     if(msCount != 0)
     {
         setLimits(msCount - 1, msCount);
-        plot();
     }
 }
 
@@ -54,6 +56,5 @@ void MSPlot::showMassSpec(size_t num)
     if(num != 0 && num < static_cast<size_t>(-1))
     {
         setLimits(num, num + 1);
-        plot();
     }
 }

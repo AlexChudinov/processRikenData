@@ -127,9 +127,11 @@ void TICPlot::checkLimits(double &xMin, double &xMax) const
 
 void TICPlot::setCursorPos(size_t cursorPos)
 {
+    double dummy;
     double xVal = static_cast<double>(cursorPos);
     double yVal1 = mPlot->yAxis->range().upper;
     double yVal0 = mPlot->yAxis->range().lower;
+    checkLimits(dummy, xVal);
     mPlot->graph(1)->setData({xVal, xVal, xVal},{yVal0, yVal1, yVal0});
     Q_EMIT cursorPosNotify(cursorPos);
 }
@@ -161,14 +163,15 @@ void TICPlot::keyPressEvent(QKeyEvent *evt)
     if(evt->key() == Qt::Key_Left)
     {
         double fXPos = mPlot->graph(1)->data()->begin()->key;
-        fXPos = fXPos < 1.0 ? fXPos : fXPos - 1;
+        fXPos = fXPos < 1.0 ? 0.0 : fXPos - 1;
         setCursorPos(static_cast<size_t>(fXPos));
         mPlot->replot();
     }
     else if(evt->key() == Qt::Key_Right)
     {
         double fXPos = mPlot->graph(1)->data()->begin()->key;
-        fXPos = fXPos >= MyInit::instance()->massSpec()->blockingSize() ? fXPos : fXPos + 1;
+        size_t msSz = MyInit::instance()->massSpec()->blockingSize();
+        fXPos = fXPos >= msSz ? msSz : fXPos + 1;
         setCursorPos(static_cast<size_t>(fXPos));
         mPlot->replot();
     }
