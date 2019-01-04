@@ -37,9 +37,6 @@ private:
 
     Ui::MainWindow *ui;
 
-    QVector<QMdiSubWindow*> mSubWindows;
-    void clearSubwindows();
-
     void openRikenDataFile(const QString& fileName);
 
     void createTicAndMsGraphs();

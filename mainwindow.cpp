@@ -28,7 +28,6 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
-    clearSubwindows();
 }
 
 void MainWindow::msg(const QString &msg)
@@ -57,15 +56,6 @@ void MainWindow::on_actionOpenDataFile_triggered()
     }
 }
 
-void MainWindow::clearSubwindows()
-{
-    for(QMdiSubWindow * w : mSubWindows)
-    {
-        w->deleteLater();
-    }
-    mSubWindows.clear();
-}
-
 void MainWindow::openRikenDataFile(const QString &fileName)
 {
     createTicAndMsGraphs();
@@ -77,13 +67,11 @@ void MainWindow::openRikenDataFile(const QString &fileName)
 
 void MainWindow::createTicAndMsGraphs()
 {
-    clearSubwindows();
-
     MSPlot * msPlot = new MSPlot;
     TICPlot * ticPlot = new TICPlot;
 
-    mSubWindows.push_back(ui->mdiArea->addSubWindow(msPlot));
-    mSubWindows.push_back(ui->mdiArea->addSubWindow(ticPlot));
+    ui->mdiArea->addSubWindow(msPlot)->show();
+    ui->mdiArea->addSubWindow(ticPlot)->show();
 
     connect
     (
@@ -105,14 +93,11 @@ void MainWindow::createTicAndMsGraphs()
         ticPlot, SIGNAL(msLimitsNotify(size_t, size_t)),
         msPlot, SLOT(setLimits(size_t, size_t))
     );
+    on_actionTileSubWindows_triggered();
 }
 
 void MainWindow::on_actionTileSubWindows_triggered()
 {
-    for(QMdiSubWindow * w : mSubWindows)
-    {
-        w->show();
-    }
     ui->mdiArea->tileSubWindows();
 }
 

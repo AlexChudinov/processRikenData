@@ -46,7 +46,7 @@ void MSPlot::plotMassSpec(const MassSpecData &d)
 {
     if(!d.empty())
     {
-        QVector<double> vXData, vYData;
+        std::vector<double> vXData, vYData;
         vXData.reserve(static_cast<int>(d.size()) + 2);
         vYData.reserve(vXData.size());
         vXData.push_back(d.begin()->first - 1);
@@ -66,7 +66,11 @@ void MSPlot::plotMassSpec(const MassSpecData &d)
             vXData.push_back(r.first);
             vYData.push_back(r.second);
         }
-        mPlot->graph(0)->setData(vXData, vYData);
+        mPlot->graph(0)->setData
+        (
+            QVector<double>::fromStdVector(vXData),
+            QVector<double>::fromStdVector(vYData)
+        );
         mPlot->replot();
     }
 }

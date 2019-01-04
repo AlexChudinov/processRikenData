@@ -15,8 +15,6 @@ public:
         UpdateLimitsOff
     };
 
-    Q_ENUM(GraphDescription)
-
     explicit BasePlot(QWidget *parent = nullptr);
 
     virtual ~BasePlot();

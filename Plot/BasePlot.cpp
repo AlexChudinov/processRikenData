@@ -103,13 +103,13 @@ void BasePlot::onMouseClick(QMouseEvent * event)
 void BasePlot::createActions()
 {
     m_toolBar->addAction(QIcon("://Icons//zoomIn"), "Zoom In", this,
-                         &BasePlot::onZoomInAction);
+                         SLOT(onZoomInAction()));
     m_toolBar->addAction(QIcon("://Icons//zoomOut"), "Zoom Out", this,
-                         &BasePlot::onZoomOutAction);
+                         SLOT(onZoomOutAction()));
     m_toolBar->addAction(QIcon("://Icons//openHand"), "Shift x-axis", this,
-                         &BasePlot::onDragAxisAction);
+                         SLOT(onDragAxisAction()));
     m_toolBar->addAction(QIcon("://Icons//image"), "Export image", this,
-                         &BasePlot::onExportImageAction);
+                         SLOT(onExportImageAction()));
 }
 
 void BasePlot::updateLimits()

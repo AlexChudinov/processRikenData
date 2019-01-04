@@ -110,7 +110,7 @@ void RikenFileReader::readPropsSegment(QTextStream &in, QVariantMap &seg)
             QStringList list = line.split("=");
             seg[list[0]] = list[1];
         }
-    } while(line[0] != "[");
+    } while(line[0] != '[');
 
     in.seek(pos);
 }

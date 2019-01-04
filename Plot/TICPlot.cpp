@@ -25,7 +25,7 @@ TICPlot::TICPlot(QWidget *parent)
     mPlot->toolBar()->addAction(QIcon("://Icons//selectMS"),
                                 "Select mass spectrum",
                                 this,
-                                &TICPlot::onSelectMS
+                                SLOT(onSelectMS())
                                 );
 
     connect(mPlot.data(), SIGNAL(mousePress(QMouseEvent*)),
@@ -103,7 +103,7 @@ void TICPlot::onSelectMS()
 void TICPlot::onMouseRelease(QMouseEvent *evt)
 {
     if(evt->button() == Qt::LeftButton
-            && mPlot->cursor() == Qt::PointingHandCursor)
+            && mPlot->cursor().shape() == Qt::PointingHandCursor)
     {
         QCPSelectionRect * qcpRect
                 = mPlot->selectionRect();
@@ -146,7 +146,7 @@ void TICPlot::setCursorLimits(const QCPRange& range)
 
 void TICPlot::onMouseClick(QMouseEvent *evt)
 {
-    if(evt->button() == Qt::LeftButton && mPlot->cursor() == Qt::ArrowCursor)
+    if(evt->button() == Qt::LeftButton && mPlot->cursor().shape() == Qt::ArrowCursor)
     {
         double fXPos = mPlot->xAxis->pixelToCoord(evt->pos().x());
         fXPos = fXPos > 0.0 ? fXPos : 0.0;
