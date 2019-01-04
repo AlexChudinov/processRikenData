@@ -67,6 +67,8 @@ void MainWindow::openRikenDataFile(const QString &fileName)
 
 void MainWindow::createTicAndMsGraphs()
 {
+    ui->mdiArea->closeAllSubWindows();
+
     MSPlot * msPlot = new MSPlot;
     TICPlot * ticPlot = new TICPlot;
 
@@ -103,6 +105,8 @@ void MainWindow::on_actionTileSubWindows_triggered()
 
 void MainWindow::on_actionReaccumulate_mass_spectra_triggered()
 {
+    ui->mdiArea->closeAllSubWindows();
+
     int val = QInputDialog::getInt
     (
         this,

@@ -35,7 +35,7 @@
      <x>0</x>
      <y>0</y>
      <width>748</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -44,18 +44,18 @@
     </property>
     <addaction name="actionOpenDataFile"/>
    </widget>
-   <widget class="QMenu" name="menuMass_Spec">
-    <property name="title">
-     <string>Mass Spec</string>
-    </property>
-    <addaction name="actionReaccumulate_mass_spectra"/>
-   </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
      <string>Help</string>
     </property>
     <addaction name="actionCredits"/>
     <addaction name="actionAbout"/>
+   </widget>
+   <widget class="QMenu" name="menuMass_Spec">
+    <property name="title">
+     <string>Time events</string>
+    </property>
+    <addaction name="actionReaccumulate_mass_spectra"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuMass_Spec"/>
@@ -112,7 +112,7 @@
   </action>
   <action name="actionReaccumulate_mass_spectra">
    <property name="text">
-    <string>Reaccumulate mass spectra</string>
+    <string>Recalc. time slices</string>
    </property>
   </action>
  </widget>
