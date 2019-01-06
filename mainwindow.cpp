@@ -62,7 +62,6 @@ void MainWindow::openRikenDataFile(const QString &fileName)
     Reader * reader = new RikenFileReader;
     reader->open(fileName);
     QThreadPool::globalInstance()->start(reader);
-    on_actionTileSubWindows_triggered();
 }
 
 void MainWindow::createTicAndMsGraphs()
@@ -105,8 +104,6 @@ void MainWindow::on_actionTileSubWindows_triggered()
 
 void MainWindow::on_actionReaccumulate_mass_spectra_triggered()
 {
-    ui->mdiArea->closeAllSubWindows();
-
     int val = QInputDialog::getInt
     (
         this,
@@ -119,7 +116,6 @@ void MainWindow::on_actionReaccumulate_mass_spectra_triggered()
 
     MyInit::instance()->timeEvents()->recalculateTimeSlices(static_cast<size_t>(val));
 
-    on_actionTileSubWindows_triggered();
 }
 
 void MainWindow::on_actionCredits_triggered()
@@ -128,8 +124,6 @@ void MainWindow::on_actionCredits_triggered()
     dlg.exec();
     dlg.show();
 }
-
-
 
 void MainWindow::on_actionAbout_triggered()
 {

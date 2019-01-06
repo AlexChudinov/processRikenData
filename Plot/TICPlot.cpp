@@ -11,11 +11,11 @@ TICPlot::TICPlot(QWidget *parent)
       mLastBin(0),
       mCursorPos(0)
 {
-    setWindowTitle("TIC");
     std::pair<Uint, Uint> minMaxTime = MyInit::instance()->massSpec()->blockingMinMaxTime();
 
     mFirstBin = minMaxTime.first;
     mLastBin = minMaxTime.second;
+    setWindowTitle(QString("TIC: %1 - %2").arg(mFirstBin).arg(mLastBin));
 
     mPlot->addGraph(QPen(Qt::blue, 3));
     mPlot->addGraph(QPen(Qt::red, 3), BasePlot::UpdateLimitsOff);
@@ -46,6 +46,7 @@ void TICPlot::updateLast(size_t msCount)
         std::pair<Uint, Uint> minMaxTime = MyInit::instance()->massSpec()->blockingMinMaxTime();
         mFirstBin = qMin(mFirstBin, minMaxTime.first);
         mLastBin = qMax(mLastBin, minMaxTime.second);
+        setWindowTitle(QString("TIC: %1 - %2").arg(mFirstBin).arg(mLastBin));
         const MassSpec::MapUintUint ms = MyInit::instance()->massSpec()->blockingGetMassSpec(msCount - 1, msCount);
         double TIC = std::accumulate(ms.begin(), ms.end(), 0.0,
                                      [](double a, MassSpec::MapUintUint::const_reference b)->double
@@ -68,6 +69,7 @@ void TICPlot::updateLimits(Uint first, Uint last)
     {
         mFirstBin = first;
         mLastBin = last;
+        setWindowTitle(QString("TIC: %1 - %2").arg(mFirstBin).arg(mLastBin));
         plot();
     }
 }

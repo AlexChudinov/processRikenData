@@ -2,27 +2,23 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QPointer>
 
 namespace Ui {
 class MainWindow;
 }
-
-class PlotForm;
-class RawRikenData;
-class PropertiesListForm;
-class MSPlot;
-class QMdiSubWindow;
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
+
     explicit MainWindow(QWidget *parent = Q_NULLPTR);
+
     ~MainWindow();
 
 private slots:
+
     void on_actionTileSubWindows_triggered();
 
     void on_actionReaccumulate_mass_spectra_triggered();
@@ -31,10 +27,11 @@ private slots:
 
     void on_actionAbout_triggered();
 
-private:
-    Q_SLOT void msg(const QString& msg);
-    Q_SLOT void on_actionOpenDataFile_triggered();
+    void msg(const QString& msg);
 
+    void on_actionOpenDataFile_triggered();
+
+private:
     Ui::MainWindow *ui;
 
     void openRikenDataFile(const QString& fileName);
