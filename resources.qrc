@@ -11,5 +11,6 @@
         <file alias="image">Icons/img.png</file>
         <file alias="massSpecQuestion">Icons/massSpecWithQ.png</file>
         <file alias="selectMS">Icons/selectMS.png</file>
+        <file alias="selectTic">Icons/selectTic.png</file>
     </qresource>
 </RCC>

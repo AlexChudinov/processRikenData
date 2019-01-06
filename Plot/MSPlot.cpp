@@ -9,6 +9,13 @@ MSPlot::MSPlot(QWidget *parent)
 {
     setLimits(0, 0);
     mPlot->addGraph(QPen(Qt::blue, 3));
+
+    mPlot->toolBar()->addAction(QIcon("://Icons//selectTic"),
+                                "Select total ion current",
+                                this,
+                                SLOT(onSelectTic())
+                                );
+
     setCentralWidget(mPlot.data());
     addToolBar(Qt::TopToolBarArea, mPlot->toolBar());
     plot();
@@ -59,4 +66,9 @@ void MSPlot::showMassSpec(size_t num)
     {
         setLimits(num, num + 1);
     }
+}
+
+void MSPlot::onSelectTic()
+{
+
 }

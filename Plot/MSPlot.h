@@ -32,6 +32,11 @@ public:
      * @param num
      */
     Q_SLOT void showMassSpec(size_t num);
+
+    /**
+     * @brief onSelectTic select mass spectrum region to see chromatogram
+     */
+    Q_SLOT void onSelectTic();
 private:
     QPointer<BasePlot> mPlot;
     size_t mFirst;
