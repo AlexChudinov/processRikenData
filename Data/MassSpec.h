@@ -22,7 +22,6 @@ public:
     Q_SIGNAL void cleared();
     Q_SIGNAL void massSpecsNumNotify(size_t);
     Q_SIGNAL void timeLimitsNotify(Uint minTimeBin, Uint maxTimeBin);
-    Q_SIGNAL void updateMS(MapUintUint);
 
     Q_SLOT void clear();
     Q_SLOT void blockingClear();
@@ -37,6 +36,14 @@ public:
      */
     MapUintUint getMassSpec(size_t First, size_t Last) const;
     MapUintUint blockingGetMassSpec(size_t First, size_t Last);
+
+    /**
+     * @brief getMassSpec get mass spectrum by index
+     * @param num
+     * @return
+     */
+    const MapUintUint& getMassSpec(size_t num) const;
+    MapUintUint blockingGetMassSpec(size_t num);
 
     /**
      * @brief getIonCurrent

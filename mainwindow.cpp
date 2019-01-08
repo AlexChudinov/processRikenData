@@ -12,10 +12,15 @@
 #include "PropertiesListForm.h"
 #include "MassSpecAccDialogs.h"
 #include "RikenData/rawrikendata.h"
+
+//?
 #include "Plot/MSPlot.h"
 #include "Plot/TICPlot.h"
 #include "Base/BaseObject.h"
 #include "Data/MassSpec.h"
+//?
+
+#include "Plot/PlotPair.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -68,32 +73,8 @@ void MainWindow::createTicAndMsGraphs()
 {
     ui->mdiArea->closeAllSubWindows();
 
-    MSPlot * msPlot = new MSPlot;
-    TICPlot * ticPlot = new TICPlot;
+    ui->mdiArea->addSubWindow(new PlotPair)->show();
 
-    ui->mdiArea->addSubWindow(msPlot)->show();
-    ui->mdiArea->addSubWindow(ticPlot)->show();
-
-    connect
-    (
-        MyInit::instance()->massSpec(), SIGNAL(massSpecsNumNotify(size_t)),
-        msPlot, SLOT(updateLast(size_t))
-    );
-    connect
-    (
-        MyInit::instance()->massSpec(), SIGNAL(massSpecsNumNotify(size_t)),
-        ticPlot, SLOT(updateLast(size_t))
-    );
-    connect
-    (
-        ticPlot, SIGNAL(cursorPosNotify(size_t)),
-        msPlot, SLOT(showMassSpec(size_t))
-    );
-    connect
-    (
-        ticPlot, SIGNAL(msLimitsNotify(size_t, size_t)),
-        msPlot, SLOT(setLimits(size_t, size_t))
-    );
     on_actionTileSubWindows_triggered();
 }
 

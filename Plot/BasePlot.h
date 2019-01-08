@@ -9,6 +9,8 @@ class BasePlot : public QCustomPlot
 
 public:
 
+    friend class PlotPair;
+
     enum GraphDescription
     {
         UpdateLimitsOn,
@@ -22,6 +24,11 @@ public:
     QToolBar * toolBar();
 
     void addGraph(const QPen& pen, GraphDescription desc = UpdateLimitsOn);
+
+    Q_SIGNAL void mouseRightClick();
+
+    Q_SLOT void onMouseRightClick();
+
 private:
     Q_SLOT void onZoomInAction();
     Q_SLOT void onZoomOutAction();

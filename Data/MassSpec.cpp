@@ -83,6 +83,17 @@ MassSpec::MapUintUint MassSpec::blockingGetMassSpec(size_t First, size_t Last)
     return getMassSpec(First, Last);
 }
 
+const MassSpec::MapUintUint &MassSpec::getMassSpec(size_t num) const
+{
+    return mData[num];
+}
+
+MassSpec::MapUintUint MassSpec::blockingGetMassSpec(size_t num)
+{
+    Locker lock(mMutex);
+    return getMassSpec(num);
+}
+
 MassSpec::VectorUint MassSpec::getIonCurrent(Uint First, Uint Last) const
 {
     VectorUint res(mData.size());

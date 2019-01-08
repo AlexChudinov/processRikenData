@@ -67,6 +67,7 @@ void TimeEvents::blockingFlushTimeSlice()
 
 void TimeEvents::recalculateTimeSlices(size_t startsPerHist)
 {
+    Q_EMIT beforeRecalculation();
     Locker lock(mMutex);
     if(!mTimeEvents.empty() && startsPerHist != 0 && mStartsPerHist != startsPerHist)
     {
@@ -91,6 +92,7 @@ void TimeEvents::recalculateTimeSlices(size_t startsPerHist)
         }
         if(mTimeEventsSlice.size() != 1) Q_EMIT sliceAccumulated(mTimeEventsSlice);
     }
+    Q_EMIT recalculated();
 }
 
 size_t TimeEvents::startsPerHist()

@@ -36,6 +36,8 @@ public:
     Q_SIGNAL void propsUpdateNotify();
     Q_SIGNAL void cleared();
     Q_SIGNAL void sliceAccumulated(TimeEventsContainer);
+    Q_SIGNAL void beforeRecalculation();
+    Q_SIGNAL void recalculated();
 
     Q_SLOT void blockingAddEvent(TimeEvent);
     Q_SLOT void blockingAddProps(QVariantMap);

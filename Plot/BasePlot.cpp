@@ -29,6 +29,13 @@ void BasePlot::addGraph(const QPen &pen, GraphDescription desc)
     mGraphProps.append(desc);
 }
 
+void BasePlot::onMouseRightClick()
+{
+    setSelectionRectMode(QCP::srmNone);
+    setCursor(QCursor(Qt::ArrowCursor));
+    replot();
+}
+
 void BasePlot::onZoomInAction()
 {
     setSelectionRectMode(QCP::srmZoom);
@@ -78,9 +85,8 @@ void BasePlot::onMouseClick(QMouseEvent * event)
 {
     if(event->button() == Qt::RightButton)
     {
-        setSelectionRectMode(QCP::srmNone);
-        setCursor(QCursor(Qt::ArrowCursor));
-        replot();
+        onMouseRightClick();
+        Q_EMIT mouseRightClick();
     }
     else
     {
