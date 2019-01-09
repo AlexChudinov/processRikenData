@@ -8,14 +8,18 @@ PlotPair::PlotPair(QWidget *parent) :
     mMsPlot(new BasePlot(this)),
     mTicPlot(new BasePlot(this))
 {
+    createGraphs();
+
     MassSpec * ms = MyInit::instance()->massSpec();
     connect(ms, SIGNAL(cleared()), this, SLOT(clearData()));
+    massSpecNumsChanged
+    (
+        ms->blockingSize()
+    );
     connect(ms, SIGNAL(massSpecsNumNotify(size_t)),
             this, SLOT(massSpecNumsChanged(size_t)));
 
     connectPlots();
-
-    createGraphs();
 
     QVBoxLayout * layout = new QVBoxLayout;
     QWidget * w = new QWidget;
@@ -29,38 +33,77 @@ PlotPair::PlotPair(QWidget *parent) :
     connectActions();
 }
 
+void PlotPair::setTicCursorPos(double x)
+{
+    x = std::round(x);
+    if(x < 0.0) x = 0.0;
+    MassSpec * ms = MyInit::instance()->massSpec();
+    if(x >= ms->blockingSize()) x = ms->blockingSize() - 1;
+    size_t idx = static_cast<size_t>(x);
+    MassSpec::MapUintUint MS = ms->blockingGetMassSpec(idx);
+    QSharedPointer<QCPGraphDataContainer> msData(new QCPGraphDataContainer);
+    for(MassSpec::MapUintUint::const_reference d : MS)
+    {
+        msData->add
+        (
+            {
+                static_cast<double>(d.first),
+                static_cast<double>(d.second)
+            }
+        );
+    }
+    mMsPlot->graph(0)->setData(msData);
+    mMsPlot->rescaleAxes();
+    mMsPlot->replot();
+
+    if(idx < static_cast<int>(mTicPlot->graph(0)->data()->size()))
+    {
+        double ymax = std::lower_bound
+        (
+            mTicPlot->graph(0)->data()->constBegin(),
+            mTicPlot->graph(0)->data()->constEnd(),
+            QCPGraphData::fromSortKey(x),
+            qcpLessThanSortKey<QCPGraphData>
+        )->value;
+        mTicPlot->graph(1)->data()->set({{x,0}, {x, ymax}});
+    }
+    else
+    {
+        int curMsNum = mTicPlot->graph(0)->data()->size();
+        double tic, ticIdx;
+        for(;curMsNum <= idx; ++curMsNum)
+        {
+            MassSpec::MapUintUint MS = ms->blockingGetMassSpec(curMsNum);
+            ticIdx = static_cast<double>(curMsNum);
+            tic = std::accumulate
+            (
+                MS.begin(),
+                MS.end(),
+                0.0,
+                [](double a, MassSpec::MapUintUint::reference b)->double
+            {
+                return a + b.second;
+            });
+            mTicPlot->graph(0)->data()->add({ticIdx, tic});
+        }
+        mTicPlot->graph(1)->data()->set({{ticIdx,0}, {ticIdx, tic}});
+        mTicPlot->rescaleAxes();
+    }
+    mTicPlot->replot();
+}
+
 void PlotPair::clearData()
 {
     mMsPlot->graph(0)->data()->clear();
     mTicPlot->graph(0)->data()->clear();
+    mTicPlot->graph(1)->data()->clear();
 }
 
 void PlotPair::massSpecNumsChanged(size_t massSpecNum)
 {
-    MassSpec * ms = MyInit::instance()->massSpec();
-    int curMsNum = mTicPlot->graph(0)->data()->size();
-    for(;curMsNum < massSpecNum; ++curMsNum)
+    if(massSpecNum != 0)
     {
-        MassSpec::MapUintUint MS = ms->blockingGetMassSpec(curMsNum);
-        double ticIdx = static_cast<double>(curMsNum);
-        double tic = std::accumulate
-        (
-            MS.begin(),
-            MS.end(),
-            0.0,
-            [](double a, MassSpec::MapUintUint::reference b)->double
-        {
-            return a + b.second;
-        });
-        QSharedPointer<QCPGraphDataContainer> msData(new QCPGraphDataContainer);
-        for(MassSpec::MapUintUint::const_reference d : MS)
-        {
-            msData->add({d.first, d.second});
-        }
-        mMsPlot->graph(0)->setData(msData);
-        mTicPlot->graph(0)->data()->add({ticIdx, tic});
-        mMsPlot->rescaleAxes(); mMsPlot->replot();
-        mTicPlot->rescaleAxes(); mTicPlot->replot();
+        setTicCursorPos(static_cast<double>(massSpecNum) - 1.);
     }
 }
 
@@ -85,11 +128,29 @@ void PlotPair::onExportImage()
     }
 }
 
+void PlotPair::keyPressEvent(QKeyEvent *evt)
+{
+    if(evt->key() == Qt::Key_Left)
+    {
+        double fXPos = mTicPlot->graph(1)->data()->begin()->key;
+        setTicCursorPos(static_cast<size_t>(--fXPos));
+    }
+    else if(evt->key() == Qt::Key_Right)
+    {
+        double fXPos = mTicPlot->graph(1)->data()->begin()->key;
+        setTicCursorPos(static_cast<size_t>(++fXPos));
+    }
+    else
+    {
+        QWidget::keyPressEvent(evt);
+    }
+}
+
 void PlotPair::createGraphs()
 {
     mMsPlot->addGraph(QPen(Qt::blue, 3));
     mTicPlot->addGraph(QPen(Qt::blue, 3));
-    mTicPlot->addGraph(QPen(Qt::red, 3), BasePlot::UpdateLimitsOff);
+    mTicPlot->addGraph(QPen(Qt::red, 3));
 }
 
 void PlotPair::connectActions()
