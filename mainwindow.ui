@@ -69,6 +69,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionOpenDataFile"/>
+   <addaction name="actionOpen_txt_from_folder"/>
    <addaction name="separator"/>
    <addaction name="actionTileSubWindows"/>
   </widget>
@@ -113,6 +114,21 @@
   <action name="actionReaccumulate_mass_spectra">
    <property name="text">
     <string>Recalc. time slices</string>
+   </property>
+  </action>
+  <action name="actionOpen_txt_from_folder">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/Icons/openTxt</normaloff>:/Icons/openTxt</iconset>
+   </property>
+   <property name="text">
+    <string>Open txt from folder</string>
+   </property>
+   <property name="toolTip">
+    <string>Opens all txt files in folder</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+O</string>
    </property>
   </action>
  </widget>

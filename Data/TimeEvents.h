@@ -9,6 +9,42 @@
 using TimeEvent = unsigned long long;
 using TimeEventsContainer = QList<TimeEvent>;
 
+/**
+ * @brief The TimeParams class keeps parameters of time events
+ * to transform numbers to a real time units
+ */
+class TimeParams
+{
+    static TimeParams s_global;
+    Q_DISABLE_COPY(TimeParams)
+
+    TimeParams()
+        :
+          mTimeFactor(1),
+          mTimeStep(1),
+          mTimeUnits(QObject::tr("bin"))
+    {}
+public:
+
+    const QStringList& parameters() const;
+
+    QVariantMap get() const;
+
+    void set(const QVariantMap& params);
+
+    static TimeParams * globalInstance();
+
+private:
+    double mTimeFactor; //time unit
+    double mTimeStep;   //one time step
+    double mTimeOrigin; //time values origin
+    QString mTimeUnits;
+
+    void setByName(const QString& name, QVariant val);
+
+    friend class TimeScale;
+};
+
 class TimeEvents : public QObject
 {
     Q_OBJECT

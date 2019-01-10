@@ -31,6 +31,8 @@ private slots:
 
     void on_actionOpenDataFile_triggered();
 
+    void on_actionOpen_txt_from_folder_triggered();
+
 private:
     Ui::MainWindow *ui;
 

@@ -10,6 +10,7 @@ MassSpec::MassSpec(QObject *parent)
 {
     setObjectName("MassSpec");
     qRegisterMetaType<Uint>("Uint");
+    qRegisterMetaType<MapUintUint>("MapUintUint");
 }
 
 void MassSpec::clear()
@@ -54,7 +55,7 @@ void MassSpec::blockingNewHist(TimeEventsContainer evts)
     Q_EMIT massSpecsNumNotify(mData.size());
 }
 
-MassSpec::MapUintUint MassSpec::getMassSpec(size_t First, size_t Last) const
+MapUintUint MassSpec::getMassSpec(size_t First, size_t Last) const
 {
     Q_ASSERT(First < Last && Last <= mData.size());
     MapUintUint res;
@@ -77,18 +78,18 @@ MassSpec::MapUintUint MassSpec::getMassSpec(size_t First, size_t Last) const
     return res;
 }
 
-MassSpec::MapUintUint MassSpec::blockingGetMassSpec(size_t First, size_t Last)
+MapUintUint MassSpec::blockingGetMassSpec(size_t First, size_t Last)
 {
     Locker lock(mMutex);
     return getMassSpec(First, Last);
 }
 
-const MassSpec::MapUintUint &MassSpec::getMassSpec(size_t num) const
+const MapUintUint &MassSpec::getMassSpec(size_t num) const
 {
     return mData[num];
 }
 
-MassSpec::MapUintUint MassSpec::blockingGetMassSpec(size_t num)
+MapUintUint MassSpec::blockingGetMassSpec(size_t num)
 {
     Locker lock(mMutex);
     return getMassSpec(num);
@@ -119,13 +120,13 @@ MassSpec::VectorUint MassSpec::blockingGetIonCurrent(Uint First, Uint Last)
     return getIonCurrent(First, Last);
 }
 
-MassSpec::MapUintUint MassSpec::lastMS() const
+MapUintUint MassSpec::lastMS() const
 {
     Q_ASSERT(!mData.empty());
     return *mData.rbegin();
 }
 
-MassSpec::MapUintUint MassSpec::blockingLastMS()
+MapUintUint MassSpec::blockingLastMS()
 {
     Locker lock(mMutex);
     return lastMS();
@@ -159,12 +160,12 @@ size_t MassSpec::blockingSize()
     return size();
 }
 
-std::pair<MassSpec::Uint, MassSpec::Uint> MassSpec::minMaxTime() const
+std::pair<Uint, Uint> MassSpec::minMaxTime() const
 {
     return std::make_pair(mMinTimeBin, mMaxTimeBin);
 }
 
-std::pair<MassSpec::Uint, MassSpec::Uint> MassSpec::blockingMinMaxTime()
+std::pair<Uint, Uint> MassSpec::blockingMinMaxTime()
 {
     Locker lock(mMutex);
     return minMaxTime();

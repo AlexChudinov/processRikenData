@@ -100,3 +100,59 @@ size_t TimeEvents::startsPerHist()
     Locker lock(mMutex);
     return mStartsPerHist;
 }
+
+TimeParams TimeParams::s_global;
+
+const QStringList &TimeParams::parameters() const
+{
+    static QStringList s_parameters {"Factor", "Origin", "Step", "Units"};
+    return s_parameters;
+}
+
+QVariantMap TimeParams::get() const
+{
+    return QVariantMap
+    {
+        {parameters()[0], QVariant(mTimeFactor)},
+        {parameters()[1], QVariant(mTimeOrigin)},
+        {parameters()[2], QVariant(mTimeStep)},
+        {parameters()[3], QVariant(mTimeUnits)}
+    };
+}
+
+void TimeParams::set(const QVariantMap &params)
+{
+    for(const QString& name : parameters())
+    {
+        QVariantMap::ConstIterator it = params.find(name);
+        if (it != params.end())
+        {
+            setByName(name, it.value());
+        }
+    }
+}
+
+TimeParams *TimeParams::globalInstance()
+{
+    return &s_global;
+}
+
+void TimeParams::setByName(const QString &name, QVariant val)
+{
+    if(name == parameters()[0] && val.canConvert<double>())
+    {
+        mTimeFactor = val.convert(QVariant::Double);
+    }
+    else if(name == parameters()[1] && val.canConvert<double>())
+    {
+        mTimeOrigin = val.convert(QVariant::Double);
+    }
+    else if(name == parameters()[2] && val.canConvert<double>())
+    {
+        mTimeStep = val.convert(QVariant::Double);
+    }
+    else if(name == parameters()[3] && val.canConvert<double>())
+    {
+        mTimeUnits = val.convert(QVariant::String);
+    }
+}

@@ -40,9 +40,9 @@ void PlotPair::setTicCursorPos(double x)
     MassSpec * ms = MyInit::instance()->massSpec();
     if(x >= ms->blockingSize()) x = ms->blockingSize() - 1;
     size_t idx = static_cast<size_t>(x);
-    MassSpec::MapUintUint MS = ms->blockingGetMassSpec(idx);
+    MapUintUint MS = ms->blockingGetMassSpec(idx);
     QSharedPointer<QCPGraphDataContainer> msData(new QCPGraphDataContainer);
-    for(MassSpec::MapUintUint::const_reference d : MS)
+    for(MapUintUint::const_reference d : MS)
     {
         msData->add
         (
@@ -56,7 +56,7 @@ void PlotPair::setTicCursorPos(double x)
     mMsPlot->rescaleAxes();
     mMsPlot->replot();
 
-    if(idx < static_cast<int>(mTicPlot->graph(0)->data()->size()))
+    if(idx < static_cast<size_t>(mTicPlot->graph(0)->data()->size()))
     {
         double ymax = std::lower_bound
         (
@@ -69,18 +69,18 @@ void PlotPair::setTicCursorPos(double x)
     }
     else
     {
-        int curMsNum = mTicPlot->graph(0)->data()->size();
+        size_t curMsNum = static_cast<size_t>(mTicPlot->graph(0)->data()->size());
         double tic, ticIdx;
         for(;curMsNum <= idx; ++curMsNum)
         {
-            MassSpec::MapUintUint MS = ms->blockingGetMassSpec(curMsNum);
+            MapUintUint MS = ms->blockingGetMassSpec(curMsNum);
             ticIdx = static_cast<double>(curMsNum);
             tic = std::accumulate
             (
                 MS.begin(),
                 MS.end(),
                 0.0,
-                [](double a, MassSpec::MapUintUint::reference b)->double
+                [](double a, MapUintUint::reference b)->double
             {
                 return a + b.second;
             });

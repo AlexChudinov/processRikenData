@@ -1,8 +1,11 @@
 #include "Reader.h"
 #include "Base/BaseObject.h"
 #include "Data/TimeEvents.h"
+
+#include <QDebug>
 #include <QFile>
 #include <QTextStream>
+#include <QDirIterator>
 
 Reader::Reader(QObject *parent)
     :
@@ -114,3 +117,65 @@ void RikenFileReader::readPropsSegment(QTextStream &in, QVariantMap &seg)
 
     in.seek(pos);
 }
+
+
+TxtFileReader::TxtFileReader(QObject *parent)
+    : Reader(parent),
+      mFolderName()
+{
+    connect
+    (
+        this,
+        SIGNAL(started()),
+        MyInit::instance()->timeEvents(),
+        SLOT(blockingClear())
+    );
+}
+
+void TxtFileReader::open(const QString &folderName)
+{
+    mFolderName = folderName;
+}
+
+void TxtFileReader::close()
+{
+    mFolderName.clear();
+}
+
+void TxtFileReader::run()
+{
+    Q_EMIT started();
+    QDirIterator it(mFolderName);
+    while(it.hasNext())
+    {
+        it.next();
+        QFileInfo fileInfo = it.fileInfo();
+        if(fileInfo.suffix() == "txt")
+        {
+            QFile file(fileInfo.absoluteFilePath());
+            file.open(QIODevice::ReadOnly);
+            QTextStream stream(&file);
+        }
+    }
+    Q_EMIT finished();
+}
+
+MapUintUint TxtFileReader::readTextFile(QTextStream &stream)
+{
+    MapUintUint MS;
+    QRegExp chekLine("^[\\d+.]");
+
+    while(stream.atEnd())
+    {
+        QString line = stream.readLine();
+        if(chekLine.indexIn(line) != -1)
+        {
+            QStringList xyVals = line.split("\t");
+
+        }
+    }
+
+    return MS;
+}
+
+

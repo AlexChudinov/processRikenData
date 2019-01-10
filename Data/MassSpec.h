@@ -6,12 +6,13 @@
 
 #include "TimeEvents.h"
 
+using Uint = unsigned long long;
+using MapUintUint = std::map<Uint, Uint>;
+
 class MassSpec : public QObject
 {
     Q_OBJECT
 public:
-    using Uint = unsigned long long;
-    using MapUintUint = std::map<Uint, Uint>;
     using VectorUint = std::vector<Uint>;
     using HistCollection = std::vector<MapUintUint>;
     using Mutex = std::mutex;

@@ -112,3 +112,18 @@ void MainWindow::on_actionAbout_triggered()
     dlg.exec();
     dlg.show();
 }
+
+void MainWindow::on_actionOpen_txt_from_folder_triggered()
+{
+    QString dir = QFileDialog::getExistingDirectory
+    (
+        this,
+        tr("Open directory"),
+        QString(),
+        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
+    );
+
+    Reader * reader = new TxtFileReader;
+    reader->open(dir);
+    QThreadPool::globalInstance()->start(reader);
+}

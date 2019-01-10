@@ -29,7 +29,7 @@ void MSPlot::plot()
         size_t msSz = MyInit::instance()->massSpec()->blockingSize();
         mLast = mLast > msSz ? msSz : mLast;
         mFirst = mFirst >= msSz ? msSz - 1 : mFirst;
-        const MassSpec::MapUintUint msData
+        const MapUintUint msData
                 = ms->blockingGetMassSpec(mFirst, mLast);
         plotMassSpec(msData);
     }

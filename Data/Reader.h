@@ -8,6 +8,7 @@
 #include <map>
 
 #include "Data/TimeEvents.h"
+#include "Data/MassSpec.h"
 
 /**
 	@class TimeEventsReader is an interface to read time events from file or etc.
@@ -62,6 +63,26 @@ private:
 
     static QVariantMap readProps(QTextStream& in);
     static void readPropsSegment(QTextStream& in, QVariantMap& seg);
+};
+
+class TxtFileReader : public Reader
+{
+    Q_OBJECT
+
+public:
+    TxtFileReader(QObject * parent = Q_NULLPTR);
+
+    void open(const QString& folderName);
+
+    void close();
+
+    void run();
+
+    Q_SIGNAL void massSpectrumReadNotify(MapUintUint);
+private:
+    QString mFolderName;
+
+    MapUintUint readTextFile(QTextStream & stream);
 };
 
 #endif // !TIME_EVENTS_H

@@ -47,9 +47,9 @@ void TICPlot::updateLast(size_t msCount)
         mFirstBin = qMin(mFirstBin, minMaxTime.first);
         mLastBin = qMax(mLastBin, minMaxTime.second);
         setWindowTitle(QString("TIC: %1 - %2").arg(mFirstBin).arg(mLastBin));
-        const MassSpec::MapUintUint ms = MyInit::instance()->massSpec()->blockingGetMassSpec(msCount - 1, msCount);
+        const MapUintUint ms = MyInit::instance()->massSpec()->blockingGetMassSpec(msCount - 1, msCount);
         double TIC = std::accumulate(ms.begin(), ms.end(), 0.0,
-                                     [](double a, MassSpec::MapUintUint::const_reference b)->double
+                                     [](double a, MapUintUint::const_reference b)->double
         {
             return a + b.second;
         });
