@@ -45,8 +45,8 @@ void QMapPropsDialog::setProps(const QVariantMap &props)
         case QVariant::Double:
         {
             QDoubleSpinBox * sb = new QDoubleSpinBox;
+            sb->setRange(-1.e-9, 1.e9);
             sb->setValue(it.value().toDouble());
-            sb->setRange(-1.e9, 1.e9);
             box->addWidget(sb);
             m_widgets.push_back(sb);
             sb->setFont(appFont);

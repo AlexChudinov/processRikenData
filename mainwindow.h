@@ -33,6 +33,8 @@ private slots:
 
     void on_actionOpen_txt_from_folder_triggered();
 
+    void on_actionTime_params_triggered();
+
 private:
     Ui::MainWindow *ui;
 

@@ -56,6 +56,7 @@
      <string>Time events</string>
     </property>
     <addaction name="actionReaccumulate_mass_spectra"/>
+    <addaction name="actionTime_params"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuMass_Spec"/>
@@ -129,6 +130,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+O</string>
+   </property>
+  </action>
+  <action name="actionTime_params">
+   <property name="text">
+    <string>Time params</string>
    </property>
   </action>
  </widget>

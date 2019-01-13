@@ -16,6 +16,7 @@ MyInit::MyInit(QObject * parent)
     new ParSplineCalc(this);
     mMassSpec.reset(new MassSpec);
     mTimeEvents.reset(new TimeEvents);
+    mTimeParams.reset(new TimeParams);
 
     moveToThread(massSpec());
     moveToThread(timeEvents());
@@ -44,6 +45,11 @@ TimeEvents * MyInit::timeEvents()
 MassSpec * MyInit::massSpec()
 {
     return mMassSpec.data();
+}
+
+TimeParams *MyInit::timeParams()
+{
+    return mTimeParams.data();
 }
 
 void MyInit::moveToThread(QObject *obj)

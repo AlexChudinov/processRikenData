@@ -18,6 +18,7 @@
 #include "Plot/TICPlot.h"
 #include "Base/BaseObject.h"
 #include "Data/MassSpec.h"
+#include "Data/TimeEvents.h"
 //?
 
 #include "Plot/PlotPair.h"
@@ -126,4 +127,14 @@ void MainWindow::on_actionOpen_txt_from_folder_triggered()
     Reader * reader = new TxtFileReader;
     reader->open(dir);
     QThreadPool::globalInstance()->start(reader);
+}
+
+void MainWindow::on_actionTime_params_triggered()
+{
+    TimeParams* params = MyInit::instance()->timeParams();
+    QMapPropsDialog dlg;
+    dlg.setProps(params->get());
+    dlg.exec();
+    QVariantMap props = dlg.props();
+    params->set(props);
 }

@@ -101,11 +101,20 @@ size_t TimeEvents::startsPerHist()
     return mStartsPerHist;
 }
 
-TimeParams TimeParams::s_global;
+TimeParams::TimeParams(QObject *parent)
+    :
+      QObject(parent),
+      mTimeFactor(1),
+      mTimeStep(1),
+      mTimeOrigin(0),
+      mTimeUnits(QObject::tr("bin"))
+{
+    setObjectName("TimeParams");
+}
 
 const QStringList &TimeParams::parameters() const
 {
-    static QStringList s_parameters {"Factor", "Origin", "Step", "Units"};
+    static const QStringList s_parameters {"Factor", "Origin", "Step", "Units"};
     return s_parameters;
 }
 
@@ -132,27 +141,22 @@ void TimeParams::set(const QVariantMap &params)
     }
 }
 
-TimeParams *TimeParams::globalInstance()
-{
-    return &s_global;
-}
-
 void TimeParams::setByName(const QString &name, QVariant val)
 {
     if(name == parameters()[0] && val.canConvert<double>())
     {
-        mTimeFactor = val.convert(QVariant::Double);
+        mTimeFactor = val.toDouble();
     }
     else if(name == parameters()[1] && val.canConvert<double>())
     {
-        mTimeOrigin = val.convert(QVariant::Double);
+        mTimeOrigin = val.toDouble();
     }
     else if(name == parameters()[2] && val.canConvert<double>())
     {
-        mTimeStep = val.convert(QVariant::Double);
+        mTimeStep = val.toDouble();
     }
-    else if(name == parameters()[3] && val.canConvert<double>())
+    else if(name == parameters()[3] && val.canConvert<QString>())
     {
-        mTimeUnits = val.convert(QVariant::String);
+        mTimeUnits = val.toString();
     }
 }

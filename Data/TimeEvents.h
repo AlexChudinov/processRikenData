@@ -13,26 +13,18 @@ using TimeEventsContainer = QList<TimeEvent>;
  * @brief The TimeParams class keeps parameters of time events
  * to transform numbers to a real time units
  */
-class TimeParams
+class TimeParams : public QObject
 {
-    static TimeParams s_global;
-    Q_DISABLE_COPY(TimeParams)
-
-    TimeParams()
-        :
-          mTimeFactor(1),
-          mTimeStep(1),
-          mTimeUnits(QObject::tr("bin"))
-    {}
+    Q_OBJECT
 public:
+
+    TimeParams(QObject * parent = Q_NULLPTR);
 
     const QStringList& parameters() const;
 
     QVariantMap get() const;
 
     void set(const QVariantMap& params);
-
-    static TimeParams * globalInstance();
 
 private:
     double mTimeFactor; //time unit

@@ -10,6 +10,7 @@
 //Initialises objects
 class TimeEvents;
 class MassSpec;
+class TimeParams;
 class MyInit : public QObject
 {
     Q_OBJECT
@@ -26,10 +27,13 @@ public:
 
     MassSpec * massSpec();
 
+    TimeParams * timeParams();
+
     void moveToThread(QObject * obj);
 private:
     QScopedPointer<TimeEvents> mTimeEvents;
     QScopedPointer<MassSpec> mMassSpec;
+    QScopedPointer<TimeParams> mTimeParams;
 };
 
 class SimpleThread : public QThread
