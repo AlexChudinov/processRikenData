@@ -47,6 +47,14 @@ public:
     MapUintUint blockingGetMassSpec(size_t num);
 
     /**
+     * @brief getMassSpecTotalCurrent returns total number of events in mass spec
+     * @param idx
+     * @return
+     */
+    double getMassSpecTotalCurrent(size_t idx) const;
+    double blockingGetMassSpecTotalCurrent(size_t idx);
+
+    /**
      * @brief getIonCurrent
      * @param First first time bin value
      * @param Last last time bin value

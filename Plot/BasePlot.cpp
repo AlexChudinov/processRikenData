@@ -177,3 +177,16 @@ void BasePlot::updateLimits()
         yAxis->setRange(yRange);
     }
 }
+
+void BasePlot::mouseMoveEvent(QMouseEvent *evt)
+{
+    QPoint pt = evt->pos();
+    double
+            x = xAxis->pixelToCoord(pt.x()),
+            y = yAxis->pixelToCoord(pt.y());
+    QCustomPlot::mouseMoveEvent(evt);
+    Q_EMIT mouseCoordinateNotify
+    (
+        tr("x: %1 y: %2").arg(x).arg(y)
+    );
+}

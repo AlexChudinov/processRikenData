@@ -19,7 +19,7 @@ public:
 
     virtual double transform(double xVal) const = 0;
 
-    virtual const QString& xUnits() const = 0;
+    virtual QString xUnits() const = 0;
 };
 
 class TimeScale : public XValsTransform
@@ -31,7 +31,7 @@ public:
 
     virtual double transform(double xVal) const;
 
-    virtual const QString& xUnits() const;
+    virtual QString xUnits() const;
 };
 
 #endif // XVALSTRANSFORM_H

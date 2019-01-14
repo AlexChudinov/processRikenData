@@ -26,6 +26,10 @@ public:
 
     void set(const QVariantMap& params);
 
+signals:
+
+    void setParamsNotify();
+
 private:
     double mTimeFactor; //time unit
     double mTimeStep;   //one time step

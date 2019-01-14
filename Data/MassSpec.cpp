@@ -95,6 +95,26 @@ MapUintUint MassSpec::blockingGetMassSpec(size_t num)
     return getMassSpec(num);
 }
 
+double MassSpec::getMassSpecTotalCurrent(size_t idx) const
+{
+    Q_ASSERT(idx < mData.size());
+
+    double res = 0.0;
+
+    for(MapUintUint::const_reference d : mData[idx])
+    {
+        res += d.second;
+    }
+
+    return res;
+}
+
+double MassSpec::blockingGetMassSpecTotalCurrent(size_t idx)
+{
+    Locker lock(mMutex);
+    return getMassSpecTotalCurrent(idx);
+}
+
 MassSpec::VectorUint MassSpec::getIonCurrent(Uint First, Uint Last) const
 {
     VectorUint res(mData.size());

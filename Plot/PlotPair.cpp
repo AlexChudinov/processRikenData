@@ -1,24 +1,30 @@
 #include "PlotPair.h"
 #include "Base/BaseObject.h"
 #include "Data/MassSpec.h"
+#include "Data/TimeEvents.h"
+#include "Data/XValsTransform.h"
 #include <QInputDialog>
 
 PlotPair::PlotPair(QWidget *parent) :
     QMainWindow(parent),
     mMsPlot(new BasePlot(this)),
-    mTicPlot(new BasePlot(this))
+    mTicPlot(new BasePlot(this)),
+    mXValsTransform(new TimeScale())
 {
     createGraphs();
 
     MassSpec * ms = MyInit::instance()->massSpec();
-    connect(ms, SIGNAL(cleared()), this, SLOT(clearData()));
-    massSpecNumsChanged
+    TimeParams * timeParams = MyInit::instance()->timeParams();
+    connect(ms, SIGNAL(cleared()), SLOT(clearData()));
+    massSpecNumsChanged(ms->blockingSize());
+    connect
     (
-        ms->blockingSize()
+        ms, SIGNAL(massSpecsNumNotify(size_t)),
+        SLOT(massSpecNumsChanged(size_t))
     );
-    connect(ms, SIGNAL(massSpecsNumNotify(size_t)),
-            this, SLOT(massSpecNumsChanged(size_t)));
+    connect(timeParams, SIGNAL(setParamsNotify()), SLOT(onShowMs()));
 
+    setStatusBar(new QStatusBar);
     connectPlots();
 
     QVBoxLayout * layout = new QVBoxLayout;
@@ -33,30 +39,20 @@ PlotPair::PlotPair(QWidget *parent) :
     connectActions();
 }
 
+PlotPair::~PlotPair()
+{
+    delete mXValsTransform;
+}
+
 void PlotPair::setTicCursorPos(double x)
 {
+    MassSpec * ms = MyInit::instance()->massSpec();
+
     x = std::round(x);
     if(x < 0.0) x = 0.0;
-    MassSpec * ms = MyInit::instance()->massSpec();
     if(x >= ms->blockingSize()) x = ms->blockingSize() - 1;
-    size_t idx = static_cast<size_t>(x);
-    MapUintUint MS = ms->blockingGetMassSpec(idx);
-    QSharedPointer<QCPGraphDataContainer> msData(new QCPGraphDataContainer);
-    for(MapUintUint::const_reference d : MS)
-    {
-        msData->add
-        (
-            {
-                static_cast<double>(d.first),
-                static_cast<double>(d.second)
-            }
-        );
-    }
-    mMsPlot->graph(0)->setData(msData);
-    mMsPlot->rescaleAxes();
-    mMsPlot->replot();
 
-    if(idx < static_cast<size_t>(mTicPlot->graph(0)->data()->size()))
+    if(x < static_cast<double>(mTicPlot->graph(0)->data()->size()))
     {
         double ymax = std::lower_bound
         (
@@ -65,31 +61,37 @@ void PlotPair::setTicCursorPos(double x)
             QCPGraphData::fromSortKey(x),
             qcpLessThanSortKey<QCPGraphData>
         )->value;
-        mTicPlot->graph(1)->data()->set({{x,0}, {x, ymax}});
+        mTicPlot->graph(1)->data()->set({{x, 0.}, {x, ymax}});
     }
     else
     {
         size_t curMsNum = static_cast<size_t>(mTicPlot->graph(0)->data()->size());
-        double tic, ticIdx;
+        size_t idx = static_cast<size_t>(x);
+        double ticIdx, tic;
         for(;curMsNum <= idx; ++curMsNum)
         {
-            MapUintUint MS = ms->blockingGetMassSpec(curMsNum);
             ticIdx = static_cast<double>(curMsNum);
-            tic = std::accumulate
-            (
-                MS.begin(),
-                MS.end(),
-                0.0,
-                [](double a, MapUintUint::reference b)->double
-            {
-                return a + b.second;
-            });
+            tic = ms->blockingGetMassSpecTotalCurrent(curMsNum);
             mTicPlot->graph(0)->data()->add({ticIdx, tic});
         }
-        mTicPlot->graph(1)->data()->set({{ticIdx,0}, {ticIdx, tic}});
+        mTicPlot->graph(1)->data()->set({{ticIdx, 0.}, {ticIdx, tic}});
         mTicPlot->rescaleAxes();
     }
     mTicPlot->replot();
+
+    onShowMs();
+}
+
+void PlotPair::setTicCursorPos(QMouseEvent *evt)
+{
+    if
+    (
+        evt->button() == Qt::LeftButton
+        && mTicPlot->cursor().shape() == Qt::ArrowCursor
+    )
+    {
+        setTicCursorPos(mTicPlot->xAxis->pixelToCoord(evt->pos().x()));
+    }
 }
 
 void PlotPair::clearData()
@@ -126,6 +128,28 @@ void PlotPair::onExportImage()
     {
         mTicPlot->onExportImageAction();
     }
+}
+
+void PlotPair::onShowMs()
+{
+    int idx = qRound(mTicPlot->graph(1)->data()->begin()->key);
+    MassSpec * ms = MyInit::instance()->massSpec();
+    MapUintUint MS = ms->blockingGetMassSpec(static_cast<size_t>(idx));
+    QSharedPointer<QCPGraphDataContainer> msData(new QCPGraphDataContainer);
+    for(MapUintUint::const_reference d : MS)
+    {
+        msData->add
+        (
+            {
+                mXValsTransform->transform(static_cast<double>(d.first)),
+                static_cast<double>(d.second)
+            }
+        );
+    }
+    mMsPlot->graph(0)->setData(msData);
+    mMsPlot->xAxis->setLabel(mXValsTransform->xUnits());
+    mMsPlot->rescaleAxes();
+    mMsPlot->replot(QCustomPlot::rpImmediateRefresh);
 }
 
 void PlotPair::keyPressEvent(QKeyEvent *evt)
@@ -183,4 +207,13 @@ void PlotPair::connectPlots()
 
     connect(mTicPlot.data(), SIGNAL(mouseRightClick()),
             mMsPlot.data(), SLOT(onMouseRightClick()));
+
+    connect(mTicPlot.data(), SIGNAL(mouseCoordinateNotify(QString)),
+            statusBar(), SLOT(showMessage(QString)));
+
+    connect(mMsPlot.data(), SIGNAL(mouseCoordinateNotify(QString)),
+            statusBar(), SLOT(showMessage(QString)));
+
+    connect(mTicPlot.data(), SIGNAL(mousePress(QMouseEvent*)),
+            SLOT(setTicCursorPos(QMouseEvent*)));
 }

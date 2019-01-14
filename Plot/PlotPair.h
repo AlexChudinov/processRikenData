@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include "BasePlot.h"
 
+class XValsTransform;
+
 /**
  * @brief The PlotPair class window contains tic and ms plot both
  */
@@ -14,7 +16,7 @@ class PlotPair : public QMainWindow
 public:
     explicit PlotPair(QWidget *parent = 0);
 
-signals:
+    virtual ~PlotPair();
 
 public slots:
     /**
@@ -23,6 +25,7 @@ public slots:
      * @param x new position of vertical red line
      */
     void setTicCursorPos(double x);
+    void setTicCursorPos(QMouseEvent * evt);
 
 private slots:
 
@@ -38,10 +41,14 @@ private slots:
 
     void onExportImage();
 
+    void onShowMs();
+
 private:
     QPointer<BasePlot> mMsPlot;
 
     QPointer<BasePlot> mTicPlot;
+
+    XValsTransform * mXValsTransform;
 
     void keyPressEvent(QKeyEvent * evt);
 

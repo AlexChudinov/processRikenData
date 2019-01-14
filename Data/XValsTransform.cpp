@@ -30,13 +30,8 @@ double TimeScale::transform(double xVal) const
     return xVal * params->mTimeFactor + params->mTimeOrigin;
 }
 
-const QString &TimeScale::xUnits() const
+QString TimeScale::xUnits() const
 {
-    static QString timeUnits;
     const TimeParams * params = MyInit::instance()->timeParams();
-    if(timeUnits.isEmpty())
-    {
-        timeUnits = "Time [" + params->mTimeUnits + "]";
-    }
-    return timeUnits;
+    return "Time [" + params->mTimeUnits + "]";
 }

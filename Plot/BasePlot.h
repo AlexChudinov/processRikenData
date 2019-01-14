@@ -27,6 +27,8 @@ public:
 
     Q_SIGNAL void mouseRightClick();
 
+    Q_SIGNAL void mouseCoordinateNotify(QString);
+
     Q_SLOT void onMouseRightClick();
 
 private:
@@ -47,6 +49,8 @@ private:
      */
     void controlLimits();
     Q_SLOT void updateLimits();
+
+    void mouseMoveEvent(QMouseEvent * evt);
 };
 
 #endif // BASEPLOT_H

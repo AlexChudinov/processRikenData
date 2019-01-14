@@ -139,6 +139,7 @@ void TimeParams::set(const QVariantMap &params)
             setByName(name, it.value());
         }
     }
+    Q_EMIT setParamsNotify();
 }
 
 void TimeParams::setByName(const QString &name, QVariant val)
