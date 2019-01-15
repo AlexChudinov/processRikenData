@@ -41,10 +41,29 @@ void MassSpec::blockingNewHist(TimeEventsContainer evts)
             MapUintUint::iterator it = currHist->find(evt);
             if(it == currHist->end())
             {
-                currHist->operator[](evt) = 1;
+                it = currHist->insert({evt, 1}).first;
+                if(it == currHist->begin() || std::prev(it)->first != evt - 1)
+                {
+                    currHist->insert(it, {evt - 1, 0});
+                }
+                if(std::next(it) == currHist->end() || std::next(it)->first != evt + 1)
+                {
+                    currHist->insert(std::next(it), {evt + 1, 0});
+                }
             }
             else
             {
+                if(it->second == 0)
+                {
+                    if(it == currHist->begin() || std::prev(it)->first != evt - 1)
+                    {
+                        currHist->insert(it, {evt - 1, 0});
+                    }
+                    else if(std::next(it) == currHist->end() || std::next(it)->first != evt + 1)
+                    {
+                        currHist->insert(it, {evt + 1, 0});
+                    }
+                }
                 it->second ++;
             }
         }
