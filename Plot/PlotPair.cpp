@@ -132,8 +132,9 @@ void PlotPair::onExportImage()
 
 void PlotPair::onShowMs()
 {
-    int idx = qRound(mTicPlot->graph(1)->data()->begin()->key);
     MassSpec * ms = MyInit::instance()->massSpec();
+    if(ms->blockingSize() == 0) return;
+    int idx = qRound(mTicPlot->graph(1)->data()->begin()->key);
     MapUintUint MS = ms->blockingGetMassSpec(static_cast<size_t>(idx));
     QSharedPointer<QCPGraphDataContainer> msData(new QCPGraphDataContainer);
     for(MapUintUint::const_reference d : MS)

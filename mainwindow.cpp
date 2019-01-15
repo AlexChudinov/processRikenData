@@ -124,6 +124,7 @@ void MainWindow::on_actionOpen_txt_from_folder_triggered()
         QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
     );
 
+    createTicAndMsGraphs();
     Reader * reader = new TxtFileReader;
     reader->open(dir);
     QThreadPool::globalInstance()->start(reader);

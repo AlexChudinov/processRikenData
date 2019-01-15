@@ -74,6 +74,22 @@ void MassSpec::blockingNewHist(TimeEventsContainer evts)
     Q_EMIT massSpecsNumNotify(mData.size());
 }
 
+void MassSpec::addMassSpec(const MapUintUint &ms)
+{
+    if(ms.empty()) return;
+    mData.push_back(ms);
+    mMinTimeBin = qMin(mMinTimeBin, ms.begin()->first);
+    mMaxTimeBin = qMax(mMaxTimeBin, ms.rbegin()->first);
+    Q_EMIT timeLimitsNotify(mMinTimeBin, mMaxTimeBin);
+    Q_EMIT massSpecsNumNotify(mData.size());
+}
+
+void MassSpec::blockingAddMassSpec(const MapUintUint &ms)
+{
+    Locker lock(mMutex);
+    addMassSpec(ms);
+}
+
 MapUintUint MassSpec::getMassSpec(size_t First, size_t Last) const
 {
     Q_ASSERT(First < Last && Last <= mData.size());

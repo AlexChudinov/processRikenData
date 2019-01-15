@@ -155,6 +155,10 @@ void TxtFileReader::run()
             QFile file(fileInfo.absoluteFilePath());
             file.open(QIODevice::ReadOnly);
             QTextStream stream(&file);
+            MyInit::instance()->massSpec()->blockingAddMassSpec
+            (
+                readTextFile(stream)
+            );
         }
     }
     Q_EMIT finished();
@@ -163,16 +167,43 @@ void TxtFileReader::run()
 MapUintUint TxtFileReader::readTextFile(QTextStream &stream)
 {
     MapUintUint MS;
-    QRegExp chekLine("^[\\d+.]");
 
-    while(stream.atEnd())
+    //Skip first text line
+    stream.readLine();
+
+    QVector<double> x, y;
+    while(!stream.atEnd())
     {
         QString line = stream.readLine();
-        if(chekLine.indexIn(line) != -1)
+        QTextStream lineStream(&line);
+        double xx, yy;
+        lineStream >> xx >> yy;
+        if(lineStream.status() == QTextStream::ReadCorruptData)
         {
-            QStringList xyVals = line.split("\t");
-
+            return MS;
         }
+        x.push_back(xx); y.push_back(yy);
+    }
+
+    MyInit::instance()->timeParams()->set
+    (
+        {
+            {"Factor", x[1] - x[0]},
+            {"Origin", x[0]},
+            {"Step", x[1] - x[0]}
+        }
+    );
+
+    size_t idxPrev = 0;
+    for(int i = 0; i < x.size(); ++i)
+    {
+        size_t idxCur = static_cast<size_t>(qRound((x[i] - x[0]) / (x[1] - x[0])));
+        if(idxCur != 0 && idxCur - idxPrev != 1)
+        {
+            return MapUintUint();
+        }
+        MS.insert({idxCur, y[i]});
+        idxPrev = idxCur;
     }
 
     return MS;

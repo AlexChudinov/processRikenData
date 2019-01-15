@@ -29,6 +29,9 @@ public:
 
     Q_SLOT void blockingNewHist(TimeEventsContainer);
 
+    void addMassSpec(const MapUintUint& ms);
+    void blockingAddMassSpec(const MapUintUint& ms);
+
     /**
      * @brief getMassSpec
      * @param First index of first mass spectrum
