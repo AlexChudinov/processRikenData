@@ -67,32 +67,38 @@ void TimeEvents::blockingFlushTimeSlice()
 
 void TimeEvents::recalculateTimeSlices(size_t startsPerHist)
 {
-    Q_EMIT beforeRecalculation();
-    Locker lock(mMutex);
-    if(!mTimeEvents.empty() && startsPerHist != 0 && mStartsPerHist != startsPerHist)
+    if(startsPerHist != 0 && mStartsPerHist != startsPerHist)
     {
-        MyInit::instance()->massSpec()->blockingClear();
+        Q_EMIT beforeRecalculation();
+        Locker lock(mMutex);
         mStartsPerHist = startsPerHist;
         mStartsCount = 0;
-        mTimeEventsSlice.clear();
-
-        for(TimeEvent evt : mTimeEvents)
+        if(!mTimeEvents.empty())
         {
-            if(!evt && mStartsCount++ == mStartsPerHist)
+            MyInit::instance()->massSpec()->blockingClear();
+            mTimeEventsSlice.clear();
+
+            for(TimeEvent evt : mTimeEvents)
             {
-                mStartsCount = 1;
-                Q_EMIT sliceAccumulated(mTimeEventsSlice);
-                mTimeEventsSlice.clear();
-                mTimeEventsSlice.push_back(evt);
+                if(!evt && mStartsCount++ == mStartsPerHist)
+                {
+                    mStartsCount = 1;
+                    Q_EMIT sliceAccumulated(mTimeEventsSlice);
+                    mTimeEventsSlice.clear();
+                    mTimeEventsSlice.push_back(evt);
+                }
+                else
+                {
+                    mTimeEventsSlice.push_back(evt);
+                }
             }
-            else
+            if(mTimeEventsSlice.size() != 1)
             {
-                mTimeEventsSlice.push_back(evt);
+                Q_EMIT sliceAccumulated(mTimeEventsSlice);
             }
         }
-        if(mTimeEventsSlice.size() != 1) Q_EMIT sliceAccumulated(mTimeEventsSlice);
+        Q_EMIT recalculated();
     }
-    Q_EMIT recalculated();
 }
 
 size_t TimeEvents::startsPerHist()

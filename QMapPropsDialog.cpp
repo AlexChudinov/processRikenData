@@ -45,8 +45,10 @@ void QMapPropsDialog::setProps(const QVariantMap &props)
         case QVariant::Double:
         {
             QDoubleSpinBox * sb = new QDoubleSpinBox;
-            sb->setRange(-1.e-9, 1.e9);
-            sb->setValue(it.value().toDouble());
+            sb->setRange(-1.e9, 1.e9);
+            double val = it.value().toDouble();
+            sb->setDecimals(numberOfDecimals(val));
+            sb->setValue(val);
             box->addWidget(sb);
             m_widgets.push_back(sb);
             sb->setFont(appFont);
@@ -108,4 +110,15 @@ void QMapPropsDialog::readProps()
         }
         ++it;
     }
+}
+
+int QMapPropsDialog::numberOfDecimals(double d)
+{
+    int res = 0;
+    while((d - int(d)) / d > 1e-8)
+    {
+        d *= 10.;
+        res ++;
+    }
+    return res;
 }

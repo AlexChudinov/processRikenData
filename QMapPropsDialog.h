@@ -23,6 +23,8 @@ public:
 private:
     Q_SLOT void readProps();
 
+    static int numberOfDecimals(double d);
+
     QVariantMap m_props;
     QObjectList m_widgets;
 
