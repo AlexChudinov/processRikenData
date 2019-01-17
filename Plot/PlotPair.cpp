@@ -67,7 +67,7 @@ void PlotPair::setTicCursorPos(double x)
     {
         size_t curMsNum = static_cast<size_t>(mTicPlot->graph(0)->data()->size());
         size_t idx = static_cast<size_t>(x);
-        double ticIdx, tic;
+        double ticIdx = 0.0, tic = 0.0;
         for(;curMsNum <= idx; ++curMsNum)
         {
             ticIdx = static_cast<double>(curMsNum);
@@ -149,8 +149,11 @@ void PlotPair::onShowMs()
     }
     mMsPlot->graph(0)->setData(msData);
     mMsPlot->xAxis->setLabel(mXValsTransform->xUnits());
-    mMsPlot->rescaleAxes();
-    mMsPlot->replot(QCustomPlot::rpImmediateRefresh);
+    if(idx == mTicPlot->graph(0)->data()->size() - 1 && mTicPlot->graph(0)->data()->size() == 1)
+    { //Rescale only first time
+        mMsPlot->rescaleAxes();
+    }
+    mMsPlot->replot();
 }
 
 void PlotPair::keyPressEvent(QKeyEvent *evt)
