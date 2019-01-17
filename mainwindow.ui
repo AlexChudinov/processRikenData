@@ -53,7 +53,7 @@
    </widget>
    <widget class="QMenu" name="menuMass_Spec">
     <property name="title">
-     <string>Time events</string>
+     <string>Time</string>
     </property>
     <addaction name="actionReaccumulate_mass_spectra"/>
     <addaction name="actionTime_params"/>

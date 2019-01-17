@@ -70,7 +70,10 @@ class TxtFileReader : public Reader
     Q_OBJECT
 
 public:
-    TxtFileReader(QObject * parent = Q_NULLPTR);
+    using DoubleVector = std::vector<double>;
+    using DoubleVectorVector = std::vector<DoubleVector>;
+
+    TxtFileReader(int scope, QObject * parent = Q_NULLPTR);
 
     void open(const QString& folderName);
 
@@ -82,7 +85,17 @@ public:
 private:
     QString mFolderName;
 
-    MapUintUint readTextFile(QTextStream & stream);
+    int mScope;
+
+    //Already read data
+    DoubleVectorVector mData;
+
+    //Reads second data column in stream and stores it to mData
+    void readTextFile(QTextStream & stream);
+
+    //Reads first file and first column in it to estimate
+    //time params.
+    void readTimeParams(QTextStream & stream);
 };
 
 #endif // !TIME_EVENTS_H

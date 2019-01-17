@@ -125,7 +125,15 @@ void MainWindow::on_actionOpen_txt_from_folder_triggered()
     );
 
     createTicAndMsGraphs();
-    Reader * reader = new TxtFileReader;
+    int scope = QInputDialog::getInt
+    (
+        this,
+        "Intensity scope",
+        "Input intensity scope",
+         10,
+         10
+    );
+    Reader * reader = new TxtFileReader(scope);
     reader->open(dir);
     QThreadPool::globalInstance()->start(reader);
 }

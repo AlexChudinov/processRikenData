@@ -2,6 +2,7 @@
 #include "Base/BaseObject.h"
 #include "Data/TimeEvents.h"
 
+#include <QInputDialog>
 #include <QDebug>
 #include <QFile>
 #include <QTextStream>
@@ -119,10 +120,12 @@ void RikenFileReader::readPropsSegment(QTextStream &in, QVariantMap &seg)
 }
 
 
-TxtFileReader::TxtFileReader(QObject *parent)
+TxtFileReader::TxtFileReader(int scope, QObject *parent)
     : Reader(parent),
-      mFolderName()
+      mFolderName(),
+      mScope(scope)
 {
+    Q_ASSERT(mScope >= 10);
     connect
     (
         this,
@@ -155,58 +158,104 @@ void TxtFileReader::run()
             QFile file(fileInfo.absoluteFilePath());
             file.open(QIODevice::ReadOnly);
             QTextStream stream(&file);
-            MyInit::instance()->massSpec()->blockingAddMassSpec
-            (
-                readTextFile(stream)
-            );
+            readTimeParams(stream);
+            stream.seek(0);
+            readTextFile(stream);
+            break;
         }
     }
+
+    double
+            yMin = std::numeric_limits<double>::max(),
+            yMax = std::numeric_limits<double>::min();
+    while(it.hasNext())
+    {
+        it.next();
+        QFileInfo fileInfo = it.fileInfo();
+        if(fileInfo.suffix() == "txt")
+        {
+            QFile file(fileInfo.absoluteFilePath());
+            file.open(QIODevice::ReadOnly);
+            QTextStream stream(&file);
+            readTextFile(stream);
+        }
+    }
+
+    for(DoubleVectorVector::const_reference d : mData)
+    {
+        yMin = qMin(yMin, *std::min_element(d.begin(), d.end()));
+        yMax = qMax(yMax, *std::max_element(d.begin(), d.end()));
+    }
+
+    double factor = static_cast<double>(mScope) / (yMax - yMin);
+
+    for(size_t i = 0; i < mData.size(); ++i)
+    {
+        MapUintUint ms;
+        for(size_t j = 0; j < mData[i].size(); ++j)
+        {
+            mData[i][j] *= factor;
+            ms.insert({j, static_cast<size_t>(std::round(mData[i][j]))});
+        }
+        MyInit::instance()->massSpec()->blockingAddMassSpec(ms);
+    }
+
     Q_EMIT finished();
 }
 
-MapUintUint TxtFileReader::readTextFile(QTextStream &stream)
+void TxtFileReader::readTextFile(QTextStream &stream)
 {
-    MapUintUint MS;
-
-    //Skip first text line
+    //Skip first line with textual information
     stream.readLine();
 
-    QVector<double> x, y;
-    while(!stream.atEnd())
+    if(mData.empty())
     {
-        QString line = stream.readLine();
-        QTextStream lineStream(&line);
-        double xx, yy;
-        lineStream >> xx >> yy;
-        if(lineStream.status() == QTextStream::ReadCorruptData)
-        {
-            return MS;
-        }
-        x.push_back(xx); y.push_back(yy);
+        mData.push_back(DoubleVector());
     }
+    else
+    {
+        mData.push_back(DoubleVector(mData[0].size()));
+    }
+    DoubleVectorVector::reverse_iterator it = mData.rbegin();
+    if(it->empty())
+    {
+        while(!stream.atEnd())
+        {
+            double x, y;
+            stream >> x >> y;
+            if(stream.status() == QTextStream::ReadCorruptData) return;
+            it->push_back(y);
+        }
+    }
+    else
+    {
+        for(DoubleVector::iterator pY = it->begin(); pY != it->end(); ++pY)
+        {
+            double x;
+            stream >> x >> *pY;
+            if(stream.status() == QTextStream::ReadCorruptData) return;
+        }
+    }
+}
+
+void TxtFileReader::readTimeParams(QTextStream &stream)
+{
+    //Skip first line with textual information
+    stream.readLine();
+
+    double x0, x1;
+    stream >> x0;
+    stream.readLine();
+    stream >> x1;
 
     MyInit::instance()->timeParams()->set
     (
         {
-            {"Factor", x[1] - x[0]},
-            {"Origin", x[0]},
-            {"Step", x[1] - x[0]}
+            {"Factor", x1 - x0},
+            {"Origin", x0},
+            {"Step", x1 - x0}
         }
     );
-
-    size_t idxPrev = 0;
-    for(int i = 0; i < x.size(); ++i)
-    {
-        size_t idxCur = static_cast<size_t>(qRound((x[i] - x[0]) / (x[1] - x[0])));
-        if(idxCur != 0 && idxCur - idxPrev != 1)
-        {
-            return MapUintUint();
-        }
-        MS.insert({idxCur, y[i]});
-        idxPrev = idxCur;
-    }
-
-    return MS;
 }
 
 
