@@ -88,7 +88,26 @@ public:
 
     std::pair<Uint, Uint> minMaxTime() const;
     std::pair<Uint, Uint> blockingMinMaxTime();
+
+    /**
+     * @brief massSpecRelatedData get data from mass spectra
+     * @return
+     */
+    const QVariantMap& massSpecRelatedData() const;
+    QVariantMap& massSpecRelatedData();
+
+    /**
+     * @brief lockInstance locks current mass spectrum instance
+     * @return
+     */
+    Locker lockInstance();
 private:
+    /**
+     * @brief mMassSpecRelatedData
+     * Some mass spec data
+     */
+    QVariantMap mMassSpecRelatedData;
+
     /**
      * @brief mData accumulated events histograms
      */

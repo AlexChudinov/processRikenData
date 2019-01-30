@@ -123,19 +123,26 @@ void MainWindow::on_actionOpen_txt_from_folder_triggered()
         QString(),
         QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
     );
-
-    createTicAndMsGraphs();
-    int scope = QInputDialog::getInt
-    (
-        this,
-        "Intensity scope",
-        "Input intensity scope",
-         10,
-         10
-    );
-    Reader * reader = new TxtFileReader(scope);
-    reader->open(dir);
-    QThreadPool::globalInstance()->start(reader);
+    if(!dir.isEmpty())
+    {
+        bool ok;
+        createTicAndMsGraphs();
+        int scope = QInputDialog::getInt
+        (
+            this,
+            "Intensity scope",
+            "Input intensity scope",
+            10,
+            10,
+            std::numeric_limits<int>::max(),
+            1,
+            &ok
+        );
+        scope = ok ? scope : 1000;
+        Reader * reader = new TxtFileReader(scope);
+        reader->open(dir);
+        QThreadPool::globalInstance()->start(reader);
+    }
 }
 
 void MainWindow::on_actionTime_params_triggered()

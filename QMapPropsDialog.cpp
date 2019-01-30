@@ -120,5 +120,5 @@ int QMapPropsDialog::numberOfDecimals(double d)
         d *= 10.;
         res ++;
     }
-    return res;
+    return res > 2 ? res : 2;
 }

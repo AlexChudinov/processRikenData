@@ -225,3 +225,18 @@ std::pair<Uint, Uint> MassSpec::blockingMinMaxTime()
     Locker lock(mMutex);
     return minMaxTime();
 }
+const QVariantMap &MassSpec::massSpecRelatedData() const
+{
+    return mMassSpecRelatedData;
+}
+
+QVariantMap &MassSpec::massSpecRelatedData()
+{
+    return mMassSpecRelatedData;
+}
+
+MassSpec::Locker MassSpec::lockInstance()
+{
+    return Locker(mMutex);
+}
+

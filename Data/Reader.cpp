@@ -149,6 +149,8 @@ void TxtFileReader::run()
 {
     Q_EMIT started();
     QDirIterator it(mFolderName);
+    QVariantMap fileNameToIdx;
+    size_t idx = 0;
     while(it.hasNext())
     {
         it.next();
@@ -161,6 +163,7 @@ void TxtFileReader::run()
             readTimeParams(stream);
             stream.seek(0);
             readTextFile(stream);
+            fileNameToIdx.insert(fileInfo.fileName(), QVariant::fromValue(idx++));
             break;
         }
     }
@@ -178,6 +181,7 @@ void TxtFileReader::run()
             file.open(QIODevice::ReadOnly);
             QTextStream stream(&file);
             readTextFile(stream);
+            fileNameToIdx.insert(fileInfo.fileName(), QVariant::fromValue(idx++));
         }
     }
 
@@ -198,6 +202,9 @@ void TxtFileReader::run()
             ms.insert({j, static_cast<size_t>(std::round(mData[i][j]))});
         }
         MyInit::instance()->massSpec()->blockingAddMassSpec(ms);
+        MyInit::instance()->massSpec()->lockInstance();
+        MyInit::instance()->massSpec()->massSpecRelatedData()["file_names"]
+                = fileNameToIdx;
     }
 
     Q_EMIT finished();
