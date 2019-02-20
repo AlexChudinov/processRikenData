@@ -70,6 +70,29 @@ void MainWindow::openRikenDataFile(const QString &fileName)
     QThreadPool::globalInstance()->start(reader);
 }
 
+void MainWindow::openRikenDataFiles(const QStringList &fileNames)
+{
+    QProgressBar * progress = new QProgressBar;
+    progress->setTextVisible(true);
+    progress->setMinimum(0);
+    progress->setMaximum(fileNames.size());
+    statusBar()->addWidget(progress);
+    createTicAndMsGraphs();
+    Reader * reader = new RikenFileReader;
+    MyInit::instance()->timeEvents()->blockingClear();
+    reader->disconnect(SIGNAL(started()), MyInit::instance()->timeEvents(), SLOT(blockingClear()));
+    for(int i = 0; i < fileNames.size(); ++i)
+    {
+        QFileInfo fileInfo(fileNames[i]);
+        progress->setFormat(tr("Loading ") + fileInfo.fileName());
+        progress->setValue(i);
+        reader->open(fileNames[i]);
+        reader->run();
+        reader->close();
+    }
+    statusBar()->removeWidget(progress);
+}
+
 void MainWindow::createTicAndMsGraphs()
 {
     ui->mdiArea->closeAllSubWindows();
@@ -153,4 +176,24 @@ void MainWindow::on_actionTime_params_triggered()
     dlg.exec();
     QVariantMap props = dlg.props();
     params->set(props);
+}
+
+void MainWindow::on_actionopenManyBinFiles_triggered()
+{
+    QStringList files = QFileDialog::getOpenFileNames
+    (
+        this,
+        "Open file",
+        QString(),
+        "Riken Data (*.lst)"
+    );
+    if(!files.isEmpty())
+    {
+        QFileInfo file(files[0]);
+        QString ext = file.suffix();
+        if(ext == "lst")
+        {
+            openRikenDataFiles(files);
+        }
+    }
 }

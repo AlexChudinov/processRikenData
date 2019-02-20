@@ -13,5 +13,6 @@
         <file alias="selectMS">Icons/selectMS.png</file>
         <file alias="selectTic">Icons/selectTic.png</file>
         <file alias="openTxt">Icons/openTxt.png</file>
+        <file alias="openManyFiles">Icons/openManyFiles.png</file>
     </qresource>
 </RCC>

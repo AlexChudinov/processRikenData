@@ -35,10 +35,14 @@ private slots:
 
     void on_actionTime_params_triggered();
 
+    void on_actionopenManyBinFiles_triggered();
+
 private:
     Ui::MainWindow *ui;
 
     void openRikenDataFile(const QString& fileName);
+
+    void openRikenDataFiles(const QStringList& fileNames);
 
     void createTicAndMsGraphs();
 };

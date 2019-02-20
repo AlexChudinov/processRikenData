@@ -35,7 +35,7 @@
      <x>0</x>
      <y>0</y>
      <width>748</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -70,6 +70,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionOpenDataFile"/>
+   <addaction name="actionopenManyBinFiles"/>
    <addaction name="actionOpen_txt_from_folder"/>
    <addaction name="separator"/>
    <addaction name="actionTileSubWindows"/>
@@ -135,6 +136,18 @@
   <action name="actionTime_params">
    <property name="text">
     <string>Time params</string>
+   </property>
+  </action>
+  <action name="actionopenManyBinFiles">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/Icons/openManyFiles</normaloff>:/Icons/openManyFiles</iconset>
+   </property>
+   <property name="text">
+    <string>openManyBinFiles</string>
+   </property>
+   <property name="toolTip">
+    <string>Open a bunch of files</string>
    </property>
   </action>
  </widget>
