@@ -37,7 +37,8 @@ SOURCES += main.cpp\
     Plot/MSPlot.cpp \
     Plot/TICPlot.cpp \
     Plot/PlotPair.cpp \
-    Data/XValsTransform.cpp
+    Data/XValsTransform.cpp \
+    Math/MassSpecSummator.cpp
 
 HEADERS  += mainwindow.h \
     RikenData/rawrikendata.h \
@@ -65,7 +66,8 @@ HEADERS  += mainwindow.h \
     Plot/MSPlot.h \
     Plot/TICPlot.h \
     Plot/PlotPair.h \
-    Data/XValsTransform.h
+    Data/XValsTransform.h \
+    Math/MassSpecSummator.h
 
 FORMS    += mainwindow.ui \
     PropertiesListForm.ui \
