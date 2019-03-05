@@ -49,7 +49,7 @@ void MainWindow::on_actionOpenDataFile_triggered()
         this,
         "Open file",
         QString(),
-        "Riken Data (*.lst)"
+        "Riken Data (*.lst);;Riken ASCII Data (*.dat)"
     );
     if(!fileName.isEmpty())
     {
@@ -59,6 +59,10 @@ void MainWindow::on_actionOpenDataFile_triggered()
         {
             openRikenDataFile(fileName);
         }
+        else if(fileInfo.suffix() == "dat")
+        {
+            openRikenASCIIData(fileName);
+        }
     }
 }
 
@@ -66,6 +70,14 @@ void MainWindow::openRikenDataFile(const QString &fileName)
 {
     createTicAndMsGraphs();
     Reader * reader = new RikenFileReader;
+    reader->open(fileName);
+    QThreadPool::globalInstance()->start(reader);
+}
+
+void MainWindow::openRikenASCIIData(const QString &fileName)
+{
+    createTicAndMsGraphs();
+    Reader * reader = new RikenDataReader;
     reader->open(fileName);
     QThreadPool::globalInstance()->start(reader);
 }

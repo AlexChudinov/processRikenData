@@ -68,10 +68,14 @@ void MassSpec::blockingNewHist(TimeEventsContainer evts)
             }
         }
     }
-    mMinTimeBin = qMin(mMinTimeBin, currHist->begin()->first);
-    mMaxTimeBin = qMax(mMaxTimeBin, currHist->rbegin()->first);
-    Q_EMIT timeLimitsNotify(mMinTimeBin, mMaxTimeBin);
-    Q_EMIT massSpecsNumNotify(mData.size());
+    if(!currHist->empty())
+    {
+        mMinTimeBin = qMin(mMinTimeBin, currHist->begin()->first);
+        mMaxTimeBin = qMax(mMaxTimeBin, currHist->rbegin()->first);
+        Q_EMIT timeLimitsNotify(mMinTimeBin, mMaxTimeBin);
+        Q_EMIT massSpecsNumNotify(mData.size());
+    }
+    else mData.pop_back(); //No events occur for some reason
 }
 
 void MassSpec::addMassSpec(const MapUintUint &ms)

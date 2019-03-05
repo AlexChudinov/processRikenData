@@ -266,3 +266,49 @@ void TxtFileReader::readTimeParams(QTextStream &stream)
 }
 
 
+
+RikenDataReader::RikenDataReader(QObject *parent)
+    :
+      TimeEventsReader (parent),
+      mFile(new QFile)
+{
+
+}
+
+void RikenDataReader::open(const QString& fileName)
+{
+    mFile->setFileName(fileName);
+    bool fOpened = mFile->open(QIODevice::ReadOnly|QIODevice::Text);
+    Q_ASSERT(fOpened);
+}
+
+void RikenDataReader::close()
+{
+    mFile->close();
+}
+
+void RikenDataReader::run()
+{
+    Q_EMIT started();
+    QTextStream stream(mFile.data());
+
+    Q_EMIT eventRead(0);
+    quint64 prevSweep = 0;
+    while
+    (
+        stream.status() != QTextStream::ReadPastEnd
+        && stream.status() != QTextStream::ReadCorruptData
+    )
+    {
+        quint64 chan, edge, tag, sweep, evt;
+        stream >> chan >> edge >> tag >> sweep >> evt;
+        if(sweep != prevSweep)
+        {
+            quint64 diff = sweep > prevSweep ? sweep - prevSweep
+                : prevSweep + std::numeric_limits<uint16_t>::max() - sweep;
+            for(; diff != 0; diff--) Q_EMIT eventRead(0);
+        }
+        Q_EMIT eventRead(evt);
+    }
+    Q_EMIT finished();
+}

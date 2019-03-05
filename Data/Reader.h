@@ -65,6 +65,26 @@ private:
     static void readPropsSegment(QTextStream& in, QVariantMap& seg);
 };
 
+/**
+ * @brief The RikenDataReader class for reading last supplied Marco's data
+ */
+class RikenDataReader : public TimeEventsReader
+{
+    Q_OBJECT
+
+public:
+    RikenDataReader(QObject * parent = Q_NULLPTR);
+
+    void open(const QString& fileName);
+
+    void close();
+
+    void run();
+
+private:
+    QScopedPointer<QFile> mFile;
+};
+
 class TxtFileReader : public Reader
 {
     Q_OBJECT

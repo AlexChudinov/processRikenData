@@ -42,6 +42,8 @@ private:
 
     void openRikenDataFile(const QString& fileName);
 
+    void openRikenASCIIData(const QString& fileName);
+
     void openRikenDataFiles(const QStringList& fileNames);
 
     void createTicAndMsGraphs();
