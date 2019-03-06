@@ -10,7 +10,13 @@
 
 Reader::Reader(QObject *parent)
     :
-      QObject (parent)
+      QObject (parent),
+      mStopFlag(false)
+{
+
+}
+
+void Reader::stop()
 {
 
 }
@@ -310,5 +316,73 @@ void RikenDataReader::run()
         }
         Q_EMIT eventRead(evt);
     }
+    Q_EMIT finished();
+}
+
+DirectMsFromRikenTxt::DirectMsFromRikenTxt(QObject *parent)
+    :
+      Reader(parent),
+      mFile(new QFile)
+{
+    connect
+    (
+        this,
+        SIGNAL(started()),
+        MyInit::instance()->timeEvents(),
+        SLOT(blockingClear())
+    );
+}
+
+void DirectMsFromRikenTxt::open(const QString &fileName)
+{
+    mFile->setFileName(fileName);
+    bool fOpenned = mFile->open(QFile::ReadOnly | QFile::Text);
+    Q_ASSERT(fOpenned);
+}
+
+void DirectMsFromRikenTxt::close()
+{
+    mFile->close();
+}
+
+void DirectMsFromRikenTxt::run()
+{
+    Q_EMIT started();
+
+    MyInit::instance()->timeParams()->set
+    (
+        {
+            {"Factor", 1},
+            {"Origin", 0},
+            {"Step", 1}
+        }
+    );
+
+    QTextStream stream(mFile.data());
+    MapUintUint ms;
+    int nLines = 0;
+    while(!stream.atEnd())
+    {
+        stream.readLine();
+        nLines ++;
+    }
+    stream.seek(0);
+
+    int step = nLines / 100;
+    for(int i = 0; i < nLines; ++i)
+    {
+        quint64 chan, edge, tag, sweep, evt;
+        stream >> chan >> edge >> tag >> sweep >> evt;
+        MapUintUint::iterator it = ms.find(evt);
+        if(it != ms.end()) it->second++;
+        else
+        {
+            ms.insert(it, {evt, 1});
+        }
+        if(i % step == 0) Q_EMIT progressNotify((100 * i) / nLines);
+    }
+
+    MyInit::instance()->massSpec()->blockingAddMassSpec(ms);
+
     Q_EMIT finished();
 }

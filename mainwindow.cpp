@@ -25,10 +25,13 @@
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    mProgressBar(new QProgressBar)
 {
     ui->setupUi(this);
     setCentralWidget(ui->mdiArea);
+    mProgressBar->hide();
+    statusBar()->addWidget(mProgressBar);
 }
 
 MainWindow::~MainWindow()
@@ -77,9 +80,12 @@ void MainWindow::openRikenDataFile(const QString &fileName)
 void MainWindow::openRikenASCIIData(const QString &fileName)
 {
     createTicAndMsGraphs();
-    Reader * reader = new RikenDataReader;
+    Reader * reader = new DirectMsFromRikenTxt;
     reader->open(fileName);
+    connect(reader, SIGNAL(progressNotify(int)), mProgressBar.data(), SLOT(setValue(int)));
     QThreadPool::globalInstance()->start(reader);
+    mProgressBar->show();
+    connect(reader, SIGNAL(finished()), mProgressBar.data(), SLOT(hide()));
 }
 
 void MainWindow::openRikenDataFiles(const QStringList &fileNames)

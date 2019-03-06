@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QProgressBar>
+#include <QPointer>
 
 namespace Ui {
 class MainWindow;
@@ -47,6 +49,9 @@ private:
     void openRikenDataFiles(const QStringList& fileNames);
 
     void createTicAndMsGraphs();
+
+private:
+    QPointer<QProgressBar> mProgressBar;
 };
 
 #endif // MAINWINDOW_H

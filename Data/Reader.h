@@ -17,6 +17,7 @@ class Reader: public QObject, public QRunnable
 {
 	Q_OBJECT
 
+    bool mStopFlag;
 public:
 	Reader(QObject * parent = Q_NULLPTR);
 
@@ -29,6 +30,9 @@ public:
     Q_SIGNAL void objPropsRead(QVariantMap);
     Q_SIGNAL void started();
     Q_SIGNAL void finished();
+    Q_SIGNAL void progressNotify(int);
+
+    Q_SLOT void stop();
 };
 
 class QFile;
@@ -116,6 +120,25 @@ private:
     //Reads first file and first column in it to estimate
     //time params.
     void readTimeParams(QTextStream & stream);
+};
+
+class DirectMsFromRikenTxt : public Reader
+{
+    Q_OBJECT
+
+public:
+    DirectMsFromRikenTxt(QObject * parent = Q_NULLPTR);
+
+    void open(const QString& fileName);
+
+    void close();
+
+    void run();
+
+    Q_SIGNAL void massSpectrumReadNotify(MapUintUint);
+private:
+
+    QScopedPointer<QFile> mFile;
 };
 
 #endif // !TIME_EVENTS_H
