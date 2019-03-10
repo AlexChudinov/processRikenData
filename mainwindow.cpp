@@ -13,14 +13,8 @@
 #include "MassSpecAccDialogs.h"
 #include "RikenData/rawrikendata.h"
 
-//?
-#include "Plot/MSPlot.h"
-#include "Plot/TICPlot.h"
 #include "Base/BaseObject.h"
-#include "Data/MassSpec.h"
-#include "Data/TimeEvents.h"
-//?
-
+#include "Plot/DataPlot.h"
 #include "Plot/PlotPair.h"
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -115,7 +109,17 @@ void MainWindow::createTicAndMsGraphs()
 {
     ui->mdiArea->closeAllSubWindows();
 
-    ui->mdiArea->addSubWindow(new PlotPair)->show();
+    PlotPair * plots = new PlotPair;
+
+    connect
+    (
+        plots,
+        SIGNAL(dataSelected(QVector<double>, QVector<double>)),
+        this,
+        SLOT(createDataPlot(QVector<double>, QVector<double>))
+    );
+
+    ui->mdiArea->addSubWindow(plots)->show();
 
     on_actionTileSubWindows_triggered();
 }
@@ -214,4 +218,9 @@ void MainWindow::on_actionopenManyBinFiles_triggered()
             openRikenDataFiles(files);
         }
     }
+}
+
+void MainWindow::createDataPlot(QVector<double> x, QVector<double> y)
+{
+    ui->mdiArea->addSubWindow(new DataPlot(x, y))->show();
 }

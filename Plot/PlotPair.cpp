@@ -34,6 +34,15 @@ PlotPair::PlotPair(QWidget *parent) :
     layout->addWidget(mMsPlot);
     layout->addWidget(mTicPlot);
     setCentralWidget(w);
+
+    mMsPlot->toolBar()->addAction
+    (
+        QIcon("://Icons//selectMS"),
+        "Select data",
+        this,
+        SLOT(onSelectData())
+    );
+
     addToolBar(Qt::TopToolBarArea, mMsPlot->toolBar());
 
     connectActions();
@@ -156,6 +165,14 @@ void PlotPair::onShowMs()
     mMsPlot->replot();
 }
 
+void PlotPair::onSelectData()
+{
+    mTicPlot->setCursor(Qt::PointingHandCursor);
+    mMsPlot->setCursor(Qt::PointingHandCursor);
+    mTicPlot->setSelectionRectMode(QCP::srmCustom);
+    mMsPlot->setSelectionRectMode(QCP::srmCustom);
+}
+
 void PlotPair::keyPressEvent(QKeyEvent *evt)
 {
     if(evt->key() == Qt::Key_Left)
@@ -220,4 +237,23 @@ void PlotPair::connectPlots()
 
     connect(mTicPlot.data(), SIGNAL(mousePress(QMouseEvent*)),
             SLOT(setTicCursorPos(QMouseEvent*)));
+
+    connect(mMsPlot, SIGNAL(mouseRelease(QMouseEvent *)),
+            this, SLOT(selectMsData()));
+}
+
+void PlotPair::selectMsData()
+{
+    const QCPSelectionRect * rect = mMsPlot->selectionRect();
+    QCPRange xrange = rect->range(mMsPlot->xAxis);
+    Uint minX = static_cast<Uint>(::round(xrange.lower));
+    Uint maxX = static_cast<Uint>(::round(xrange.upper));
+    MassSpec::VectorUint ticData
+            = MyInit::instance()->massSpec()->blockingGetIonCurrent(minX, maxX);
+    QVector<double> x(static_cast<int>(ticData.size()));
+    std::iota(x.begin(), x.end(), 1.0);
+    QVector<double> y(static_cast<int>(ticData.size()));
+    std::copy(ticData.begin(), ticData.end(), y.begin());
+
+    Q_EMIT dataSelected(x, y);
 }

@@ -14,9 +14,12 @@ class PlotPair : public QMainWindow
 {
     Q_OBJECT
 public:
-    explicit PlotPair(QWidget *parent = 0);
+    explicit PlotPair(QWidget *parent = Q_NULLPTR);
 
     virtual ~PlotPair();
+
+signals:
+    void dataSelected(QVector<double> x, QVector<double> y);
 
 public slots:
     /**
@@ -28,7 +31,6 @@ public slots:
     void setTicCursorPos(QMouseEvent * evt);
 
 private slots:
-
     /**
      * @brief clearData clear plot data
      */
@@ -42,6 +44,10 @@ private slots:
     void onExportImage();
 
     void onShowMs();
+
+    void onSelectData();
+
+    void selectMsData();
 
 private:
     QPointer<BasePlot> mMsPlot;
@@ -57,6 +63,8 @@ private:
     void connectActions();
 
     void connectPlots();
+
+    void selectTicData();
 };
 
 #endif // PLOTPAIR_H

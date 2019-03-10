@@ -188,5 +188,5 @@ void BasePlot::mouseMoveEvent(QMouseEvent *evt)
     Q_EMIT mouseCoordinateNotify
     (
         tr("x: %1 y: %2").arg(x).arg(y)
-    );
+                );
 }

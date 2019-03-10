@@ -39,6 +39,7 @@ private slots:
 
     void on_actionopenManyBinFiles_triggered();
 
+    void createDataPlot(QVector<double> x, QVector<double> y);
 private:
     Ui::MainWindow *ui;
 
