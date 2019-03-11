@@ -21,6 +21,10 @@ public:
 signals:
 
 public slots:
+    /**
+     * @brief calculateSmoothing estimates data smoothing and adds corresponding graph
+     */
+    void calculateSmoothing();
 
 private:
     QPointer<BasePlot> mPlot;
