@@ -14,6 +14,7 @@ public:
     (
         const QVector<double>& x,
         const QVector<double>& y,
+        const QString& capture,
         QWidget *parent = Q_NULLPTR
     );
 

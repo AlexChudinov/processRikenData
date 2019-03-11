@@ -19,7 +19,13 @@ public:
     virtual ~PlotPair();
 
 signals:
-    void dataSelected(QVector<double> x, QVector<double> y);
+    /**
+     * @brief dataSelected data for data plot were selected
+     * @param x x-values
+     * @param y y-values
+     * @param dscr data description that will be shown in the DataPlot capture
+     */
+    void dataSelected(QVector<double> x, QVector<double> y, QString dscr);
 
 public slots:
     /**
@@ -49,6 +55,7 @@ private slots:
 
     void selectMsData();
 
+    void selectTicData();
 private:
     QPointer<BasePlot> mMsPlot;
 
@@ -63,8 +70,6 @@ private:
     void connectActions();
 
     void connectPlots();
-
-    void selectTicData();
 };
 
 #endif // PLOTPAIR_H

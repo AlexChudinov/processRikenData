@@ -1,7 +1,10 @@
 #ifndef MASSSPECSUMMATOR_H
 #define MASSSPECSUMMATOR_H
 
-#include "Data/MassSpec.h"
+#include <map>
+
+using Uint = unsigned long long;
+using MapUintUint = std::map<Uint, Uint>;
 
 class MassSpecSummator
 {

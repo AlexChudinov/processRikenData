@@ -17,7 +17,19 @@ public:
 
     virtual Type type() const = 0;
 
+    /**
+     * @brief transform transforms signal from ms induces to x-values
+     * @param xVal
+     * @return
+     */
     virtual double transform(double xVal) const = 0;
+
+    /**
+     * @brief invTransform transforms signal from x-values to ms induces
+     * @param xVal
+     * @return
+     */
+    virtual double invTransform(double xVal) const = 0;
 
     virtual QString xUnits() const = 0;
 };
@@ -30,6 +42,8 @@ public:
     virtual Type type() const;
 
     virtual double transform(double xVal) const;
+
+    virtual double invTransform(double xVal) const;
 
     virtual QString xUnits() const;
 };

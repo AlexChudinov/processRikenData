@@ -240,20 +240,50 @@ void PlotPair::connectPlots()
 
     connect(mMsPlot, SIGNAL(mouseRelease(QMouseEvent *)),
             this, SLOT(selectMsData()));
+
+    connect(mTicPlot, SIGNAL(mouseRelease(QMouseEvent *)),
+            this, SLOT(selectTicData()));
 }
 
 void PlotPair::selectMsData()
 {
-    const QCPSelectionRect * rect = mMsPlot->selectionRect();
-    QCPRange xrange = rect->range(mMsPlot->xAxis);
-    Uint minX = static_cast<Uint>(::round(xrange.lower));
-    Uint maxX = static_cast<Uint>(::round(xrange.upper));
-    MassSpec::VectorUint ticData
-            = MyInit::instance()->massSpec()->blockingGetIonCurrent(minX, maxX);
-    QVector<double> x(static_cast<int>(ticData.size()));
-    std::iota(x.begin(), x.end(), 1.0);
-    QVector<double> y(static_cast<int>(ticData.size()));
-    std::copy(ticData.begin(), ticData.end(), y.begin());
+    if(mMsPlot->selectionRectMode() == QCP::srmCustom)
+    {
+        const QCPSelectionRect * rect = mMsPlot->selectionRect();
+        QCPRange xrange = rect->range(mMsPlot->xAxis);
+        Uint minX = static_cast<Uint>(mXValsTransform->invTransform(::round(xrange.lower)));
+        Uint maxX = static_cast<Uint>(mXValsTransform->invTransform(::round(xrange.upper)));
+        MassSpec::VectorUint ticData
+                = MyInit::instance()->massSpec()->blockingGetIonCurrent(minX, maxX);
+        QVector<double> x(static_cast<int>(ticData.size()));
+        std::iota(x.begin(), x.end(), 1.0);
+        QVector<double> y(static_cast<int>(ticData.size()));
+        std::copy(ticData.begin(), ticData.end(), y.begin());
 
-    Q_EMIT dataSelected(x, y);
+        Q_EMIT dataSelected(x, y, tr("TIC for %3: %1 - %2").arg(minX).arg(maxX).arg(mXValsTransform->xUnits()));
+    }
+}
+
+void PlotPair::selectTicData()
+{
+    if(mTicPlot->selectionRectMode() == QCP::srmCustom)
+    {
+        const QCPSelectionRect * rect = mTicPlot->selectionRect();
+        QCPRange xrange = rect->range(mTicPlot->xAxis);
+        size_t minX = xrange.lower >= 0 ? static_cast<size_t>(xrange.lower) : 0;
+        size_t maxX = static_cast<size_t>(xrange.upper);
+        maxX = maxX >= minX + 1 ? maxX : minX + 1;
+        MapUintUint ms
+                = MyInit::instance()->massSpec()->blockingGetMassSpec(minX, maxX);
+        QVector<double> x(static_cast<int>(ms.size())), y(static_cast<int>(ms.size()));
+        int idx = 0;
+        for(MapUintUint::const_reference d : ms)
+        {
+            x[idx] = mXValsTransform->transform(d.first);
+            y[idx] = d.second;
+            idx++;
+        }
+
+        Q_EMIT dataSelected(x, y, tr("MS indexes: %1 - %2").arg(minX).arg(maxX));
+    }
 }

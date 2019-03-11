@@ -4,6 +4,7 @@
 #include <QObject>
 #include <mutex>
 
+#include "Math/MassSpecSummator.h"
 #include "TimeEvents.h"
 
 using Uint = unsigned long long;
@@ -124,6 +125,11 @@ private:
     Uint mMaxTimeBin;
 
     Mutex mMutex;
+
+    /**
+     * @brief mSummator interface for summing mass spectrums together
+     */
+    QScopedPointer<MassSpecSummator> mSummator;
 };
 
 #endif // MASSSPEC_H

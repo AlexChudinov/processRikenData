@@ -2,6 +2,7 @@
 #include "Math/ParSplineCalc.h"
 #include "Data/TimeEvents.h"
 #include "Data/MassSpec.h"
+#include "Math/MassSpecSummator.h"
 
 MyInit * MyInit::s_instance;
 

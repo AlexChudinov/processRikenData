@@ -1,3 +1,4 @@
+#include "Data/MassSpec.h"
 #include "MassSpecSummator.h"
 
 MassSpecSummator::MassSpecSummator()

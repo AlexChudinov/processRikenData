@@ -30,6 +30,12 @@ double TimeScale::transform(double xVal) const
     return xVal * params->mTimeFactor + params->mTimeOrigin;
 }
 
+double TimeScale::invTransform(double xVal) const
+{
+    const TimeParams * params = MyInit::instance()->timeParams();
+    return (xVal - params->mTimeOrigin) / params->mTimeFactor;
+}
+
 QString TimeScale::xUnits() const
 {
     const TimeParams * params = MyInit::instance()->timeParams();

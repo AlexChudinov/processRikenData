@@ -6,7 +6,8 @@ MassSpec::MassSpec(QObject *parent)
     :
       QObject(parent),
       mMinTimeBin(std::numeric_limits<Uint>::max()),
-      mMaxTimeBin(std::numeric_limits<Uint>::min())
+      mMaxTimeBin(std::numeric_limits<Uint>::min()),
+      mSummator(new MassSpecSummator)
 {
     setObjectName("MassSpec");
     qRegisterMetaType<Uint>("Uint");
@@ -100,19 +101,7 @@ MapUintUint MassSpec::getMassSpec(size_t First, size_t Last) const
     MapUintUint res;
     for(; First < Last; ++First)
     {
-        const MapUintUint& curHist = mData[First];
-        for(MapUintUint::const_reference r : curHist)
-        {
-            MapUintUint::iterator it = res.find(r.first);
-            if (it == res.end())
-            {
-                res[r.first] = r.second;
-            }
-            else
-            {
-                it->second += r.second;
-            }
-        }
+        mSummator->add(res, mData[First]);
     }
     return res;
 }
