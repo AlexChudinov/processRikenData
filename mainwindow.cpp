@@ -11,7 +11,6 @@
 #include "CreditsDialog.h"
 #include "PropertiesListForm.h"
 #include "MassSpecAccDialogs.h"
-#include "RikenData/rawrikendata.h"
 
 #include "Base/BaseObject.h"
 #include "Plot/DataPlot.h"

@@ -13,7 +13,7 @@ class QMapPropsDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit QMapPropsDialog(QWidget *parent = 0);
+    explicit QMapPropsDialog(QWidget *parent = Q_NULLPTR);
     ~QMapPropsDialog();
 
 

@@ -1,99 +1,112 @@
-#include "Interpolator.h"
-#include <algorithm>
+#include <QStringList>
+#include "interpolator.h"
 
-Linear::Linear(const Map& tab) : m_table(tab)
+Interpolator::Interpolator()
 {
-    std::pair<Map::const_iterator, Map::const_iterator>
-            minMax = std::minmax_element(tab.begin(), tab.end(),
-    [](Map::const_reference a, Map::const_reference b)->bool
+
+}
+
+Interpolator::~Interpolator()
+{
+
+}
+
+Interpolator::Pointer Interpolator::create(const QString &name)
+{
+    if(name == "Linear") return Pointer(new LinInterp);
+    else return Pointer();
+}
+
+const QStringList &Interpolator::names()
+{
+    static const QStringList s_names{ "Linear" };
+    return s_names;
+}
+
+Interpolator::Vector LinInterp::interpolate
+(
+    const Interpolator::Vector &x,
+    const Interpolator::Vector &y,
+    const Interpolator::Vector &xNew,
+    bool isSorted
+)
+{
+    assert(x.size() == y.size() && x.size() >= 2);
+    if(isSorted)
     {
-        return a.second < b.second;
-    });
-    m_nMinY = minMax.first->second;
-    m_nMaxY = minMax.second->second;
-}
-
-Linear::Linear(Map&& tab) : m_table(tab)
-{
-    std::pair<Map::const_iterator, Map::const_iterator>
-            minMax = std::minmax_element(tab.begin(), tab.end(),
-    [](Map::const_reference a, Map::const_reference b)->bool
+        return interpolateSorted(x,y,xNew);
+    }
+    else
     {
-        return a.second < b.second;
-    });
-    m_nMinY = minMax.first->second;
-    m_nMaxY = minMax.second->second;
+        Vector tx(x), ty(y);
+        pairSort(tx, ty);
+        return interpolateSorted(tx, ty, xNew);
+    }
 }
 
-Interpolator::InterpType Linear::type() const
+Interpolator::Vector LinInterp::interpolate
+(
+    const Interpolator::Vector &y,
+    const Interpolator::Vector &xNew
+)
 {
-    return Interpolator::LinearType;
+    assert(y.size() >= 2);
+    const size_t N = y.size();
+    Vector res(xNew.size());
+    for(size_t i = 0; i < xNew.size(); ++i)
+    {
+        if(xNew[i] < 0) res[i] = (y[1] - y[0]) * xNew[i];
+        else if(xNew[i] >= N - 1) res[i] = (y[N - 1] - y[N - 2]) * (xNew[i] - N + 2.);
+        else
+        {
+            const size_t n = static_cast<size_t>(xNew[i]);
+            res[i] = (y[n+1] - y[n]) * (xNew[i] - n);
+        }
+    }
+    return res;
 }
 
-double Linear::interpolate(double xVal) const
+Interpolator::Vector LinInterp::interpolateSorted
+(
+    const Interpolator::Vector &x,
+    const Interpolator::Vector &y,
+    const Interpolator::Vector &xNew
+)
 {
-    if (xVal < minX() || xVal >= maxX()) return 0.0;
-	xVal /= xFactor();
-    Map::const_iterator it1 = m_table.upper_bound(static_cast<size_t>(xVal)), it0 = std::prev(it1);
-    double yVal = interpolate(it0, it1, xVal);
-    return yVal;
+    Vector res(xNew.size());
+    for(size_t i = 0; i < xNew.size(); ++i)
+    {
+        res[i] = interpolateSorted(x,y,xNew[i]);
+    }
+    return res;
 }
 
-Linear::String Linear::name() const
+double LinInterp::interpolateSorted
+(
+    const Interpolator::Vector &x,
+    const Interpolator::Vector &y,
+    double xNew
+)
 {
-	return String("Linear");
-}
+    Vector::const_iterator
+            itx = std::lower_bound(x.begin(), x.end(), xNew),
+            ity = y.begin();
+    std::advance(ity, std::distance(x.begin(), itx));
+    if(itx != x.begin())
+    {
+        std::advance(itx, -1);
+        std::advance(ity, -1);
+    }
+    else if(itx == x.end())
+    {
+        std::advance(itx, -2);
+        std::advance(ity, -2);
 
-double Linear::minX() const
-{
-    return double(m_table.begin()->first) * xFactor();
-}
+    }
+    const double x0 = *itx;
+    const double x1 = *next(itx);
+    const double y0 = *ity;
+    const double y1 = *next(ity);
 
-double Linear::maxX() const
-{
-    return double(m_table.rbegin()->first) * xFactor();
-}
-
-double Linear::minY() const
-{
-    return double(m_nMinY) * yFactor();
-}
-
-double Linear::maxY() const
-{
-    return double(m_nMaxY) * yFactor();
-}
-
-const Linear::Map & Linear::table() const
-{
-    return m_table;
-}
-
-Linear::Map &Linear::table()
-{
-    return m_table;
-}
-
-Interpolator::Pointer Interpolator::create(InterpType type, const Map &tab)
-{
-	if (!tab.empty())
-	{
-		switch (type)
-		{
-		case LinearType: return Pointer(new Linear(tab));
-		}
-	}
-    return Pointer();
-}
-
-Interpolator::Pointer Interpolator::create(InterpType type, Map &tab)
-{
-	if (!tab.empty())
-	{
-		switch (type)
-		{
-		case LinearType: return Pointer(new Linear(tab));
-		}
-	}
-    return Pointer();
+    return (y1 - y0) / (x1 - x0) * (xNew - x0) + y0;
 }

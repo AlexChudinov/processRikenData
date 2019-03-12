@@ -7,6 +7,13 @@ QMap<Smoother::Type, QString> Smoother::s_registry
     {Smoother::LogSplinePoissonWeightOnePeakType, "LogSplinePoissonWeightOnePeakType"}
 };
 
+QStringList Smoother::s_typeStrings
+{
+    "LogSplinePoissonWeightType",
+    "LogSplinePoissonWeightPoissonNoiseType",
+    "LogSplinePoissonWeightOnePeakType"
+};
+
 Smoother::Smoother(const QVariantMap &pars, QVariantMap &&parsTemp)
 {
     //Checking of inputed table
@@ -48,6 +55,14 @@ Smoother::Pointer Smoother::create
         return Pointer(new LogSplinePoissonWeightOnePeak(pars));
     }
     return Pointer();
+}
+
+Smoother::Pointer Smoother::create(const QString &typeName, const QVariantMap &pars)
+{
+    if (typeName == s_typeStrings[0]) return Pointer(new LogSplinePoissonWeight(pars));
+    else if (typeName == s_typeStrings[1]) return Pointer(new LogSplinePoissonWeightPoissonNoise);
+    else if (typeName == s_typeStrings[2]) return Pointer(new LogSplinePoissonWeightOnePeak(pars));
+    else return Pointer();
 }
 
 void Smoother::setParams(const QVariantMap &params)

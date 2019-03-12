@@ -34,6 +34,8 @@ public:
 
     static Pointer create(Type type, const QVariantMap& pars = QVariantMap());
 
+    static Pointer create(const QString& typeName, const QVariantMap& pars = QVariantMap());
+
     /**
      * @brief type
      * @return type of current smoother
@@ -72,6 +74,7 @@ public:
     )
     {
         yOut.resize(yIn.size());
+
         return std::any_of
         (
             yIn.cbegin(),
@@ -83,6 +86,11 @@ public:
     static inline const QMap<Type, QString>& registry()
     {
         return s_registry;
+    }
+
+    static inline const QStringList& types()
+    {
+        return s_typeStrings;
     }
 
 protected:
@@ -98,6 +106,7 @@ protected:
 private:
     QVariantMap m_params;
     static QMap<Type, QString> s_registry;
+    static QStringList s_typeStrings;
 };
 
 #endif // SMOOTHER_H

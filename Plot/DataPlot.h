@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include <QPointer>
+#include "Math/Smoother.h"
+#include "Math/interpolator.h"
 
 class BasePlot;
 
@@ -26,9 +28,14 @@ public slots:
      */
     void calculateSmoothing();
 
+    void createSmoother();
+
+    void chooseInterpolator();
 private:
     QPointer<BasePlot> mPlot;
 
+    Interpolator::Pointer mInterp;
+    Smoother::Pointer mSmoother;
 };
 
 #endif // DATAPLOT_H
