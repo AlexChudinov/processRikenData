@@ -1,4 +1,6 @@
 #include <QDialog>
+#include <exception>
+
 #include "../QMapPropsDialog.h"
 
 #include "DataPlot.h"
@@ -30,45 +32,53 @@ DataPlot::DataPlot
 
 void DataPlot::calculateSmoothing()
 {
-    QCPGraph * g;
-    if(mPlot->graphCount() != 2)
-    {
-        mPlot->addGraph(QPen(Qt::red, 3));
+    try {
+        QCPGraph * g;
+        if(mPlot->graphCount() != 2)
+        {
+            mPlot->addGraph(QPen(Qt::red, 3));
+        }
+        g = mPlot->graph(1);
+        QSharedPointer<QCPGraphDataContainer> data = mPlot->graph(0)->data();
+        const QCPRange range = mPlot->xAxis->range();
+        QCPGraphDataContainer::const_iterator _First = data->findBegin(range.lower);
+        QCPGraphDataContainer::const_iterator _Last = data->findEnd(range.upper);
+        const size_t n = static_cast<size_t>(std::distance(_First, _Last));
+        Interpolator::Vector x(n), y(n);
+        for(size_t i = 0; _First != _Last; ++_First, ++i)
+        {
+            x[i] = _First->key;
+            y[i] = _First->value;
+        }
+
+        double step;
+        Interpolator::Vector yNew = mInterp->equalStepData(x, y, step),
+                xNew(yNew.size()),
+                ySmoothed;
+
+        double x0 = x[0] - step;
+        for(double & xx : xNew) xx = x0 += step;
+
+        std::replace_if
+        (
+            yNew.begin(),
+            yNew.end(),
+            [](double val)->bool { return val < 0; },
+            0.
+        );
+
+        createSmoother();
+        mSmoother->run(ySmoothed, yNew);
+
+        g->setData(QVector<double>::fromStdVector(xNew), QVector<double>::fromStdVector(ySmoothed));
+        mPlot->replot();
     }
-    g = mPlot->graph(1);
-    QSharedPointer<QCPGraphDataContainer> data = mPlot->graph(0)->data();
-    const QCPRange range = mPlot->xAxis->range();
-    QCPGraphDataContainer::const_iterator _First = data->findBegin(range.lower);
-    QCPGraphDataContainer::const_iterator _Last = data->findEnd(range.upper);
-    const size_t n = static_cast<size_t>(std::distance(_First, _Last));
-    Interpolator::Vector x(n), y(n);
-    for(size_t i = 0; _First != _Last; ++_First, ++i)
+    catch (const std::exception& e)
     {
-        x[i] = _First->key;
-        y[i] = _First->value;
+        QString except = tr("An exception \"") + e.what() + "\" catched!";
+        QMessageBox::warning(this, "Data plot message", except);
     }
 
-    double step;
-    Interpolator::Vector yNew = mInterp->equalStepData(x, y, step),
-            xNew(yNew.size()),
-            ySmoothed;
-
-    double x0 = x[0] - step;
-    for(double & xx : xNew) xx = x0 += step;
-
-    std::replace_if
-    (
-        yNew.begin(),
-        yNew.end(),
-        [](double val)->bool { return val < 0; },
-        0.
-    );
-
-    createSmoother();
-    mSmoother->run(ySmoothed, yNew);
-
-    g->setData(QVector<double>::fromStdVector(xNew), QVector<double>::fromStdVector(ySmoothed));
-    mPlot->replot();
 }
 
 void DataPlot::createSmoother()

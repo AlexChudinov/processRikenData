@@ -43,6 +43,8 @@ PlotPair::PlotPair(QWidget *parent) :
         SLOT(onSelectData())
     );
 
+    mTicPlot->xAxis->setLabel(tr("Mass spectrum number"));
+
     addToolBar(Qt::TopToolBarArea, mMsPlot->toolBar());
 
     connectActions();

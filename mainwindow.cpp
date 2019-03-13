@@ -224,4 +224,5 @@ void MainWindow::createDataPlot(QVector<double> x, QVector<double> y, QString ca
     QMdiSubWindow * w = ui->mdiArea->addSubWindow(new DataPlot(x, y, capture));
     w->setWindowTitle(capture);
     w->show();
+    on_actionTileSubWindows_triggered();
 }

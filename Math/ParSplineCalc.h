@@ -71,6 +71,13 @@ public:
         double p
     );
 
+signals:
+    /**
+     * @brief sendTextMessage sends outside text messages in emergency cases
+     * @param msg
+     */
+    void sendTextMessage(QString msg);
+
 private:
     //Vectors to store matrix values
     VectorDoublePtr a, b, c, d, e, bb, r;

@@ -12,7 +12,7 @@ class SimpleMassSpecAccDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit SimpleMassSpecAccDialog(int nMaxTime, QWidget *parent = 0);
+    explicit SimpleMassSpecAccDialog(int nMaxTime, QWidget *parent = Q_NULLPTR);
     ~SimpleMassSpecAccDialog();
 
     QPair<int, int> getAccumulationLimits() const;
@@ -31,7 +31,7 @@ class AccumScaleCorrectionDialog : public QDialog
 
 public:
 
-    explicit AccumScaleCorrectionDialog(int nSweepsNum, QWidget * parent = 0);
+    explicit AccumScaleCorrectionDialog(int nSweepsNum, QWidget * parent = Q_NULLPTR);
     ~AccumScaleCorrectionDialog();
 
     struct DialogReturnParams
