@@ -17,6 +17,8 @@ public:
         const QVector<double>& x,
         const QVector<double>& y,
         const QString& capture,
+        const QString& xLabel,
+        const QString& yLabel = QString(),
         QWidget *parent = Q_NULLPTR
     );
 

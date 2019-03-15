@@ -3,6 +3,7 @@
 
 #include "../QMapPropsDialog.h"
 
+#include "Base/BaseObject.h"
 #include "DataPlot.h"
 #include "BasePlot.h"
 #include "Math/LogSplinePoissonWeight.h"
@@ -12,6 +13,8 @@ DataPlot::DataPlot
     const QVector<double>& x,
     const QVector<double>& y,
     const QString& capture,
+    const QString &xLabel,
+    const QString &yLabel,
     QWidget *parent
 )
     :
@@ -28,6 +31,9 @@ DataPlot::DataPlot
     mPlot->toolBar()->addAction(QIcon("://Icons//interp"), "Choose interpolator", this,
                                 SLOT(chooseInterpolator()));
     addToolBar(mPlot->toolBar());
+
+    mPlot->xAxis->setLabel(xLabel);
+    if(!yLabel.isEmpty()) mPlot->xAxis->setLabel(yLabel);
 }
 
 void DataPlot::calculateSmoothing()

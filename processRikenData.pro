@@ -34,6 +34,7 @@ SOURCES += main.cpp\
     Data/XValsTransform.cpp \
     Math/MassSpecSummator.cpp \
     Plot/DataPlot.cpp \
+    Data/plotdata.cpp
 
 HEADERS  += mainwindow.h \
     QCustomPlot/qcustomplot.h \
@@ -57,7 +58,8 @@ HEADERS  += mainwindow.h \
     Data/XValsTransform.h \
     Math/MassSpecSummator.h \
     Plot/DataPlot.h \
-    Math/interpolator.h
+    Math/interpolator.h \
+    Data/plotdata.h
 
 FORMS    += mainwindow.ui \
     PropertiesListForm.ui \

@@ -221,7 +221,7 @@ void MainWindow::on_actionopenManyBinFiles_triggered()
 
 void MainWindow::createDataPlot(QVector<double> x, QVector<double> y, QString capture)
 {
-    QMdiSubWindow * w = ui->mdiArea->addSubWindow(new DataPlot(x, y, capture));
+    QMdiSubWindow * w = ui->mdiArea->addSubWindow(new DataPlot(x, y, capture, QString()));
     w->setWindowTitle(capture);
     w->show();
     on_actionTileSubWindows_triggered();
