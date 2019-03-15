@@ -3,10 +3,24 @@
 
 #include <QMainWindow>
 #include <QPointer>
+#include <PropertiesListForm.h>
+
+#include "Data/plotdata.h"
 #include "Math/Smoother.h"
 #include "Math/interpolator.h"
 
 class BasePlot;
+
+/**
+ * @brief The PropertiesOfPlot class to manage plots at the data plot
+ */
+class PropertiesOfPlot : public PropertiesListForm
+{
+    Q_OBJECT
+public:
+    PropertiesOfPlot(QWidget * parent= Q_NULLPTR);
+    ~PropertiesOfPlot();
+};
 
 class DataPlot : public QMainWindow
 {
@@ -33,8 +47,16 @@ public slots:
     void createSmoother();
 
     void chooseInterpolator();
+
+    void onShowMs();
+
+    void on_showPlotsTriggered();
 private:
+    const static QList<Qt::GlobalColor> s_colors;
+
     QPointer<BasePlot> mPlot;
+
+    QScopedPointer<PlotData> mData;
 
     Interpolator::Pointer mInterp;
     Smoother::Pointer mSmoother;

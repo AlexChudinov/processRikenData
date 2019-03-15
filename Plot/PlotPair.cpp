@@ -262,7 +262,13 @@ void PlotPair::selectMsData()
         QVector<double> y(static_cast<int>(ticData.size()));
         std::copy(ticData.begin(), ticData.end(), y.begin());
 
-        Q_EMIT dataSelected(x, y, tr("TIC for %3: %1 - %2").arg(minX).arg(maxX).arg(mXValsTransform->xUnits()));
+        Q_EMIT dataSelected
+        (
+            x,
+            y,
+            tr("TIC for %3: %1 - %2").arg(minX).arg(maxX).arg(mXValsTransform->xUnits()),
+            mMsPlot->xAxis->label()
+        );
     }
 }
 
@@ -275,6 +281,8 @@ void PlotPair::selectTicData()
         size_t minX = xrange.lower >= 0 ? static_cast<size_t>(xrange.lower) : 0;
         size_t maxX = static_cast<size_t>(xrange.upper);
         maxX = maxX >= minX + 1 ? maxX : minX + 1;
+        const size_t n = MyInit::instance()->massSpec()->blockingSize();
+        maxX = maxX >= n? n - 1 : maxX;
         MapUintUint ms
                 = MyInit::instance()->massSpec()->blockingGetMassSpec(minX, maxX);
         QVector<double> x(static_cast<int>(ms.size())), y(static_cast<int>(ms.size()));
@@ -286,6 +294,12 @@ void PlotPair::selectTicData()
             idx++;
         }
 
-        Q_EMIT dataSelected(x, y, tr("MS indexes: %1 - %2").arg(minX).arg(maxX));
+        Q_EMIT dataSelected
+        (
+            x,
+            y,
+            tr("MS indexes: %1 - %2").arg(minX).arg(maxX),
+            mTicPlot->xAxis->label()
+        );
     }
 }

@@ -113,9 +113,9 @@ void MainWindow::createTicAndMsGraphs()
     connect
     (
         plots,
-        SIGNAL(dataSelected(QVector<double>, QVector<double>, QString)),
+        SIGNAL(dataSelected(QVector<double>, QVector<double>, QString, QString)),
         this,
-        SLOT(createDataPlot(QVector<double>, QVector<double>, QString))
+        SLOT(createDataPlot(QVector<double>, QVector<double>, QString, QString))
     );
 
     ui->mdiArea->addSubWindow(plots)->show();
@@ -219,9 +219,9 @@ void MainWindow::on_actionopenManyBinFiles_triggered()
     }
 }
 
-void MainWindow::createDataPlot(QVector<double> x, QVector<double> y, QString capture)
+void MainWindow::createDataPlot(QVector<double> x, QVector<double> y, QString capture, QString xLabel)
 {
-    QMdiSubWindow * w = ui->mdiArea->addSubWindow(new DataPlot(x, y, capture, QString()));
+    QMdiSubWindow * w = ui->mdiArea->addSubWindow(new DataPlot(x, y, capture, xLabel));
     w->setWindowTitle(capture);
     w->show();
     on_actionTileSubWindows_triggered();

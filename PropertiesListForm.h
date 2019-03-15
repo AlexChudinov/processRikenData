@@ -13,7 +13,7 @@ class PropertiesListForm : public QWidget
     Q_OBJECT
 
 public:
-    explicit PropertiesListForm(QWidget *parent = 0);
+    explicit PropertiesListForm(QWidget *parent = Q_NULLPTR);
     ~PropertiesListForm();
 
     void addListEntry(const QString& entry);

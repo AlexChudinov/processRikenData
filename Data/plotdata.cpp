@@ -11,13 +11,20 @@ PlotData::~PlotData()
 
 }
 
-void PlotData::addData(const QString &descr, const DataVector &data)
+void PlotData::addData
+(
+    const QString &descr,
+    const DataVector &xData,
+    const DataVector &yData
+)
 {
-    MapStringVector::iterator it = mData.find(descr);
+    Q_ASSERT(xData.size() == yData.size());
+    MapStringVector::iterator it = mData.lowerBound(descr);
     QString newDescr;
-    if(it != mData.end())
+    if(it != mData.end() && it.key().contains(descr))
     {
-       QStringList words = descr.split('#');
+        while(it.key().contains(descr)) ++it; --it;
+       QStringList words = it.key().split('#');
        bool ok;
        int n = words.last().toInt(&ok);
        Q_ASSERT(ok);
@@ -32,15 +39,20 @@ void PlotData::addData(const QString &descr, const DataVector &data)
     {
         newDescr = descr + " #1";
     }
-    mData.insert(newDescr, data);
+    mData.insert(newDescr, {xData, yData});
 }
 
 void PlotData::removeData(const QString &descr)
 {
-
+    mData.erase(mData.find(descr));
 }
 
 PlotData::MapStringSize PlotData::dataList() const
 {
-    return MapStringSize();
+    MapStringSize res;
+
+    for(MapStringVector::const_iterator it = mData.begin(); it != mData.end(); ++it)
+        res.insert(it.key(), it.value().first.size());
+
+    return res;
 }

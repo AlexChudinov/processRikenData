@@ -25,7 +25,7 @@ signals:
      * @param y y-values
      * @param dscr data description that will be shown in the DataPlot capture
      */
-    void dataSelected(QVector<double> x, QVector<double> y, QString dscr);
+    void dataSelected(QVector<double> x, QVector<double> y, QString dscr, QString xLabel);
 
 public slots:
     /**
