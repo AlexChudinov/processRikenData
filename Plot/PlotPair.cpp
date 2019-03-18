@@ -282,7 +282,7 @@ void PlotPair::selectTicData()
         size_t maxX = static_cast<size_t>(xrange.upper);
         maxX = maxX >= minX + 1 ? maxX : minX + 1;
         const size_t n = MyInit::instance()->massSpec()->blockingSize();
-        maxX = maxX >= n? n - 1 : maxX;
+        maxX = maxX > n? n : maxX;
         MapUintUint ms
                 = MyInit::instance()->massSpec()->blockingGetMassSpec(minX, maxX);
         QVector<double> x(static_cast<int>(ms.size())), y(static_cast<int>(ms.size()));

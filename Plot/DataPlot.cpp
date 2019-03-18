@@ -2,7 +2,6 @@
 #include <exception>
 
 #include "../QMapPropsDialog.h"
-
 #include "Base/BaseObject.h"
 #include "DataPlot.h"
 #include "BasePlot.h"
@@ -27,8 +26,8 @@ const QList<Qt::GlobalColor> DataPlot::s_colors
 
 DataPlot::DataPlot
 (
-    const QVector<double>& x,
-    const QVector<double>& y,
+    const DoubleVector &x,
+    const DoubleVector &y,
     const QString& capture,
     const QString &xLabel,
     const QString &yLabel,
@@ -37,76 +36,94 @@ DataPlot::DataPlot
     :
       QMainWindow(parent),
       mPlot(new BasePlot(this)),
-      mData(new PlotData),
       mInterp(Interpolator::create("Linear"))
 {
     mPlot->setWindowTitle(capture);
     setCentralWidget(mPlot);
-    mPlot->toolBar()->addAction(QIcon("://Icons//splineSmoothing"), "Smooth data with spline", this,
-                                SLOT(calculateSmoothing()));
-    mPlot->toolBar()->addAction(QIcon("://Icons//interp"), "Choose interpolator", this,
-                                SLOT(chooseInterpolator()));
+    mPlot->toolBar()->addAction
+    (
+        QIcon("://Icons//splineSmoothing"),
+        tr("Smooth data with spline"),
+        this,
+        SLOT(calculateSmoothing())
+    );
+    mPlot->toolBar()->addAction
+    (
+        QIcon("://Icons//interp"),
+        "Choose interpolator",
+        this,
+        SLOT(chooseInterpolator())
+    );
+    mPlot->toolBar()->addAction
+    (
+        QIcon("://Icons//props"),
+        tr("Plot properties"),
+        this,
+        SLOT(on_showProps())
+    );
     addToolBar(mPlot->toolBar());
+    setStatusBar(new QStatusBar);
 
     mPlot->xAxis->setLabel(xLabel);
     if(!yLabel.isEmpty()) mPlot->xAxis->setLabel(yLabel);
 
-    mData->addData("Raw data", x, y);
-
-    onShowMs();
+    addPlot("Raw data",x, y);
 
     mPlot->rescaleAxes();
     mPlot->replot();
+
+    connectEverything();
 }
 
 void DataPlot::calculateSmoothing()
 {
-     //Note 0 idx is always raw data
     try {
-        const QCPRange range = mPlot->xAxis->range();
-        const PlotData::DataVector& x0 = mData->begin()->first;
-        const PlotData::DataVector& y0 = mData->begin()->second;
-        PlotData::DataVector::const_iterator _First
-                = std::prev(std::lower_bound(x0.begin(), x0.end(), range.lower));
-        PlotData::DataVector::const_iterator _Last
-                = std::upper_bound(x0.begin(), x0.end(), range.upper);
-        const size_t n = static_cast<size_t>(std::distance(_First, _Last));
-        PlotData::DataVector::const_iterator _First1 = y0.begin();
-        std::advance(_First1, std::distance(x0.begin(), _First));
-        Interpolator::Vector x(n), y(n);
-        for(size_t i = 0; _First != _Last; ++_First, ++_First1, ++i)
-        {
-            x[i] = *_First;
-            y[i] = *_First1;
-        }
-
-        double step;
-        Interpolator::Vector yNew = mInterp->equalStepData(x, y, step),
-                xNew(yNew.size()),
-                ySmoothed;
-
-        double xx0 = x[0] - step;
-        for(double & xx : xNew) xx = xx0 += step;
-
-        std::replace_if
-        (
-            yNew.begin(),
-            yNew.end(),
-            [](double val)->bool { return val < 0; },
-            0.
-        );
-
         createSmoother();
-        mSmoother->run(ySmoothed, yNew);
+        if(mSmoother)
+        {
+            const QCPRange range = mPlot->xAxis->range();
 
-        mData->addData
-        (
-            tr("Smoothed data mz: %1 - %2").arg(x0.first()).arg(x0.last()),
-             QVector<double>::fromStdVector(xNew),
-             QVector<double>::fromStdVector(ySmoothed)
-        );
+            const PropertiesOfPlot& props = mPlotProps[choosePlotIdx()];
 
-        onShowMs();
+            QCPGraphDataContainer::const_iterator _First = props.mData->findBegin(range.lower);
+            QCPGraphDataContainer::const_iterator _Last = props.mData->findEnd(range.upper);
+
+            //Early return if the data otside the range
+            if(_First == std::prev(props.mData->end())) return;
+
+            const size_t n = static_cast<size_t>(std::distance(_First, _Last));
+            Interpolator::Vector x(n), y(n);
+            for(size_t i = 0; _First != _Last; ++_First, ++i)
+            {
+                x[i] = _First->key;
+                y[i] = _First->value;
+            }
+
+            double step;
+            Interpolator::Vector yNew = mInterp->equalStepData(x, y, step),
+                    xNew(yNew.size()),
+                    ySmoothed;
+
+            double xx0 = x[0] - step;
+            for(double & xx : xNew) xx = xx0 += step;
+
+            std::replace_if
+            (
+                yNew.begin(),
+                yNew.end(),
+                [](double val)->bool { return val < 0.; },
+                0.
+            );
+
+            mSmoother->run(ySmoothed, yNew);
+
+            addPlot
+            (
+                tr("Smoothed data mz: %1 - %2").arg(x.front()).arg(x.back()),
+                 QVector<double>::fromStdVector(xNew),
+                 QVector<double>::fromStdVector(ySmoothed)
+            );
+        }
     }
     catch (const std::exception& e)
     {
@@ -118,19 +135,27 @@ void DataPlot::calculateSmoothing()
 
 void DataPlot::createSmoother()
 {
+    bool ok;
     QString item = QInputDialog::getItem
     (
         this,
         tr("Smoother type"),
         tr("Choose smoother type: "),
-        Smoother::types()
+        Smoother::types(),
+        0,
+        true,
+        &ok
     );
-    mSmoother.reset(Smoother::create(item).release());
 
-    QMapPropsDialog dialog(this);
-    dialog.setProps(mSmoother->params());
-    dialog.exec();
-    mSmoother->setParams(dialog.props());
+    if(ok)
+    {
+        mSmoother.reset(Smoother::create(item).release());
+
+        QMapPropsDialog dialog(this);
+        dialog.setProps(mSmoother->params());
+        dialog.exec();
+        mSmoother->setParams(dialog.props());
+    }
 }
 
 void DataPlot::chooseInterpolator()
@@ -149,29 +174,162 @@ void DataPlot::onShowMs()
 {
     int cnt = 0;
     mPlot->clearGraphs();
-    for(const auto& d : *mData)
+    for(const auto& d : mPlotProps)
     {
-        Qt::GlobalColor color = s_colors[cnt % s_colors.size()];
-        mPlot->addGraph(QPen(color, 3));
+        mPlot->addGraph(QPen(d.mColor, d.mLineWidth));
         QCPGraph * g = mPlot->graph(cnt++);
-        g->setData(d.first, d.second);
+        g->setData(d.mData);
     }
     mPlot->replot();
 }
 
-void DataPlot::on_showPlotsTriggered()
+void DataPlot::on_showProps()
 {
-    PropertiesListForm dialog;
+    PropertiesOfPlotForm props(this);
+    props.addProps(mPlotProps);
+    props.exec();
+    if(props.result() == QDialog::Accepted)
+    {
+        props.readProps(mPlotProps);
+        onShowMs();
+    }
 }
 
-PropertiesOfPlot::PropertiesOfPlot(QWidget *parent)
+void DataPlot::addPlot(QString descr, const DoubleVector &x, const DoubleVector &y)
+{
+    static int colorIdx;
+    colorIdx = (colorIdx + 1) % s_colors.size();
+    mPlotProps.push_back
+    (
+        {
+            QColor(s_colors[colorIdx]),
+            3,
+            descr,
+            QSharedPointer<QCPGraphDataContainer>(new QCPGraphDataContainer)
+        }
+    );
+    mPlotProps.back().mData->set(zip(x,y));
+    onShowMs();
+}
+
+void DataPlot::connectEverything()
+{
+    connect
+    (
+        mPlot.data(),
+        SIGNAL(mouseCoordinateNotify(QString)),
+        statusBar(),
+        SLOT(showMessage(QString))
+    );
+}
+
+int DataPlot::choosePlotIdx()
+{
+    QStringList items;
+    for(const auto& i : mPlotProps)
+    {
+        items.push_back(i.mDescription);
+    }
+    QString item = QInputDialog::getItem(this, tr("Choose plot"), tr("Plots list"), items);
+    return std::distance(items.begin(), std::find(items.begin(), items.end(), item));
+}
+
+PropertiesOfPlotForm::PropertiesOfPlotForm(QWidget *parent)
     :
-      PropertiesListForm(parent)
+      QDialog(parent),
+      verticalLayout(new QVBoxLayout),
+      buttonBox(new QDialogButtonBox)
+{
+    setWindowModality(Qt::WindowModal);
+    buttonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
+    verticalLayout->addWidget(buttonBox);
+    setLayout(verticalLayout);
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
+    connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
+}
+
+PropertiesOfPlotForm::~PropertiesOfPlotForm()
 {
 
 }
 
-PropertiesOfPlot::~PropertiesOfPlot()
+void PropertiesOfPlotForm::addProps(const QList<PropertiesOfPlot> &props)
 {
+    int propsIdx = 0;
+    for(const auto& prop : props) addPropsEntry(propsIdx++, prop);
+    adjustSize();
+    update();
+}
 
+void PropertiesOfPlotForm::readProps(QList<PropertiesOfPlot> &props)
+{
+    QList<PropertiesOfPlot> newProps;
+    for(auto it = mWidgets.begin(); it != mWidgets.end(); ++it)
+    {
+        PropertiesOfPlot p;
+        p.mDescription = it.value().mName->text();
+        p.mLineWidth = it.value().mLineWidth->value();
+        p.mColor = it.value().mColor->palette().button().color();
+        p.mData = props[it.key()].mData;
+        newProps.push_back(p);
+    }
+    props = newProps;
+}
+
+void PropertiesOfPlotForm::chooseColor()
+{
+    QPushButton * btn = qobject_cast<QPushButton*>(QObject::sender());
+    QColor color;
+    color = QColorDialog::getColor(btn->palette().button().color());
+    if(color.isValid())
+    {
+        btn->setStyleSheet(QString("background-color: " + color.name() + ";"));
+    }
+}
+
+void PropertiesOfPlotForm::deletePlot()
+{
+    QPushButton * btn = qobject_cast<QPushButton*>(QObject::sender());
+    auto it = std::find_if
+    (
+        mWidgets.begin(),
+        mWidgets.end(),
+        [&](const PropsWidgets& w)->bool
+        {
+            return w.mDelete == btn;
+        }
+    );
+    it.value().mName->deleteLater();
+    it.value().mLineWidth->deleteLater();
+    it.value().mColor->deleteLater();
+    it.value().mDelete->deleteLater();
+    mWidgets.erase(it);
+    update();
+}
+
+void PropertiesOfPlotForm::addPropsEntry(int idx, const PropertiesOfPlot &property)
+{
+    QHBoxLayout * layout = new QHBoxLayout;
+
+    QLineEdit * name = new QLineEdit(property.mDescription);
+    layout->addWidget(name);
+
+    QSpinBox * lineWidth = new QSpinBox;
+    lineWidth->setValue(property.mLineWidth);
+    lineWidth->setRange(0, 100);
+    layout->addWidget(lineWidth);
+
+    QPushButton * btn = new QPushButton("color");
+    btn->setStyleSheet(QString("background-color: " + property.mColor.name() + ";"));
+    layout->addWidget(btn);
+
+    QPushButton * btnDel = new QPushButton(QIcon("://Icons//del"), tr("delete"));
+    layout->addWidget((btnDel));
+
+    connect(btn, SIGNAL(pressed()), this, SLOT(chooseColor()));
+
+    connect(btnDel, SIGNAL(pressed()), this, SLOT(deletePlot()));
+
+    verticalLayout->insertLayout(0, layout);
+    mWidgets[idx] = PropsWidgets{name, lineWidth, btn, btnDel};
 }

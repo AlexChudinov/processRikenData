@@ -15,5 +15,7 @@
         <file alias="openTxt">Icons/openTxt.png</file>
         <file alias="openManyFiles">Icons/openManyFiles.png</file>
         <file alias="interp">Icons/interp.png</file>
+        <file alias="props">Icons/properties.png</file>
+        <file alias="del">Icons/delete.png</file>
     </qresource>
 </RCC>

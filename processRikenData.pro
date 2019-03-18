@@ -33,9 +33,7 @@ SOURCES += main.cpp\
     Plot/PlotPair.cpp \
     Data/XValsTransform.cpp \
     Math/MassSpecSummator.cpp \
-    Plot/DataPlot.cpp \
-    Data/plotdata.cpp \
-    PropertiesTableForm.cpp
+    Plot/DataPlot.cpp
 
 HEADERS  += mainwindow.h \
     QCustomPlot/qcustomplot.h \
@@ -59,9 +57,7 @@ HEADERS  += mainwindow.h \
     Data/XValsTransform.h \
     Math/MassSpecSummator.h \
     Plot/DataPlot.h \
-    Math/interpolator.h \
-    Data/plotdata.h \
-    PropertiesTableForm.h
+    Math/interpolator.h
 
 FORMS    += mainwindow.ui \
     PropertiesListForm.ui \
@@ -69,8 +65,7 @@ FORMS    += mainwindow.ui \
     AccumScaleCorrectionDialog.ui \
     CreditsDialog.ui \
     QMapPropsDialog.ui \
-    DialogAbout.ui \
-    PropertiesTableForm.ui
+    DialogAbout.ui
 
 RESOURCES += \
     resources.qrc

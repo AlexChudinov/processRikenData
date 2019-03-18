@@ -210,6 +210,10 @@ void LogSplinePoissonWeightOnePeak::run
         }
         calc->logSplinePoissonWeights(yOut, tmpYIn, b);
         *m_p = b;
+        std::for_each(yOut.begin(), yOut.end(), [=](double& y)
+        {
+            y *= *m_noiseLevel;
+        });
     }
 }
 
