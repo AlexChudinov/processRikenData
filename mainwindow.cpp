@@ -195,8 +195,11 @@ void MainWindow::on_actionTime_params_triggered()
     QMapPropsDialog dlg;
     dlg.setProps(params->get());
     dlg.exec();
-    QVariantMap props = dlg.props();
-    params->set(props);
+    if(dlg.result() == QDialog::Accepted)
+    {
+        QVariantMap props = dlg.props();
+        params->set(props);
+    }
 }
 
 void MainWindow::on_actionopenManyBinFiles_triggered()

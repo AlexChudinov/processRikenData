@@ -303,8 +303,23 @@ void PropertiesOfPlotForm::deletePlot()
     it.value().mLineWidth->deleteLater();
     it.value().mColor->deleteLater();
     it.value().mDelete->deleteLater();
+    it.value().mSave->deleteLater();
     mWidgets.erase(it);
     update();
+}
+
+void PropertiesOfPlotForm::saveToAscii()
+{
+    QPushButton * btn = qobject_cast<QPushButton*>(QObject::sender());
+    auto it = std::find_if
+    (
+        mWidgets.begin(),
+        mWidgets.end(),
+        [&](const PropsWidgets& w)->bool
+        {
+            return w.mSave == btn;
+        }
+    );
 }
 
 void PropertiesOfPlotForm::addPropsEntry(int idx, const PropertiesOfPlot &property)
@@ -324,12 +339,17 @@ void PropertiesOfPlotForm::addPropsEntry(int idx, const PropertiesOfPlot &proper
     layout->addWidget(btn);
 
     QPushButton * btnDel = new QPushButton(QIcon("://Icons//del"), tr("delete"));
-    layout->addWidget((btnDel));
+    layout->addWidget(btnDel);
+
+    QPushButton * btnSave = new QPushButton(QIcon("://Icons//importTextData"), tr("save ascii"));
+    layout->addWidget(btnSave);
 
     connect(btn, SIGNAL(pressed()), this, SLOT(chooseColor()));
 
     connect(btnDel, SIGNAL(pressed()), this, SLOT(deletePlot()));
 
+    connect(btnSave, SIGNAL(pressed()), this, SLOT(saveToAscii()));
+
     verticalLayout->insertLayout(0, layout);
-    mWidgets[idx] = PropsWidgets{name, lineWidth, btn, btnDel};
+    mWidgets[idx] = PropsWidgets{name, lineWidth, btn, btnDel, btnSave};
 }

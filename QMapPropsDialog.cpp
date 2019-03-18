@@ -3,6 +3,7 @@
 
 #include <QLabel>
 #include <QSpinBox>
+#include <QLineEdit>
 #include <QDoubleSpinBox>
 #include <QTextEdit>
 
@@ -44,11 +45,9 @@ void QMapPropsDialog::setProps(const QVariantMap &props)
         {
         case QVariant::Double:
         {
-            QDoubleSpinBox * sb = new QDoubleSpinBox;
-            sb->setRange(-1.e9, 1.e9);
             double val = it.value().toDouble();
-            sb->setDecimals(numberOfDecimals(val));
-            sb->setValue(val);
+            QLineEdit * sb = new QLineEdit(QString("%1").arg(val));
+            sb->setValidator(new QDoubleValidator(this));
             box->addWidget(sb);
             m_widgets.push_back(sb);
             sb->setFont(appFont);
@@ -87,10 +86,14 @@ void QMapPropsDialog::readProps()
         {
         case QVariant::Double:
         {
+            bool ok;
+            QLocale locale(qobject_cast<QLineEdit*>(w)->validator()->locale());
+            QString str(qobject_cast<QLineEdit*>(w)->text());
             it.value().setValue<double>
             (
-                qobject_cast<QDoubleSpinBox*>(w)->value()
+                locale.toDouble(str, &ok)
             );
+            Q_ASSERT(ok);
             break;
         }
         case QVariant::Int:
@@ -120,5 +123,5 @@ int QMapPropsDialog::numberOfDecimals(double d)
         d *= 10.;
         res ++;
     }
-    return res > 2 ? res : 2;
+    return res + 2;
 }

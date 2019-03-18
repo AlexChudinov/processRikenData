@@ -267,7 +267,7 @@ void PlotPair::selectMsData()
             x,
             y,
             tr("TIC for %3: %1 - %2").arg(minX).arg(maxX).arg(mXValsTransform->xUnits()),
-            mMsPlot->xAxis->label()
+            mTicPlot->xAxis->label()
         );
     }
 }
@@ -299,7 +299,7 @@ void PlotPair::selectTicData()
             x,
             y,
             tr("MS indexes: %1 - %2").arg(minX).arg(maxX),
-            mTicPlot->xAxis->label()
+            mMsPlot->xAxis->label()
         );
     }
 }

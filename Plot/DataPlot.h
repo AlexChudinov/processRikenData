@@ -38,6 +38,7 @@ public:
 private slots:
     void chooseColor();
     void deletePlot();
+    void saveToAscii();
 
 private:
     QVBoxLayout *verticalLayout;
@@ -50,6 +51,7 @@ private:
         QSpinBox * mLineWidth;
         QPushButton * mColor;
         QPushButton * mDelete;
+        QPushButton * mSave;
     };
 
     QMap<int, PropsWidgets> mWidgets;
