@@ -320,6 +320,39 @@ void PropertiesOfPlotForm::saveToAscii()
             return w.mSave == btn;
         }
     );
+    DataPlot * plot = qobject_cast<DataPlot*>(parent());
+    QCPRange xRange = plot->mPlot->xAxis->range();
+    auto
+        _First = plot->mPlotProps[it.key()].mData->findBegin(xRange.lower),
+        _Last = plot->mPlotProps[it.key()].mData->findEnd(xRange.upper);
+
+    QString fileName = QFileDialog::getSaveFileName
+    (
+        this,
+        tr("Export data in a text file"),
+        QString(),
+        tr("Text files (*.txt)")
+    );
+    if(!fileName.isEmpty())
+    {
+        QFile file(fileName);
+        file.open(QIODevice::Text | QIODevice::WriteOnly);
+        QTextStream stream(&file);
+        //x-values should be different
+        stream.setRealNumberPrecision
+        (
+            decimals
+            (
+                std::prev(_Last)->key,
+                std::prev(std::prev(_Last))->key
+            )
+        );
+        for(; _First != _Last; ++_First)
+        {
+            stream << _First->key << "\t" << _First->value << "\n";
+        }
+        file.close();
+    }
 }
 
 void PropertiesOfPlotForm::addPropsEntry(int idx, const PropertiesOfPlot &property)

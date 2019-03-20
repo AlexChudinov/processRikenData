@@ -57,11 +57,39 @@ private:
     QMap<int, PropsWidgets> mWidgets;
 
     void addPropsEntry(int idx, const PropertiesOfPlot& property);
+
+    /**
+     * @brief decimals calculates number of decimals enough for
+     * x0 and x1 to be different
+     * @param x0
+     * @param x1
+     * @return
+     */
+    static inline int decimals(double x0, double x1);
 };
+
+int PropertiesOfPlotForm::decimals(double x0, double x1)
+{
+    QString str;
+    QTextStream stream(&str);
+    int prec = stream.realNumberPrecision();
+    if(!(x0 > x1 || x0 < x1)) return prec;
+    double tx0, tx1;
+    do
+    {
+        stream << x0 << "\t" << x1;
+        stream >> tx0 >> tx1;
+        stream.setRealNumberPrecision(++prec);
+        stream.flush();
+    }
+    while(!(tx0 < tx1 || tx0 > tx1));
+    return prec;
+}
 
 class DataPlot : public QMainWindow
 {
     Q_OBJECT
+    friend class PropertiesOfPlotForm;
 public:
 
     using GraphData = PropertiesOfPlot::GraphData;
