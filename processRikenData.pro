@@ -33,7 +33,21 @@ SOURCES += main.cpp\
     Plot/PlotPair.cpp \
     Data/XValsTransform.cpp \
     Math/MassSpecSummator.cpp \
-    Plot/DataPlot.cpp
+    Plot/DataPlot.cpp \
+    Math/CurveFitting.cpp \
+    Math/alglib/alglibinternal.cpp \
+    Math/alglib/alglibmisc.cpp \
+    Math/alglib/ap.cpp \
+    Math/alglib/dataanalysis.cpp \
+    Math/alglib/diffequations.cpp \
+    Math/alglib/fasttransforms.cpp \
+    Math/alglib/integration.cpp \
+    Math/alglib/interpolation.cpp \
+    Math/alglib/linalg.cpp \
+    Math/alglib/optimization.cpp \
+    Math/alglib/solvers.cpp \
+    Math/alglib/specialfunctions.cpp \
+    Math/alglib/statistics.cpp
 
 HEADERS  += mainwindow.h \
     QCustomPlot/qcustomplot.h \
@@ -57,7 +71,22 @@ HEADERS  += mainwindow.h \
     Data/XValsTransform.h \
     Math/MassSpecSummator.h \
     Plot/DataPlot.h \
-    Math/interpolator.h
+    Math/interpolator.h \
+    Math/CurveFitting.h \
+    Math/alglib/alglibinternal.h \
+    Math/alglib/alglibmisc.h \
+    Math/alglib/ap.h \
+    Math/alglib/dataanalysis.h \
+    Math/alglib/diffequations.h \
+    Math/alglib/fasttransforms.h \
+    Math/alglib/integration.h \
+    Math/alglib/interpolation.h \
+    Math/alglib/linalg.h \
+    Math/alglib/optimization.h \
+    Math/alglib/solvers.h \
+    Math/alglib/specialfunctions.h \
+    Math/alglib/statistics.h \
+    Math/alglib/stdafx.h
 
 FORMS    += mainwindow.ui \
     PropertiesListForm.ui \
@@ -73,4 +102,7 @@ RESOURCES += \
 QMAKE_CXXFLAGS += -std=c++0x
 
 DISTFILES += \
-    QCustomPlot/GPL.txt
+    QCustomPlot/GPL.txt \
+    Math/alglib/manual.cpp.html \
+    Math/alglib/gpl2.txt \
+    Math/alglib/gpl3.txt
