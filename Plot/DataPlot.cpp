@@ -1,6 +1,7 @@
 #include <QDialog>
 #include <exception>
 
+#include "Math/CurveFitting.h"
 #include "../QMapPropsDialog.h"
 #include "Base/BaseObject.h"
 #include "DataPlot.h"
@@ -60,6 +61,13 @@ DataPlot::DataPlot
         tr("Plot properties"),
         this,
         SLOT(on_showProps())
+    );
+    mPlot->toolBar()->addAction
+    (
+        QIcon("://Icons//fitData"),
+        tr("Fit data inside window"),
+        this,
+        SLOT(on_fitData())
     );
     addToolBar(mPlot->toolBar());
     setStatusBar(new QStatusBar);
@@ -192,6 +200,42 @@ void DataPlot::on_showProps()
     {
         props.readProps(mPlotProps);
         onShowMs();
+    }
+}
+
+void DataPlot::on_fitData()
+{
+    bool ok;
+    QString item = QInputDialog::getItem
+    (
+        this,
+        tr("Choose approximator"),
+        tr("Available approximators"),
+        CurveFitting::implementations(),
+        0,
+        true,
+        &ok
+    );
+    if(ok)
+    {
+        const QCPRange range = mPlot->xAxis->range();
+
+        const PropertiesOfPlot& props = mPlotProps[choosePlotIdx()];
+
+        QCPGraphDataContainer::const_iterator _First = props.mData->findBegin(range.lower);
+        QCPGraphDataContainer::const_iterator _Last = props.mData->findEnd(range.upper);
+
+        CurveFitting::DoubleVector
+                x(static_cast<size_t>(std::distance(_First, _Last))),
+                y(x.size());
+
+        for(size_t i = 0; _First != _Last; ++_First, ++i)
+        {
+            x[i] = _First->key;
+            y[i] = _First->value;
+        }
+
+        CurveFitting::Ptr approx = CurveFitting::create(item, x, y);
     }
 }
 

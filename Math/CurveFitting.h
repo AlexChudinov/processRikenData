@@ -1,6 +1,7 @@
 #ifndef CURVEFITTING_H
 #define CURVEFITTING_H
 
+#include <memory>
 #include <QTextStream>
 #include <vector>
 #include <QString>
@@ -12,6 +13,11 @@ class CurveFitting
 public:
     using DoubleVector = std::vector<double>;
     using ParamsList = QVariantMap;
+    using Ptr = std::unique_ptr<CurveFitting>;
+
+    static const QStringList& implementations();
+
+    static Ptr create(const QString& name, const DoubleVector& x, const DoubleVector& y);
 
     CurveFitting(const DoubleVector& x, const DoubleVector& y);
 
@@ -23,7 +29,7 @@ public:
      * @brief egn returns equation that was used for fitting
      * @return
      */
-    virtual QString egn() const = 0;
+    virtual QString eqn() const = 0;
 
     /**
      * @brief params current parameter values
@@ -32,30 +38,37 @@ public:
     virtual ParamsList params() const = 0;
     virtual void setParams(const ParamsList&) = 0;
 
+    virtual ParamsList errors() const = 0;
+
+    /**
+     * @brief operator << prints fitting data into stream
+     * @param out
+     * @return
+     */
     virtual QTextStream& operator<<(QTextStream& out) const = 0;
 };
+
+namespace alglib {
+    class real_1d_array;
+}
 
 /**
  * @brief The AsymetricExponential class fits data with gaussian
  * with assymetric exponential tails
  */
-class AsymmetricGaussian : CurveFitting
+class AsymmetricGaussian : public CurveFitting
 {
     struct Parameters
     {
+        double mA;
         double mDTL;
         double mDTR;
         double mTc;
         double mW;
     };
 
-    struct Errors
-    {
-        double mDTL;
-        double mDTR;
-        double mTc;
-        double mW;
-    };
+    using Errors = Parameters;
+    using OptimizationData = std::tuple<AsymmetricGaussian*, const DoubleVector&, const DoubleVector&>;
 
 public:
     AsymmetricGaussian(const DoubleVector& x, const DoubleVector& y);
@@ -66,56 +79,40 @@ public:
 
     ParamsList params() const;
     void setParams(const ParamsList &params);
+    ParamsList errors() const;
 
-
+    virtual QTextStream& operator<<(QTextStream& out) const;
 private:
 
     QScopedPointer<Parameters> mParams;
     QScopedPointer<Errors> mErrors;
 
-    inline void init(const DoubleVector& x, const DoubleVector& y);
+    void init(const DoubleVector& x, const DoubleVector& y);
 
     inline double value(double x) const;
-};
 
-void AsymmetricGaussian::init
-(
-    const DoubleVector& x,
-    const DoubleVector& y
-)
-{
-    mParams.reset(new Parameters);
-    mErrors.reset(new Errors);
-    *mParams = {0., 0., 0., 0.};
-    *mErrors = {0., 0., 0., 0.};
-    double norm = 0.0, xx = 0.0, xx2 = 0.0;
-    for(size_t i = 0; i < x.size(); ++i)
-    {
-        norm += y[i];
-        xx += y[i]*x[i];
-        xx2 += y[i]*x[i]*x[i];
-    }
-    xx /= norm;
-    mParams->mTc = xx;
-    mParams->mW = xx2 / norm - xx * xx;
-    mParams->mDTL = mParams->mW / 2;
-    mParams->mDTR = mParams->mDTL;
-}
+    /**
+     * @brief curveScaling recalculates curve scaling factor
+     */
+    void curveScaling(const DoubleVector& x, const DoubleVector& y);
+
+    /**
+     * @brief nimFun function for alglib required for optimization process
+     */
+    static void minFun(const alglib::real_1d_array& pars, alglib::real_1d_array& s, void * ptr);
+};
 
 double AsymmetricGaussian::value(double x) const
 {
-    double dx = (x - mParams->mTc) / mParams->mW;
-    double dxL = mParams->mDTL / mParams->mW;
-    double dxR = mParams->mDTR / mParams->mW;
+    const double dx = (x - mParams->mTc) / mParams->mW;
+    const double dxL = mParams->mDTL / mParams->mW;
+    const double dxR = mParams->mDTR / mParams->mW;
     if(dx < - dxL)
-    {
-        return std::exp(dxL * dx + .5 * dxL * dxL);
-    }
+        return mParams->mA * std::exp(dxL * dx + .5 * dxL * dxL);
     else if(dx > dxR)
-    {
-        return std::exp(.5 * dxR * dxR - dxR * dx);
-    }
-    else return std::exp(-.5 * dx * dx);
+        return mParams->mA * std::exp(.5 * dxR * dxR - dxR * dx);
+    else
+        return mParams->mA * std::exp(-.5 * dx * dx);
 }
 
 #endif // CURVEFITTING_H

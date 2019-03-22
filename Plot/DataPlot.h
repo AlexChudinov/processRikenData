@@ -121,6 +121,8 @@ public slots:
     void onShowMs();
 
     void on_showProps();
+
+    void on_fitData();
 private:
     const static QList<Qt::GlobalColor> s_colors;
 

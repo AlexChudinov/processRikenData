@@ -17,5 +17,6 @@
         <file alias="interp">Icons/interp.png</file>
         <file alias="props">Icons/properties.png</file>
         <file alias="del">Icons/delete.png</file>
+        <file alias="fitData">Icons/fitData.png</file>
     </qresource>
 </RCC>
