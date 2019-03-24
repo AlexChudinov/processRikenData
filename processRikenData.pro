@@ -106,3 +106,18 @@ DISTFILES += \
     Math/alglib/manual.cpp.html \
     Math/alglib/gpl2.txt \
     Math/alglib/gpl3.txt
+
+if(win32)
+{
+    INCLUDEPATH += C:/opencv/build/include/
+    INCLUDEPATH += C:/opencv/build/include/
+    CONFIG(debug, debug|release)
+    {
+        LIBS += C:\opencv\build\x64\vc15\lib\opencv_world343d.lib
+    }
+    CONFIG(release, debug|release)
+    {
+        LIBS += C:\opencv\build\x64\vc15\lib\opencv_world343.lib
+    }
+}
+

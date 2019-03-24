@@ -35,41 +35,17 @@ AsymmetricGaussian::AsymmetricGaussian
       CurveFitting (x, y)
 {
     init(x, y);
-
-    alglib::real_1d_array
-            pars,
-            scale = "[1,1,1,1]";
-    pars.setlength(4);
-    pars[0] = mParams->mW;
-    pars[1] = mParams->mTc;
-    pars[2] = mParams->mDTL;
-    pars[3] = mParams->mDTR;
-
-    double epsx = 1e-10;
-    alglib::ae_int_t maxits = 1000;
-    alglib::minlmstate state;
-    alglib::minlmreport rep;
-
-    alglib::minlmcreatev(4, pars, mParams->mW / 10, state);
-    alglib::minlmsetcond(state, epsx, maxits);
-    alglib::minlmsetscale(state, scale);
-
-    OptimizationData data{this, x, y};
-    alglib::minlmoptimize
-    (
-        state,
-        minFun,
-        static_cast<void(*)(const alglib::real_1d_array &x, double func, void *ptr)>(Q_NULLPTR),
-        static_cast<void*>(&data)
-    );
-
-    alglib::minlmresults(state, pars, rep);
-
-    mParams->mW = pars[0];
-    mParams->mTc = pars[1];
-    mParams->mDTL = pars[2];
-    mParams->mDTR = pars[3];
-    curveScaling(x,y);
+    DoubleVector res
+    {
+        mParams->mW,
+        mParams->mTc,
+        mParams->mDTL,
+        mParams->mDTR
+    };
+    cv::Ptr<cv::DownhillSolver> solver(cv::DownhillSolver::create());
+    solver->setInitStep(res);
+    solver->setFunction(cv::Ptr<Function>(new Function({this, x, y})));
+    solver->minimize(res);
 }
 
 void AsymmetricGaussian::values
@@ -205,5 +181,32 @@ void AsymmetricGaussian::minFun(const alglib::real_1d_array &pars, alglib::real_
     obj->values(x, ty);
 
     for(size_t i = 0; i < ty.size(); ++i) s[0] += (ty[i] - y[i]) * (ty[i] - y[i]);
-    s[1] = 0.; s[2] = 0.; s[3] = 0.; s[4] = 0.;
+    double dd  = s[0];
+    s[1] = 0.; s[2] = 0.; s[3] = 0.;
+}
+
+int AsymmetricGaussian::Function::getDims() const
+{
+    return 4;
+}
+
+double AsymmetricGaussian::Function::calc(const double *x) const
+{
+    AsymmetricGaussian * obj = std::get<0>(mData);
+    const DoubleVector& xx = std::get<1>(mData);
+    const DoubleVector& yy = std::get<2>(mData);
+    obj->mParams->mW = x[0];
+    obj->mParams->mTc = x[1];
+    obj->mParams->mDTL = x[2];
+    obj->mParams->mDTR = x[3];
+    obj->curveScaling(xx, yy);
+    QMutex mut;
+    double s = 0.;
+    ThreadPool::parFor(xx.size(), [&](size_t i)
+    {
+        double ss = obj->value(xx[i]) - yy[i];
+        QMutexLocker lock(&mut);
+        s += (ss * ss);
+    });
+    return s;
 }
