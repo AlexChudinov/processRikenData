@@ -236,6 +236,16 @@ void DataPlot::on_fitData()
         }
 
         CurveFitting::Ptr approx = CurveFitting::create(item, x, y);
+
+        CurveFitting::DoubleVector yy;
+        approx->values(x, yy);
+
+        addPlot
+        (
+            tr("Data fit in range %1 - %2").arg(x.front()).arg(x.back()),
+            DoubleVector::fromStdVector(x),
+            DoubleVector::fromStdVector(yy)
+        );
     }
 }
 

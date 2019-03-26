@@ -73,8 +73,8 @@ class AsymmetricGaussian : public CurveFitting
     class Function : public cv::MinProblemSolver::Function
     {
         mutable AsymmetricGaussian * mObj;
-        const DoubleVector m_x;
-        const DoubleVector m_y;
+        const DoubleVector& m_x;
+        const DoubleVector& m_y;
         virtual int getDims() const;
         virtual double calc(const double* x) const;
     public:

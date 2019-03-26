@@ -107,11 +107,15 @@ DISTFILES += \
     Math/alglib/gpl2.txt \
     Math/alglib/gpl3.txt
 
-INCLUDEPATH += /usr/local/include/opencv4/
+unix
+{
+    INCLUDEPATH += /usr/local/include/opencv4/
 
-LIBS += /usr/local/lib/libopencv*
+    LIBS += /usr/local/lib/libopencv*
+}
 
-win32 {
+win32
+{
     INCLUDEPATH += C:/opencv/build/include/
     INCLUDEPATH += C:/opencv/build/include/
     CONFIG(debug, debug|release)

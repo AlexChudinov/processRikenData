@@ -35,18 +35,26 @@ AsymmetricGaussian::AsymmetricGaussian
       CurveFitting (x, y)
 {
     init(x, y);
-    cv::Mat_<double> res(4, 1);
-    res << mParams->mW, mParams->mTc,
-          mParams->mDTL, mParams->mDTR;
-    cv::Ptr<cv::DownhillSolver> solver
-    (
-        cv::DownhillSolver::create
+    double A;
+    do
+    {
+        A = mParams->mA;
+        cv::Mat_<double> res(4, 1);
+        res << mParams->mW, mParams->mTc,
+            mParams->mDTL, mParams->mDTR;
+        cv::Ptr<cv::DownhillSolver> solver
         (
-            cv::Ptr<Function>(new Function(this, x, y)),
-            res
-        )
-    );
-    solver->minimize(res);
+            cv::DownhillSolver::create
+            (
+                cv::Ptr<Function>(new Function(this, x, y)),
+                res
+            )
+        );
+        solver->setInitStep(.001 * res);
+        solver->minimize(res);
+        curveScaling(x, y);
+    }
+    while(A != 0.0 && std::fabs(A - mParams->mA)/A > 1e-6);
 }
 
 void AsymmetricGaussian::values
@@ -145,7 +153,7 @@ void AsymmetricGaussian::init(const CurveFitting::DoubleVector &x, const CurveFi
     }
     xx /= norm;
     mParams->mTc = xx;
-    mParams->mW = xx2 / norm - xx * xx;
+    mParams->mW = ::sqrt(xx2 / norm - xx * xx);
     mParams->mDTL = mParams->mW / 2;
     mParams->mDTR = mParams->mDTL;
     curveScaling(x, y);
@@ -159,13 +167,10 @@ void AsymmetricGaussian::curveScaling(const CurveFitting::DoubleVector &x, const
     double A = 0., norm = 0.;
     for(size_t i = 0; i < x.size(); ++i)
     {
-        double xx = x[i];
-        double yy = ty[i];
-        double yyy = y[i];
         A += y[i] * ty[i];
         norm += ty[i] * ty[i];
     }
-    mParams->mA = A / norm;
+    mParams->mA = norm != 0.0 ? A / norm : A;
 }
 
 int AsymmetricGaussian::Function::getDims() const
@@ -175,19 +180,17 @@ int AsymmetricGaussian::Function::getDims() const
 
 double AsymmetricGaussian::Function::calc(const double *x) const
 {
-    QMutex mut1;
-    QMutexLocker lock1(&mut1);
     mObj->mParams->mW = x[0];
     mObj->mParams->mTc = x[1];
     mObj->mParams->mDTL = x[2];
     mObj->mParams->mDTR = x[3];
     mObj->curveScaling(m_x, m_y);
-    QMutex mut2;
+    QMutex mut;
     double s = 0.;
     ThreadPool::parFor(m_x.size(), [&](size_t i)
     {
         double ss = mObj->value(m_x[i]) - m_y[i];
-        QMutexLocker lock2(&mut2);
+        QMutexLocker lock(&mut);
         s += (ss * ss);
     });
     return s;
