@@ -99,7 +99,7 @@ FORMS    += mainwindow.ui \
 RESOURCES += \
     resources.qrc
 
-QMAKE_CXXFLAGS += -std=c++0x
+QMAKE_CXXFLAGS += -std=c++1y
 
 DISTFILES += \
     QCustomPlot/GPL.txt \
@@ -107,8 +107,11 @@ DISTFILES += \
     Math/alglib/gpl2.txt \
     Math/alglib/gpl3.txt
 
-if(win32)
-{
+INCLUDEPATH += /usr/local/include/opencv4/
+
+LIBS += /usr/local/lib/libopencv*
+
+win32 {
     INCLUDEPATH += C:/opencv/build/include/
     INCLUDEPATH += C:/opencv/build/include/
     CONFIG(debug, debug|release)

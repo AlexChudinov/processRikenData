@@ -35,16 +35,17 @@ AsymmetricGaussian::AsymmetricGaussian
       CurveFitting (x, y)
 {
     init(x, y);
-    DoubleVector res
-    {
-        mParams->mW,
-        mParams->mTc,
-        mParams->mDTL,
-        mParams->mDTR
-    };
-    cv::Ptr<cv::DownhillSolver> solver(cv::DownhillSolver::create());
-    solver->setInitStep(res);
-    solver->setFunction(cv::Ptr<Function>(new Function({this, x, y})));
+    cv::Mat_<double> res(4, 1);
+    res << mParams->mW, mParams->mTc,
+          mParams->mDTL, mParams->mDTR;
+    cv::Ptr<cv::DownhillSolver> solver
+    (
+        cv::DownhillSolver::create
+        (
+            cv::Ptr<Function>(new Function(this, x, y)),
+            res
+        )
+    );
     solver->minimize(res);
 }
 
@@ -54,7 +55,7 @@ void AsymmetricGaussian::values
     CurveFitting::DoubleVector &y
 ) const
 {
-    y.assign(x.size(), 0.0);
+    y.resize(x.size());
     ThreadPool::parFor(x.size(),[&](size_t i)
     {
         y[i] = value(x[i]);
@@ -158,31 +159,13 @@ void AsymmetricGaussian::curveScaling(const CurveFitting::DoubleVector &x, const
     double A = 0., norm = 0.;
     for(size_t i = 0; i < x.size(); ++i)
     {
+        double xx = x[i];
+        double yy = ty[i];
+        double yyy = y[i];
         A += y[i] * ty[i];
         norm += ty[i] * ty[i];
     }
     mParams->mA = A / norm;
-}
-
-void AsymmetricGaussian::minFun(const alglib::real_1d_array &pars, alglib::real_1d_array &s, void * ptr)
-{
-    OptimizationData * d = static_cast<OptimizationData*>(ptr);
-    AsymmetricGaussian * obj = std::get<0>(*d);
-    const DoubleVector& x = std::get<1>(*d);
-    const DoubleVector& y = std::get<2>(*d);
-
-    obj->mParams->mW = pars[0];
-    obj->mParams->mTc = pars[1];
-    obj->mParams->mDTL = pars[2];
-    obj->mParams->mDTR = pars[3];
-
-    static DoubleVector ty;
-
-    obj->values(x, ty);
-
-    for(size_t i = 0; i < ty.size(); ++i) s[0] += (ty[i] - y[i]) * (ty[i] - y[i]);
-    double dd  = s[0];
-    s[1] = 0.; s[2] = 0.; s[3] = 0.;
 }
 
 int AsymmetricGaussian::Function::getDims() const
@@ -192,20 +175,19 @@ int AsymmetricGaussian::Function::getDims() const
 
 double AsymmetricGaussian::Function::calc(const double *x) const
 {
-    AsymmetricGaussian * obj = std::get<0>(mData);
-    const DoubleVector& xx = std::get<1>(mData);
-    const DoubleVector& yy = std::get<2>(mData);
-    obj->mParams->mW = x[0];
-    obj->mParams->mTc = x[1];
-    obj->mParams->mDTL = x[2];
-    obj->mParams->mDTR = x[3];
-    obj->curveScaling(xx, yy);
-    QMutex mut;
+    QMutex mut1;
+    QMutexLocker lock1(&mut1);
+    mObj->mParams->mW = x[0];
+    mObj->mParams->mTc = x[1];
+    mObj->mParams->mDTL = x[2];
+    mObj->mParams->mDTR = x[3];
+    mObj->curveScaling(m_x, m_y);
+    QMutex mut2;
     double s = 0.;
-    ThreadPool::parFor(xx.size(), [&](size_t i)
+    ThreadPool::parFor(m_x.size(), [&](size_t i)
     {
-        double ss = obj->value(xx[i]) - yy[i];
-        QMutexLocker lock(&mut);
+        double ss = mObj->value(m_x[i]) - m_y[i];
+        QMutexLocker lock2(&mut2);
         s += (ss * ss);
     });
     return s;

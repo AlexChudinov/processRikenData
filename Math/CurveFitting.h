@@ -7,7 +7,7 @@
 #include <QString>
 #include <QVariant>
 #include <QMap>
-#include <opencv2/core.hpp>
+#include <opencv2/core/core.hpp>
 
 class CurveFitting
 {
@@ -60,7 +60,6 @@ namespace alglib {
 class AsymmetricGaussian : public CurveFitting
 {
     friend class Function;
-    using OptimizationData = std::tuple<AsymmetricGaussian*, const DoubleVector&, const DoubleVector&>;
 
     struct Parameters
     {
@@ -73,14 +72,23 @@ class AsymmetricGaussian : public CurveFitting
 
     class Function : public cv::MinProblemSolver::Function
     {
-        mutable OptimizationData mData;
+        mutable AsymmetricGaussian * mObj;
+        const DoubleVector m_x;
+        const DoubleVector m_y;
         virtual int getDims() const;
         virtual double calc(const double* x) const;
     public:
-        Function(OptimizationData && data)
+        Function
+        (
+            AsymmetricGaussian * obj,
+            const DoubleVector& x,
+            const DoubleVector& y
+        )
             :
               cv::MinProblemSolver::Function(),
-              mData(data)
+              mObj(obj),
+              m_x(x),
+              m_y(y)
         {
 
         }
@@ -113,11 +121,6 @@ private:
      * @brief curveScaling recalculates curve scaling factor
      */
     void curveScaling(const DoubleVector& x, const DoubleVector& y);
-
-    /**
-     * @brief nimFun function for alglib required for optimization process
-     */
-    static void minFun(const alglib::real_1d_array& pars, alglib::real_1d_array& s, void * ptr);
 };
 
 double AsymmetricGaussian::value(double x) const
