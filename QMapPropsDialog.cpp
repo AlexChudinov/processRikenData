@@ -46,7 +46,9 @@ void QMapPropsDialog::setProps(const QVariantMap &props)
         case QVariant::Double:
         {
             double val = it.value().toDouble();
-            QLineEdit * sb = new QLineEdit(QString("%1").arg(val));
+            QLocale locale;
+            QString strVal = locale.toString(val);
+            QLineEdit * sb = new QLineEdit(QString("%1").arg(strVal));
             sb->setValidator(new QDoubleValidator(this));
             box->addWidget(sb);
             m_widgets.push_back(sb);

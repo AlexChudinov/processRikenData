@@ -41,17 +41,16 @@ public:
 
     virtual ParamsList errors() const = 0;
 
+    virtual ParamsList properties() const = 0;
+    virtual void setProperties(const ParamsList&) = 0;
+
     /**
      * @brief operator << prints fitting data into stream
      * @param out
      * @return
      */
-    virtual QTextStream& operator<<(QTextStream& out) const = 0;
+    virtual QTextStream& operator>>(QTextStream& out) const = 0;
 };
-
-namespace alglib {
-    class real_1d_array;
-}
 
 /**
  * @brief The AsymetricExponential class fits data with gaussian
@@ -68,6 +67,13 @@ class AsymmetricGaussian : public CurveFitting
         double mDTR;
         double mTc;
         double mW;
+    };
+
+    struct Properties
+    {
+        double mStep;
+        double mRelTol;
+        double mIterNum;
     };
 
     class Function : public cv::MinProblemSolver::Function
@@ -107,11 +113,15 @@ public:
     void setParams(const ParamsList &params);
     ParamsList errors() const;
 
-    virtual QTextStream& operator<<(QTextStream& out) const;
+    ParamsList properties() const;
+    void setProperties(const ParamsList& props);
+
+    virtual QTextStream& operator>>(QTextStream& out) const;
 private:
 
     QScopedPointer<Parameters> mParams;
     QScopedPointer<Errors> mErrors;
+    QScopedPointer<Properties> mProps;
 
     void init(const DoubleVector& x, const DoubleVector& y);
 

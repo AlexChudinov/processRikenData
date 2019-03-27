@@ -1,7 +1,7 @@
+#include <QMessageBox>
 #include "CurveFitting.h"
-#include "Math/alglib/optimization.h"
 #include "../Base/ThreadPool.h"
-#include <cassert>
+#include "../QMapPropsDialog.h"
 
 const QStringList &CurveFitting::implementations()
 {
@@ -18,7 +18,7 @@ CurveFitting::Ptr CurveFitting::create(const QString &name, const DoubleVector &
 
 CurveFitting::CurveFitting(const DoubleVector &x, const DoubleVector &y)
 {
-    assert(x.size() == y.size());
+    Q_ASSERT(x.size() == y.size());
 }
 
 CurveFitting::~CurveFitting()
@@ -35,7 +35,12 @@ AsymmetricGaussian::AsymmetricGaussian
       CurveFitting (x, y)
 {
     init(x, y);
+    QMapPropsDialog dialog;
+    dialog.setProps(properties());
+    dialog.exec();
+    setProperties(dialog.props());
     double A;
+    size_t iterNum = 0;
     do
     {
         A = mParams->mA;
@@ -50,11 +55,42 @@ AsymmetricGaussian::AsymmetricGaussian
                 res
             )
         );
-        solver->setInitStep(.001 * res);
+        solver->setInitStep(mProps->mStep * res);
         solver->minimize(res);
+        mParams->mW = res(0);
+        mParams->mTc = res(1);
+        mParams->mDTL = res(2);
+        mParams->mDTR = res(3);
         curveScaling(x, y);
     }
-    while(A != 0.0 && std::fabs(A - mParams->mA)/A > 1e-6);
+    while
+    (
+        A != 0.0
+        && std::fabs(A - mParams->mA)/A > mProps->mRelTol
+        && (++iterNum < mProps->mIterNum)
+    );
+    if(A == 0.0)
+    {
+        QMessageBox::warning
+        (
+            Q_NULLPTR,
+            "Fitting message",
+            "Erroneous result. Please, try to do another fitting."
+        );
+    }
+    else
+    {
+        QString fitting;
+        QTextStream stream(&fitting);
+        *this >> stream;
+        stream.flush();
+        QMessageBox::warning
+        (
+            Q_NULLPTR,
+            "Fitting result",
+            fitting
+        );
+    }
 }
 
 void AsymmetricGaussian::values
@@ -109,7 +145,7 @@ CurveFitting::ParamsList AsymmetricGaussian::errors() const
 {
     ParamsList errors
     {
-        {"A", mParams->mA},
+        {"A", mErrors->mA},
         {"dtL", mErrors->mDTL},
         {"dtR", mErrors->mDTR},
         {"tc", mErrors->mTc},
@@ -118,7 +154,34 @@ CurveFitting::ParamsList AsymmetricGaussian::errors() const
     return errors;
 }
 
-QTextStream &AsymmetricGaussian::operator<<(QTextStream &out) const
+CurveFitting::ParamsList AsymmetricGaussian::properties() const
+{
+    ParamsList props
+    {
+        {"Init. step", mProps->mStep},
+        {"Rel. tolerance", mProps->mRelTol},
+        {"Iter. num", mProps->mIterNum}
+    };
+    return props;
+}
+
+void AsymmetricGaussian::setProperties
+(
+    const CurveFitting::ParamsList &props
+)
+{
+    bool ok = true;
+    ParamsList::ConstIterator it = props.find("Init. step");
+    if(it != props.end())
+        mProps->mStep = it.value().toDouble(&ok);
+    if((it = props.find("Rel. tolerance")) != props.end())
+        mProps->mRelTol = it.value().toDouble(&ok);
+    if((it = props.find("Iter. num")) != props.end())
+        mProps->mIterNum = it.value().toDouble(&ok);
+    Q_ASSERT(ok);
+}
+
+QTextStream &AsymmetricGaussian::operator>>(QTextStream &out) const
 {
     out << "Fitted with " << eqn() << "\n";
     QVariantMap pars = params();
@@ -142,8 +205,10 @@ void AsymmetricGaussian::init(const CurveFitting::DoubleVector &x, const CurveFi
 {
     mParams.reset(new Parameters);
     mErrors.reset(new Errors);
+    mProps.reset(new Properties);
     *mParams = {1., 0., 0., 0., 0.};
     *mErrors = {0., 0., 0., 0., 0.};
+    *mProps = {0.1, 1e-6, 10000};
     double norm = 0.0, xx = 0.0, xx2 = 0.0;
     for(size_t i = 0; i < x.size(); ++i)
     {
