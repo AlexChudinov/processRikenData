@@ -57,6 +57,7 @@ AsymmetricGaussian::AsymmetricGaussian
         );
         solver->setInitStep(mProps->mStep * res);
         solver->minimize(res);
+        solver->setTermCriteria(cv::TermCriteria(3, 10000, A * mProps->mRelTol));
         mParams->mW = res(0);
         mParams->mTc = res(1);
         mParams->mDTL = res(2);
@@ -80,6 +81,7 @@ AsymmetricGaussian::AsymmetricGaussian
     }
     else
     {
+        estimateErrors(x, y);
         QString fitting;
         QTextStream stream(&fitting);
         *this >> stream;
@@ -236,6 +238,18 @@ void AsymmetricGaussian::curveScaling(const CurveFitting::DoubleVector &x, const
         norm += ty[i] * ty[i];
     }
     mParams->mA = norm != 0.0 ? A / norm : A;
+}
+
+void AsymmetricGaussian::estimateErrors
+(
+    const CurveFitting::DoubleVector &x,
+    const CurveFitting::DoubleVector &y
+)
+{
+    CurveFitting::DoubleVector yy;
+    Parameters temp = *mParams;
+    values(x, yy);
+
 }
 
 int AsymmetricGaussian::Function::getDims() const

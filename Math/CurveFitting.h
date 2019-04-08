@@ -118,6 +118,7 @@ public:
 
     virtual QTextStream& operator>>(QTextStream& out) const;
 private:
+    double mResudials;
 
     QScopedPointer<Parameters> mParams;
     QScopedPointer<Errors> mErrors;
@@ -131,6 +132,8 @@ private:
      * @brief curveScaling recalculates curve scaling factor
      */
     void curveScaling(const DoubleVector& x, const DoubleVector& y);
+
+    void estimateErrors(const DoubleVector& x, const DoubleVector& y);
 };
 
 double AsymmetricGaussian::value(double x) const
