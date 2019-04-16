@@ -1,5 +1,6 @@
 #include "Base/BaseObject.h"
 #include "MassSpec.h"
+#include <QtConcurrent>
 #include <QMessageBox>
 
 MassSpec::MassSpec(QObject *parent)
@@ -241,6 +242,7 @@ MassSpectrumsCollection::MassSpectrumsCollection(QObject *parent)
       nMaxBin(std::numeric_limits<int>::min()),
       nMinBin(std::numeric_limits<int>::max())
 {
+    qRegisterMetaType<MassSpecType>("MassSpecType");
     qRegisterMetaType<VecInt>("VecInt");
     qRegisterMetaType<MapIntInt>("MapIntInt");
     setObjectName("MassSpectrumsCollection");
@@ -401,6 +403,70 @@ void MassSpectrumsCollection::checkLastTimeLimsAndNotify()
         }
         if(notify)
             Q_EMIT timeLimitsNotify(nMinBin, nMaxBin);
+    }
+}
+
+MassSpecType MassSpectrumsCollection::msType()
+{
+    QMutexLocker lock(&mMut);
+    return mMsType;
+}
+
+VecInt MassSpectrumsCollection::readTotalIonCurrent
+(
+    int idxFirst,
+    int idxLast
+)
+{
+    QMutexLocker lock(&mMut);
+    VecInt res;
+    idxLast = idxLast <= mCollection.size() ? idxLast : mCollection.size();
+    if(idxFirst < idxLast)
+    {
+        res.assign(idxLast - idxFirst, 0);
+        QFuture<void> unpackTask = QtConcurrent::run
+        (
+            [this, idxFirst] () mutable
+            {
+                mCollection[idxFirst]->unpack();
+            }
+        ), packTask;
+        for(size_t i = 0; idxFirst < idxLast; ++idxFirst, ++i)
+        {
+            packTask.waitForFinished();
+            unpackTask.waitForFinished();
+            if(idxFirst + 1 < idxLast)
+                unpackTask = QtConcurrent::run
+                (
+                    [this, idxFirst] () mutable
+                    {
+                        mCollection[idxFirst + 1]->unpack();
+                    }
+                );
+            MassSpecImpl::Map::value_type _First = mCollection[idxFirst]->first();
+            MassSpecImpl::Map::value_type _Last = mCollection[idxFirst]->last();
+            res[i] = mCollection[idxFirst]->tic(_First.first, _Last.first);
+            auto packTask = QtConcurrent::run
+            (
+                [this, idxFirst] () mutable
+                {
+                    mCollection[idxFirst]->pack();
+                }
+            );
+        }
+    }
+    return res;
+}
+
+void MassSpectrumsCollection::setMsType(const MassSpecType &msType)
+{
+    QMutexLocker lock(&mMut);
+    mMsType = msType;
+    for(size_t i = 0; i < mCollection.size(); ++i)
+    {
+        MassSpecImpl::MapShrdPtr ms = mCollection[i]->data();
+        MassSpecImpl::release(mCollection[i]);
+        mCollection[i] = MassSpecImpl::create(mMsType, *ms);
     }
 }
 

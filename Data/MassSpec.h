@@ -13,6 +13,7 @@ using Uint = unsigned long long;
 using MapUintUint = std::map<Uint, Uint>;
 using MapIntInt = std::map<int, int>;
 using VecInt = std::vector<int>;
+using MassSpecType = MassSpecImpl::Type;
 
 class MassSpectrumsCollection : public QObject
 {
@@ -21,6 +22,7 @@ public:
     Q_PROPERTY(QString fileName READ fileName WRITE setFileName NOTIFY fileNameNotify)
     Q_PROPERTY(int maxBin READ maxBin)
     Q_PROPERTY(int minBin READ minBin)
+    Q_PROPERTY(MassSpecType msType READ msType WRITE setMsType NOTIFY msTypeNotify)
 
     explicit MassSpectrumsCollection(QObject * parent = nullptr);
     virtual ~MassSpectrumsCollection();
@@ -51,23 +53,27 @@ public:
 
     size_t size() const;
     size_t blockingSize();
+
     template<typename _Number> _Number blockingSize()
     {
         size_t n = blockingSize();
         Q_ASSERT(n <= std::numeric_limits<_Number>::max());
         return static_cast<_Number>(n);
     }
+
     int maxBin();
-
     int minBin();
-
+    MassSpecType msType();
+    VecInt readTotalIonCurrent(int idxFirst, int idxLast);
 Q_SIGNALS:
     void cleared();
     void massSpecNumNotify(size_t);
     void timeLimitsNotify(int minTimeBin, int maxTimeBin);
+    void msTypeNotify(MassSpecType);
     void fileNameNotify(QString);
 
 public Q_SLOTS:
+    void setMsType(const MassSpecType &msType);
     void clear();
     void blockingClear();
     void addMassSpec(const MapIntInt& ms);
@@ -82,7 +88,7 @@ private:
     void checkLastTimeLimsAndNotify();
     QString mFileName;
     std::vector<MassSpecImpl*> mCollection;
-    MassSpecImpl::Type mMsType;
+    MassSpecType mMsType;
     QMutex mMut;
     //Max and min time through all mass spectra
     volatile int nMaxBin;

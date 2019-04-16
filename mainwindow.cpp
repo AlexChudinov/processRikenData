@@ -131,11 +131,12 @@ void MainWindow::createTicAndMsGraphs()
 
 void MainWindow::openSpamsFile(const QString &fileName)
 {
+    MyInit::instance()->massSpecColl()->setMsType(MassSpecImpl::MassSpecVecType);
     createTicAndMsGraphs();
-    Reader * reader = new SPAMSHexinDataX32(this);
+    Reader * reader = new SPAMSHexinDataX32;
+    mProgressBar->show();
     reader->open(fileName);
     QThreadPool::globalInstance()->start(reader);
-    mProgressBar->show();
     connect(reader, SIGNAL(progress(int)), mProgressBar.data(), SLOT(setValue(int)));
     connect(reader, SIGNAL(finished()), mProgressBar.data(), SLOT(hide()));
 }

@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <vector>
 #include <cassert>
+#include <memory>
 
 /**
  * @brief The PackProc class packing procedures
@@ -255,5 +256,21 @@ PackProc::DataVec SimplePack<Int>::unpack(const PackProc::DataVec &in)
         reinterpret_cast<char*>(res.data() + res.size())
     );
 }
+
+/**
+ * @brief The SimpleAndZlibPack class packs data using both
+ * simple for int values and zlib algorithms
+ */
+class SimpleAndZlibPack : public PackProc
+{
+    std::unique_ptr<PackProc> mZlibPack;
+    std::unique_ptr<PackProc> mSimplePack;
+public:
+    SimpleAndZlibPack();
+    ~SimpleAndZlibPack();
+
+    DataVec pack(const DataVec& in);
+    DataVec unpack(const DataVec& in);
+};
 
 #endif // PACKPROC_H

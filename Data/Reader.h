@@ -156,9 +156,7 @@ public:
 
     void run();
 
-    Q_SIGNAL void massSpectrumReadNotify(MapUintUint);
-
-    Q_SIGNAL void progress(int) const;
+    Q_SIGNAL void progress(int);
 private:
 
     enum ReadState
@@ -176,7 +174,7 @@ private:
 
     QProcess * mProcess;
 
-    void readChanel(int nChanel) const;
+    void readChanel(int nChanel);
 
     Q_SLOT void showErrMsg();
 };

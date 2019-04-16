@@ -61,3 +61,26 @@ PackProc::DataVec ZlibPack::unpack(const PackProc::DataVec &in)
         throw(std::runtime_error("Errors during unpacking!"));
     return res;
 }
+
+SimpleAndZlibPack::SimpleAndZlibPack()
+    :
+      mZlibPack(new ZlibPack),
+      mSimplePack(new SimplePack<int>)
+{
+
+}
+
+SimpleAndZlibPack::~SimpleAndZlibPack()
+{
+
+}
+
+PackProc::DataVec SimpleAndZlibPack::pack(const PackProc::DataVec &in)
+{
+    return mZlibPack->pack(mSimplePack->pack(in));
+}
+
+PackProc::DataVec SimpleAndZlibPack::unpack(const PackProc::DataVec &in)
+{
+    return mSimplePack->unpack(mZlibPack->unpack(in));
+}

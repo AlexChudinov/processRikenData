@@ -464,8 +464,9 @@ void SPAMSHexinDataX32::run()
     Q_EMIT finished();
 }
 
-void SPAMSHexinDataX32::readChanel(int nChanel) const
+void SPAMSHexinDataX32::readChanel(int nChanel)
 {
+    MyInit::instance()->massSpecColl()->setMsType(MassSpecImpl::MassSpecVecType);
     QScopedPointer<PackProc> packer(new SimplePack<short>);
     SimplePack<short>::Header h;
     QFile file("ms_out");

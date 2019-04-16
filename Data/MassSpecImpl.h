@@ -24,7 +24,8 @@ public:
 
     enum Type
     {
-        MassSpecMapType
+        MassSpecMapType,
+        MassSpecVecType
     };
 
     /**
@@ -104,6 +105,14 @@ public:
      * @return
      */
     virtual bool isEmpty() const = 0;
+
+    /**
+     * @brief tic returns total ion current in specified range
+     * @param t0
+     * @param t1
+     * @return
+     */
+    virtual int tic(int t0, int t1) const = 0;
 };
 
 /**
@@ -140,8 +149,48 @@ public:
     Map::value_type last() const;
 
     bool isEmpty() const;
+
+    int tic(int t0, int t1) const;
 private:
     void increaseEvtIter(Map::iterator it, int nEvents = 1);
+};
+
+class MassSpecVec : public MassSpecImpl
+{
+    Vec mData;
+    Pack mPackData;
+    Packer mPacker;
+    int nTimeZero;
+public:
+
+    MassSpecVec(const Map& ms = Map(), bool packData = false);
+    MassSpecVec(const Vec& ms = Vec(), bool packData = false);
+    ~MassSpecVec();
+
+    Type type() const;
+
+    void pack();
+    void unpack();
+
+    bool isPacked() const;
+
+    int operator[](int idx) const;
+    int& operator[](int idx);
+
+    void addEvent(int evt);
+    void addEvents(int time, int nEvents);
+
+    MapShrdPtr data();
+    VecShrdPtr vecData(int minTimeBin, int maxTimeBin);
+
+    Map::value_type first() const;
+    Map::value_type last() const;
+
+    bool isEmpty() const;
+
+    int tic(int t0, int t1) const;
+private:
+     void extendDataToKeepEvent(int evt);
 };
 
 #endif // MASSSPECIMPL_H

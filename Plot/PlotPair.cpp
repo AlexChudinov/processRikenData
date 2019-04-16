@@ -59,7 +59,6 @@ PlotPair::~PlotPair()
 void PlotPair::setTicCursorPos(double x)
 {
     MassSpectrumsCollection * ms = MyInit::instance()->massSpecColl();
-    MassSpecImpl::MapShrdPtr msData;
 
     x = std::round(x);
     if(x < 0.0) x = 0.0;
@@ -79,20 +78,23 @@ void PlotPair::setTicCursorPos(double x)
     else
     {
         size_t curMsNum = static_cast<size_t>(mTicPlot->graph(0)->data()->size());
-        size_t idx = static_cast<size_t>(x);
-        double ticIdx = 0.0, tic = 0.0;
-        for(;curMsNum <= idx; ++curMsNum)
-        {
-            ticIdx = static_cast<double>(curMsNum);
-            msData = ms->blockingMassSpec(curMsNum);
-            double tic = 0.0;
-            for(MassSpecImpl::Map::const_reference d : * msData)
+        size_t idx = ms->blockingSize();
+        VecInt tic = ms->readTotalIonCurrent(curMsNum, idx);
+        QVector<double> keys(idx - curMsNum);
+        std::iota(keys.begin(), keys.end(), curMsNum);
+        QVector<double> vals(idx - curMsNum);
+        std::transform
+        (
+            tic.begin(),
+            tic.end(),
+            vals.begin(),
+            [](int val)->double
             {
-                tic += d.second;
+                return static_cast<double>(val);
             }
-            mTicPlot->graph(0)->data()->add({ticIdx, tic});
-        }
-        mTicPlot->graph(1)->data()->set({{ticIdx, 0.}, {ticIdx, tic}});
+        );
+        mTicPlot->graph(0)->addData(keys, vals);
+        mTicPlot->graph(1)->data()->set({{keys.back(), 0.}, {keys.back(), vals.back()}});
         mTicPlot->rescaleAxes();
     }
     mTicPlot->replot();
@@ -121,7 +123,7 @@ void PlotPair::clearData()
 
 void PlotPair::massSpecNumsChanged(size_t massSpecNum)
 {
-    if(massSpecNum != 0)
+    if(massSpecNum != 0 && massSpecNum > mTicPlot->graph(0)->data()->size())
     {
         setTicCursorPos(static_cast<double>(massSpecNum) - 1.);
     }
