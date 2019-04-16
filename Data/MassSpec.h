@@ -3,12 +3,93 @@
 
 #include <QObject>
 #include <mutex>
+#include <QMutex>
 
 #include "Math/MassSpecSummator.h"
 #include "TimeEvents.h"
+#include "MassSpecImpl.h"
 
 using Uint = unsigned long long;
 using MapUintUint = std::map<Uint, Uint>;
+using MapIntInt = std::map<int, int>;
+using VecInt = std::vector<int>;
+
+class MassSpectrumsCollection : public QObject
+{
+    Q_OBJECT
+public:
+    Q_PROPERTY(QString fileName READ fileName WRITE setFileName NOTIFY fileNameNotify)
+    Q_PROPERTY(int maxBin READ maxBin)
+    Q_PROPERTY(int minBin READ minBin)
+
+    explicit MassSpectrumsCollection(QObject * parent = nullptr);
+    virtual ~MassSpectrumsCollection();
+
+    const QString& fileName() const;
+    void setFileName(const QString &fileName);
+
+    /**
+     * @brief massSpec returns mass spectrum by idx
+     * @param idx
+     * @return
+     */
+    MassSpecImpl::MapShrdPtr massSpec(size_t idx);
+    MassSpecImpl::MapShrdPtr blockingMassSpec(size_t idx);
+    //Just to throw out stupid compiler warnings about type conversions
+    template<typename _Number>
+    MassSpecImpl::MapShrdPtr blockingMassSpec(_Number n)
+    {
+        Q_ASSERT(std::numeric_limits<size_t>::max() >= n && n >= 0);
+        return blockingMassSpec(static_cast<size_t>(n));
+    }
+    /**
+     * @brief unpackByMask unpacks all mass spectra for which mask[idx] is true value
+     * @param mask
+     */
+    void unpackByMask(const std::vector<bool>& mask);
+    void blockingUnpackByMask(const std::vector<bool>& mask);
+
+    size_t size() const;
+    size_t blockingSize();
+    template<typename _Number> _Number blockingSize()
+    {
+        size_t n = blockingSize();
+        Q_ASSERT(n <= std::numeric_limits<_Number>::max());
+        return static_cast<_Number>(n);
+    }
+    int maxBin();
+
+    int minBin();
+
+Q_SIGNALS:
+    void cleared();
+    void massSpecNumNotify(size_t);
+    void timeLimitsNotify(int minTimeBin, int maxTimeBin);
+    void fileNameNotify(QString);
+
+public Q_SLOTS:
+    void clear();
+    void blockingClear();
+    void addMassSpec(const MapIntInt& ms);
+    void blockingAddMassSpec(const MapIntInt& ms);
+    void addMassSpec(TimeEventsContainer evts);
+    void blockingAddMassSpec(TimeEventsContainer evts);
+    void addMassSpec(const VecInt& ms);
+    void blockingAddMassSpec(const VecInt& ms);
+    void packAll();
+    void blockingPackAll();
+private:
+    void checkLastTimeLimsAndNotify();
+    QString mFileName;
+    std::vector<MassSpecImpl*> mCollection;
+    MassSpecImpl::Type mMsType;
+    QMutex mMut;
+    //Max and min time through all mass spectra
+    volatile int nMaxBin;
+    volatile int nMinBin;
+    friend class MSSum;
+    friend class DirectSum;
+};
 
 class MassSpec : public QObject
 {

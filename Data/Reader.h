@@ -141,6 +141,46 @@ private:
     QScopedPointer<QFile> mFile;
 };
 
+class QProcess;
+
+class SPAMSHexinDataX32 : public Reader
+{
+    Q_OBJECT
+
+public:
+    SPAMSHexinDataX32(QObject * parent = Q_NULLPTR);
+
+    void open(const QString& fileName);
+
+    void close();
+
+    void run();
+
+    Q_SIGNAL void massSpectrumReadNotify(MapUintUint);
+
+    Q_SIGNAL void progress(int) const;
+private:
+
+    enum ReadState
+    {
+        ReadChanel
+    };
+
+    int mChanelToRead;
+
+    ReadState mReadState;
+
+    static const char * sWin32ProcName;
+
+    QString mFileName;
+
+    QProcess * mProcess;
+
+    void readChanel(int nChanel) const;
+
+    Q_SLOT void showErrMsg();
+};
+
 #endif // !TIME_EVENTS_H
 
 

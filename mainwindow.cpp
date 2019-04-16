@@ -45,7 +45,9 @@ void MainWindow::on_actionOpenDataFile_triggered()
         this,
         "Open file",
         QString(),
-        "Riken Data (*.lst);;Riken ASCII Data (*.dat)"
+        "Riken Data (*.lst);;"
+        "Riken ASCII Data (*.dat);;"
+        "SPAMS file (*.atof)"
     );
     if(!fileName.isEmpty())
     {
@@ -58,6 +60,10 @@ void MainWindow::on_actionOpenDataFile_triggered()
         else if(fileInfo.suffix() == "dat")
         {
             openRikenASCIIData(fileName);
+        }
+        else if(fileInfo.suffix() == "atof")
+        {
+            openSpamsFile(fileName);
         }
     }
 }
@@ -121,6 +127,17 @@ void MainWindow::createTicAndMsGraphs()
     ui->mdiArea->addSubWindow(plots)->show();
 
     on_actionTileSubWindows_triggered();
+}
+
+void MainWindow::openSpamsFile(const QString &fileName)
+{
+    createTicAndMsGraphs();
+    Reader * reader = new SPAMSHexinDataX32(this);
+    reader->open(fileName);
+    QThreadPool::globalInstance()->start(reader);
+    mProgressBar->show();
+    connect(reader, SIGNAL(progress(int)), mProgressBar.data(), SLOT(setValue(int)));
+    connect(reader, SIGNAL(finished()), mProgressBar.data(), SLOT(hide()));
 }
 
 void MainWindow::on_actionTileSubWindows_triggered()

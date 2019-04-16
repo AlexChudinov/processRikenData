@@ -233,3 +233,185 @@ MassSpec::Locker MassSpec::lockInstance()
     return Locker(mMutex);
 }
 
+
+MassSpectrumsCollection::MassSpectrumsCollection(QObject *parent)
+    :
+      QObject(parent),
+      mMsType(MassSpecImpl::MassSpecMapType),
+      nMaxBin(std::numeric_limits<int>::min()),
+      nMinBin(std::numeric_limits<int>::max())
+{
+    qRegisterMetaType<VecInt>("VecInt");
+    qRegisterMetaType<MapIntInt>("MapIntInt");
+    setObjectName("MassSpectrumsCollection");
+}
+
+MassSpectrumsCollection::~MassSpectrumsCollection()
+{
+    clear();
+}
+
+const QString &MassSpectrumsCollection::fileName() const
+{
+    return mFileName;
+}
+
+void MassSpectrumsCollection::setFileName(const QString &fileName)
+{
+    mFileName = fileName;
+}
+
+MassSpecImpl::MapShrdPtr MassSpectrumsCollection::massSpec(size_t idx)
+{
+    return mCollection[idx]->data();
+}
+
+MassSpecImpl::MapShrdPtr MassSpectrumsCollection::blockingMassSpec(size_t idx)
+{
+    QMutexLocker lock(&mMut);
+    return massSpec(idx);
+}
+
+void MassSpectrumsCollection::unpackByMask(const std::vector<bool> &mask)
+{
+    for(size_t i = 0; i != mask.size() && i != mCollection.size(); ++i)
+    {
+        if(mask[i]) mCollection[i]->unpack();
+    }
+}
+
+void MassSpectrumsCollection::blockingUnpackByMask(const std::vector<bool> &mask)
+{
+    QMutexLocker lock(&mMut);
+    unpackByMask(mask);
+}
+
+size_t MassSpectrumsCollection::size() const
+{
+    return mCollection.size();
+}
+
+size_t MassSpectrumsCollection::blockingSize()
+{
+    QMutexLocker lock(&mMut);
+    return size();
+}
+
+void MassSpectrumsCollection::clear()
+{
+    for(MassSpecImpl * ms : mCollection)
+        MassSpecImpl::release(ms);
+    mCollection.clear();
+    Q_EMIT cleared();
+}
+
+void MassSpectrumsCollection::blockingClear()
+{
+    QMutexLocker lock(&mMut);
+    clear();
+}
+
+void MassSpectrumsCollection::addMassSpec(const MapIntInt &ms)
+{
+    if(!ms.empty())
+    {
+        mCollection.push_back(MassSpecImpl::create(mMsType, ms));
+        Q_EMIT massSpecNumNotify(mCollection.size());
+        checkLastTimeLimsAndNotify();
+        mCollection.back()->pack();
+    }
+}
+
+void MassSpectrumsCollection::blockingAddMassSpec(const MapIntInt &ms)
+{
+    QMutexLocker lock(&mMut);
+    addMassSpec(ms);
+}
+
+void MassSpectrumsCollection::addMassSpec(TimeEventsContainer evts)
+{
+    if
+    (
+        evts.empty()
+        || std::all_of(evts.begin(), evts.end(),
+                       [](TimeEventsContainer::const_reference evt)->bool{ return evt == 0; })
+    ) return;
+    else
+    {
+        mCollection.push_back(MassSpecImpl::create(mMsType, VecInt()));
+        for(TimeEvent evt : evts)
+        {
+            mCollection.back()->addEvent(static_cast<int>(evt));
+        }
+        checkLastTimeLimsAndNotify();
+        mCollection.back()->pack();
+    }
+    Q_EMIT massSpecNumNotify(mCollection.size());
+}
+
+void MassSpectrumsCollection::blockingAddMassSpec(TimeEventsContainer evts)
+{
+    QMutexLocker lock(&mMut);
+    addMassSpec(evts);
+}
+
+void MassSpectrumsCollection::addMassSpec(const VecInt &ms)
+{
+    mCollection.push_back(MassSpecImpl::create(mMsType, ms));
+    checkLastTimeLimsAndNotify();
+    Q_EMIT massSpecNumNotify(mCollection.size());
+    mCollection.back()->pack();
+}
+
+void MassSpectrumsCollection::blockingAddMassSpec(const VecInt &ms)
+{
+    QMutexLocker lock(&mMut);
+    addMassSpec(ms);
+}
+
+void MassSpectrumsCollection::packAll()
+{
+    for(MassSpecImpl * ptr : mCollection)
+        ptr->pack();
+}
+
+void MassSpectrumsCollection::blockingPackAll()
+{
+    QMutexLocker lock(&mMut);
+    packAll();
+}
+
+void MassSpectrumsCollection::checkLastTimeLimsAndNotify()
+{
+    if(!(mCollection.back()->isPacked() || mCollection.back()->isEmpty()))
+    {
+        bool notify = false;
+        MapIntInt::value_type
+                f = mCollection.back()->first(),
+                l = mCollection.back()->last();
+        if(nMinBin > f.first)
+        {
+            nMinBin = f.first;
+            notify = true;
+        }
+        if(nMaxBin < l.first)
+        {
+            nMaxBin = l.first;
+            notify = true;
+        }
+        if(notify)
+            Q_EMIT timeLimitsNotify(nMinBin, nMaxBin);
+    }
+}
+
+int MassSpectrumsCollection::minBin()
+{
+    QMutexLocker lock(&mMut);
+    return nMinBin;
+}
+
+int MassSpectrumsCollection::maxBin()
+{
+    QMutexLocker lock(&mMut);
+    return nMaxBin;
+}

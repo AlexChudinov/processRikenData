@@ -18,15 +18,33 @@ MyInit::MyInit(QObject * parent)
     mMassSpec.reset(new MassSpec);
     mTimeEvents.reset(new TimeEvents);
     mTimeParams.reset(new TimeParams);
+    mMassSpecsColl.reset(new MassSpectrumsCollection);
 
+    moveToThread(massSpecColl());
     moveToThread(massSpec());
     moveToThread(timeEvents());
 
-    connect(timeEvents(), SIGNAL(sliceAccumulated(TimeEventsContainer)),
+    /*connect(timeEvents(), SIGNAL(sliceAccumulated(TimeEventsContainer)),
             massSpec(), SLOT(blockingNewHist(TimeEventsContainer)));
 
     connect(timeEvents(), SIGNAL(cleared()),
-            massSpec(), SLOT(blockingClear()));
+            massSpec(), SLOT(blockingClear()));*/
+
+    connect
+    (
+        timeEvents(),
+        SIGNAL(sliceAccumulated(TimeEventsContainer)),
+        massSpecColl(),
+        SLOT(blockingAddMassSpec(TimeEventsContainer))
+    );
+
+    connect
+    (
+        timeEvents(),
+        SIGNAL(cleared()),
+        massSpecColl(),
+        SLOT(blockingClear())
+    );
 }
 
 MyInit::~MyInit()
@@ -51,6 +69,11 @@ MassSpec * MyInit::massSpec()
 TimeParams *MyInit::timeParams()
 {
     return mTimeParams.data();
+}
+
+MassSpectrumsCollection *MyInit::massSpecColl()
+{
+    return mMassSpecsColl.data();
 }
 
 void MyInit::moveToThread(QObject *obj)

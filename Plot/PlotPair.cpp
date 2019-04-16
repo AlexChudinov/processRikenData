@@ -12,14 +12,15 @@ PlotPair::PlotPair(QWidget *parent) :
     mXValsTransform(new TimeScale())
 {
     createGraphs();
-
-    MassSpec * ms = MyInit::instance()->massSpec();
+    MassSpectrumsCollection * ms = MyInit::instance()->massSpecColl();
+    setWindowTitle(ms->fileName());
+    connect(ms, SIGNAL(fileNameNotify(QString)), SLOT(setWindowTitle(QString)));
     TimeParams * timeParams = MyInit::instance()->timeParams();
     connect(ms, SIGNAL(cleared()), SLOT(clearData()));
     massSpecNumsChanged(ms->blockingSize());
     connect
     (
-        ms, SIGNAL(massSpecsNumNotify(size_t)),
+        ms, SIGNAL(massSpecNumNotify(size_t)),
         SLOT(massSpecNumsChanged(size_t))
     );
     connect(timeParams, SIGNAL(setParamsNotify()), SLOT(onShowMs()));
@@ -57,7 +58,8 @@ PlotPair::~PlotPair()
 
 void PlotPair::setTicCursorPos(double x)
 {
-    MassSpec * ms = MyInit::instance()->massSpec();
+    MassSpectrumsCollection * ms = MyInit::instance()->massSpecColl();
+    MassSpecImpl::MapShrdPtr msData;
 
     x = std::round(x);
     if(x < 0.0) x = 0.0;
@@ -82,7 +84,12 @@ void PlotPair::setTicCursorPos(double x)
         for(;curMsNum <= idx; ++curMsNum)
         {
             ticIdx = static_cast<double>(curMsNum);
-            tic = ms->blockingGetMassSpecTotalCurrent(curMsNum);
+            msData = ms->blockingMassSpec(curMsNum);
+            double tic = 0.0;
+            for(MassSpecImpl::Map::const_reference d : * msData)
+            {
+                tic += d.second;
+            }
             mTicPlot->graph(0)->data()->add({ticIdx, tic});
         }
         mTicPlot->graph(1)->data()->set({{ticIdx, 0.}, {ticIdx, tic}});
@@ -143,12 +150,12 @@ void PlotPair::onExportImage()
 
 void PlotPair::onShowMs()
 {
-    MassSpec * ms = MyInit::instance()->massSpec();
+    MassSpectrumsCollection * ms = MyInit::instance()->massSpecColl();
     if(ms->blockingSize() == 0) return;
     int idx = qRound(mTicPlot->graph(1)->data()->begin()->key);
-    MapUintUint MS = ms->blockingGetMassSpec(static_cast<size_t>(idx));
+    MassSpecImpl::MapShrdPtr MS = ms->blockingMassSpec(static_cast<size_t>(idx));
     QSharedPointer<QCPGraphDataContainer> msData(new QCPGraphDataContainer);
-    for(MapUintUint::const_reference d : MS)
+    for(MassSpecImpl::Map::const_reference d : * MS)
     {
         msData->add
         (
@@ -160,7 +167,7 @@ void PlotPair::onShowMs()
     }
     mMsPlot->graph(0)->setData(msData);
     mMsPlot->xAxis->setLabel(mXValsTransform->xUnits());
-    if(idx == mTicPlot->graph(0)->data()->size() - 1 && mTicPlot->graph(0)->data()->size() == 1)
+    if(idx == 0 && mTicPlot->graph(0)->data()->size() == 1)
     { //Rescale only first time
         mMsPlot->rescaleAxes();
     }
@@ -253,14 +260,26 @@ void PlotPair::selectMsData()
     {
         const QCPSelectionRect * rect = mMsPlot->selectionRect();
         QCPRange xrange = rect->range(mMsPlot->xAxis);
-        Uint minX = static_cast<Uint>(mXValsTransform->invTransform(::round(xrange.lower)));
-        Uint maxX = static_cast<Uint>(mXValsTransform->invTransform(::round(xrange.upper)));
-        MassSpec::VectorUint ticData
-                = MyInit::instance()->massSpec()->blockingGetIonCurrent(minX, maxX);
-        QVector<double> x(static_cast<int>(ticData.size()));
-        std::iota(x.begin(), x.end(), 1.0);
-        QVector<double> y(static_cast<int>(ticData.size()));
-        std::copy(ticData.begin(), ticData.end(), y.begin());
+        int minX = static_cast<int>(mXValsTransform->invTransform(::round(xrange.lower)));
+        int maxX = static_cast<int>(mXValsTransform->invTransform(::round(xrange.upper)));
+
+        MassSpectrumsCollection * msColl = MyInit::instance()->massSpecColl();
+        const int n = msColl->blockingSize<int>();
+        QVector<double> x(n), y(n);
+        double x0 = 0;
+        for(int i = 0; i < n; ++i)
+        {
+            MassSpecImpl::MapShrdPtr msDataPtr = msColl->blockingMassSpec(i);
+            x[i] = ++x0;
+            y[i] = 0.0;
+            MassSpecImpl::Map::const_iterator
+                    _First = msDataPtr->lower_bound(minX),
+                    _Last = msDataPtr->upper_bound(maxX);
+            for(; _First != _Last; ++_First)
+            {
+                y[i] += _First->second;
+            }
+        }
 
         Q_EMIT dataSelected
         (
@@ -276,22 +295,23 @@ void PlotPair::selectTicData()
 {
     if(mTicPlot->selectionRectMode() == QCP::srmCustom)
     {
+        MassSpectrumsCollection * ms = MyInit::instance()->massSpecColl();
+        const size_t n = ms->blockingSize();
         const QCPSelectionRect * rect = mTicPlot->selectionRect();
         QCPRange xrange = rect->range(mTicPlot->xAxis);
         size_t minX = xrange.lower >= 0 ? static_cast<size_t>(xrange.lower) : 0;
-        size_t maxX = static_cast<size_t>(xrange.upper);
-        maxX = maxX >= minX + 1 ? maxX : minX + 1;
-        const size_t n = MyInit::instance()->massSpec()->blockingSize();
-        maxX = maxX > n? n : maxX;
-        MapUintUint ms
-                = MyInit::instance()->massSpec()->blockingGetMassSpec(minX, maxX);
-        QVector<double> x(static_cast<int>(ms.size())), y(static_cast<int>(ms.size()));
-        int idx = 0;
-        for(MapUintUint::const_reference d : ms)
+        size_t maxX = xrange.upper < n ? static_cast<size_t>(xrange.upper + 1) : n;
+
+        MapIntInt msDataMap = DirectSum().accum(ms, minX, maxX);
+
+        QVector<double> x(msDataMap.size()), y(msDataMap.size());
+
+        int i = 0;
+        for(MapIntInt::const_reference d : msDataMap)
         {
-            x[idx] = mXValsTransform->transform(d.first);
-            y[idx] = d.second;
-            idx++;
+            x[i] = d.first;
+            y[i] = d.second;
+            ++i;
         }
 
         Q_EMIT dataSelected

@@ -47,7 +47,9 @@ SOURCES += main.cpp\
     Math/alglib/optimization.cpp \
     Math/alglib/solvers.cpp \
     Math/alglib/specialfunctions.cpp \
-    Math/alglib/statistics.cpp
+    Math/alglib/statistics.cpp \
+    Data/MassSpecImpl.cpp \
+    Data/PackProc.cpp
 
 HEADERS  += mainwindow.h \
     QCustomPlot/qcustomplot.h \
@@ -86,7 +88,9 @@ HEADERS  += mainwindow.h \
     Math/alglib/solvers.h \
     Math/alglib/specialfunctions.h \
     Math/alglib/statistics.h \
-    Math/alglib/stdafx.h
+    Math/alglib/stdafx.h \
+    Data/MassSpecImpl.h \
+    Data/PackProc.h
 
 FORMS    += mainwindow.ui \
     PropertiesListForm.ui \
@@ -116,15 +120,19 @@ unix
 
 win32
 {
+    INCLUDEPATH += C:/zlib/
     INCLUDEPATH += C:/opencv/build/include/
     INCLUDEPATH += C:/opencv/build/include/
+    INCLUDEPATH += C:/Boost/
     CONFIG(debug, debug|release)
     {
         LIBS += C:\opencv\build\x64\vc15\lib\opencv_world343d.lib
+        LIBS += C:\zlib\x64\Debug\zlib.lib
     }
     CONFIG(release, debug|release)
     {
         LIBS += C:\opencv\build\x64\vc15\lib\opencv_world343.lib
+        LIBS += C:\zlib\x64\Release\zlib.lib
     }
 }
 

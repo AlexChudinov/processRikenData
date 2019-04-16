@@ -1,8 +1,11 @@
 #include "Reader.h"
 #include "Base/BaseObject.h"
 #include "Data/TimeEvents.h"
+#include "Data/PackProc.h"
 
+#include <QProcess>
 #include <QInputDialog>
+#include <QMessageBox>
 #include <QDebug>
 #include <QFile>
 #include <QTextStream>
@@ -359,7 +362,7 @@ void DirectMsFromRikenTxt::run()
     );
 
     QTextStream stream(mFile.data());
-    MapUintUint ms;
+    MapIntInt ms;
     int nLines = 0;
     while(!stream.atEnd())
     {
@@ -371,9 +374,10 @@ void DirectMsFromRikenTxt::run()
     int step = nLines / 100;
     for(int i = 0; i < nLines; ++i)
     {
-        quint64 chan, edge, tag, sweep, evt;
+        quint64 chan, edge, tag, sweep;
+        int evt;
         stream >> chan >> edge >> tag >> sweep >> evt;
-        MapUintUint::iterator it = ms.find(evt);
+        MapIntInt::iterator it = ms.find(evt);
         if(it != ms.end()) it->second++;
         else
         {
@@ -382,7 +386,135 @@ void DirectMsFromRikenTxt::run()
         if(i % step == 0) Q_EMIT progressNotify((100 * i) / nLines);
     }
 
-    MyInit::instance()->massSpec()->blockingAddMassSpec(ms);
+    MyInit::instance()->massSpecColl()->blockingAddMassSpec(ms);
 
     Q_EMIT finished();
+}
+
+const char * SPAMSHexinDataX32::sWin32ProcName = "readSpams.exe";
+
+SPAMSHexinDataX32::SPAMSHexinDataX32(QObject *parent)
+    :
+      Reader(parent),
+      mProcess(new QProcess(this))
+{
+    connect
+    (
+        this,
+        SIGNAL(started()),
+        MyInit::instance()->timeEvents(),
+        SLOT(blockingClear())
+    );
+}
+
+void SPAMSHexinDataX32::open(const QString &fileName)
+{
+    mFileName = fileName;
+    int res = mProcess->execute(sWin32ProcName, QStringList() << mFileName);
+    if(res == 0)
+    {
+        QFile file("ms_out");
+        file.open(QIODevice::ReadOnly);
+        unsigned long long msNum;
+        int nChanelNum;
+        file.read(reinterpret_cast<char*>(&msNum), 8);
+        file.read(reinterpret_cast<char*>(&nChanelNum), sizeof (int));
+        QString item = QInputDialog::getItem
+        (
+            Q_NULLPTR,
+            "Read Hexin data",
+            "Choose data to read",
+            {"Read one chanel", "Read positive", "Read negative"}
+        );
+
+        if(item == "Read one chanel")
+        {
+            mChanelToRead = QInputDialog::getInt
+            (
+                Q_NULLPTR,
+                "Read Hexin data",
+                "Chanel no:",
+                0, 0, nChanelNum - 1
+            );
+            mReadState = ReadChanel;
+        }
+        file.close();
+    }
+    else
+    {
+        showErrMsg();
+    }
+}
+
+void SPAMSHexinDataX32::close()
+{
+}
+
+void SPAMSHexinDataX32::run()
+{
+    Q_EMIT started();
+
+    switch(mReadState)
+    {
+    case ReadChanel:
+        readChanel(mChanelToRead);
+        break;
+    }
+
+    Q_EMIT finished();
+}
+
+void SPAMSHexinDataX32::readChanel(int nChanel) const
+{
+    QScopedPointer<PackProc> packer(new SimplePack<short>);
+    SimplePack<short>::Header h;
+    QFile file("ms_out");
+    file.open(QIODevice::ReadOnly);
+    quint64 nMsNum;
+    qint64 pos = 0;
+    int nChanelNum;
+    file.read(reinterpret_cast<char*>(&nMsNum), sizeof (quint64));
+    pos += sizeof (quint64);
+    file.read(reinterpret_cast<char*>(&nChanelNum), sizeof (int));
+    pos += sizeof (int);
+    for(qulonglong i = 0; i < nMsNum; ++i)
+    {
+        if(i%200 == 0)
+            Q_EMIT progress(static_cast<int>((i * 100) / nMsNum));
+        for(int i = 0; i != nChanel; ++i)
+        {
+            file.read(reinterpret_cast<char*>(&h), sizeof (SimplePack<short>::Header));
+            pos += h.nBytes;
+            file.seek(pos);
+        }
+
+        file.read(reinterpret_cast<char*>(&h), sizeof (SimplePack<short>::Header));
+        file.seek(pos);
+        PackProc::DataVec data(h.nBytes);
+        file.read(data.data(), h.nBytes);
+        PackProc::DataVec unpackedData = packer->unpack(data);
+        SimplePack<short>::Array vals
+        (
+            reinterpret_cast<short*>(unpackedData.data()),
+            reinterpret_cast<short*>(unpackedData.data() + unpackedData.size())
+        );
+        pos += h.nBytes;
+        file.seek(pos);
+        for(int i = nChanel + 1; i < nChanelNum; ++i)
+        {
+            file.read(reinterpret_cast<char*>(&h), sizeof (SimplePack<short>::Header));
+            pos += h.nBytes;
+            file.seek(pos);
+        }
+        VecInt ms(vals.begin(), vals.end());
+        MyInit::instance()->massSpecColl()->blockingAddMassSpec(ms);
+    }
+    file.close();
+}
+
+void SPAMSHexinDataX32::showErrMsg()
+{
+    QByteArray err = mProcess->readAllStandardError();
+    QString msg(err);
+    QMessageBox::warning(Q_NULLPTR, "Hexin file read", msg);
 }

@@ -51,6 +51,7 @@ private:
 
     void createTicAndMsGraphs();
 
+    void openSpamsFile(const QString& fileName);
 private:
     QPointer<QProgressBar> mProgressBar;
 };
