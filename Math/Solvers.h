@@ -1,5 +1,5 @@
-#ifndef _SOLVERS_
-#define _SOLVERS_
+#ifndef SOLVERS_H
+#define SOLVERS_H
 
 #include "exception.h"
 
@@ -91,6 +91,24 @@ namespace math
         return 0;
     }
 
+    /**
+     * simple bisection solver
+     */
+    template<class Fun>
+    double froot(Fun fun, double a, double b)
+    {
+        if(fun(a) > fun(b)) std::swap(a, b);
+        if(fun(a) * fun(b) > 0.0)
+            return std::fabs(fun(a)) > std::fabs(fun(b)) ? b : a;
+        while(std::fabs((b - a) / (b + a)) > 1e-12)
+        {
+            double m = .5 * (a + b);
+            if(fun(m) == 0.0) return m;
+            else if(fun(m) > 0.0) b = m;
+            else a = m;
+        }
+        return .5 * (a + b);
+    }
 }
 
-#endif // _SOLVERS_
+#endif // SOLVERS_H

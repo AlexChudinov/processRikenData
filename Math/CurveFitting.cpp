@@ -1,7 +1,11 @@
 #include <QMessageBox>
+#include <Eigen/Dense>
 #include "CurveFitting.h"
 #include "../Base/ThreadPool.h"
 #include "../QMapPropsDialog.h"
+
+using namespace Eigen;
+using namespace std;
 
 const QStringList &CurveFitting::implementations()
 {
@@ -85,6 +89,7 @@ AsymmetricGaussian::AsymmetricGaussian
         QString fitting;
         QTextStream stream(&fitting);
         *this >> stream;
+        stream << "sig = " << residuals(x, y) << "\n";
         stream.flush();
         QMessageBox::warning
         (
@@ -246,10 +251,107 @@ void AsymmetricGaussian::estimateErrors
     const CurveFitting::DoubleVector &y
 )
 {
-    CurveFitting::DoubleVector yy;
-    Parameters temp = *mParams;
-    values(x, yy);
+    const size_t n = x.size();
+    DoubleVector
+            dfdA_vals(n), dfdw_vals(n),
+            dfdtL_vals(n), dfdtR_vals(n),
+            dfdtc_vals(n);
+    MatrixXd M(n, 5);
+    VectorXd V(x.size());
+    V.fill(1.0);
+    for(size_t i = 0; i < x.size(); ++i)
+    {
+        M(i, 0) = dfdA(x[i]);
+        M(i, 1) = dfdw(x[i]);
+        M(i, 2) = dfdtL(x[i]);
+        M(i, 3) = dfdtR(x[i]);
+        M(i, 4) = dfdtc(x[i]);
+    }
+    MatrixXd TM = M.transpose();
+    double sig = residuals(x, y);
+    VectorXd err = sig * (TM * M).ldlt().solve(TM*V);
+    double f = x.size() - 5;
+    mErrors->mA = std::sqrt(std::fabs(err(0)/f));
+    mErrors->mW = std::sqrt(std::fabs(err(1)/f));
+    mErrors->mDTL = std::sqrt(std::fabs(err(2)/f));
+    mErrors->mDTR = std::sqrt(std::fabs(err(3)/f));
+    mErrors->mTc = std::sqrt(std::fabs(err(4)/f));
+}
 
+double AsymmetricGaussian::dfdA(double x) const
+{
+    const double dx = (x - mParams->mTc) / mParams->mW;
+    const double dxL = mParams->mDTL / mParams->mW;
+    const double dxR = mParams->mDTR / mParams->mW;
+    if(dx < - dxL)
+        return std::exp(dxL * dx + .5 * dxL * dxL);
+    else if(dx > dxR)
+        return std::exp(.5 * dxR * dxR - dxR * dx);
+    else
+        return std::exp(-.5 * dx * dx);
+}
+
+double AsymmetricGaussian::dfdw(double x) const
+{
+    const double df = value(x);
+    const double dx = (x - mParams->mTc) / mParams->mW;
+    const double dxL = mParams->mDTL / mParams->mW;
+    const double dxR = mParams->mDTR / mParams->mW;
+    const double factor = - 2. / mParams->mW;
+    if(dx < -dxL)
+        return factor * (dxL * dx + .5 * dxL * dxL) * df;
+    else if (dx > dxR)
+        return factor * (.5 * dxR * dxR - dxR * dx) * df;
+    else
+        return -.5 * factor * dx * dx * df;
+}
+
+double AsymmetricGaussian::dfdtL(double x) const
+{
+    const double f = value(x);
+    const double dx = (x - mParams->mTc) / mParams->mW;
+    const double dxL = mParams->mDTL / mParams->mW;
+    if(dx >= -dxL) return 0.0;
+    else return (dx + dxL) * f / mParams->mW;
+}
+
+double AsymmetricGaussian::dfdtR(double x) const
+{
+    const double f = value(x);
+    const double dx = (x - mParams->mTc) / mParams->mW;
+    const double dxR = mParams->mDTR / mParams->mW;
+    if(dx <= dxR) return 0.0;
+    else return (dxR - dx) * f / mParams->mW;
+}
+
+double AsymmetricGaussian::dfdtc(double x) const
+{
+    const double f = value(x);
+    const double dx = (x - mParams->mTc) / mParams->mW;
+    const double dxL = mParams->mDTL / mParams->mW;
+    const double dxR = mParams->mDTR / mParams->mW;
+    if(dx < -dxL)
+        return - dxL * f / mParams->mW;
+    else if (dx > dxR)
+        return  dxR * f / mParams->mW;
+    else
+        return dx * f / mParams->mW;
+}
+
+double AsymmetricGaussian::residuals
+(
+    const CurveFitting::DoubleVector &x,
+    const CurveFitting::DoubleVector &y
+) const
+{
+    double s = 0.;
+    CurveFitting::DoubleVector yy;
+    values(x, yy);
+    for(size_t i = 0; i < x.size(); ++i)
+    {
+        s += (y[i] - yy[i]) * (y[i] - yy[i]);
+    }
+    return s / (y.size() - 5);
 }
 
 int AsymmetricGaussian::Function::getDims() const

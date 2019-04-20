@@ -1,5 +1,6 @@
 #include "LogSplinePoissonWeight.h"
 #include "ParSplineCalc.h"
+#include "Solvers.h"
 
 LogSplinePoissonWeight::LogSplinePoissonWeight
 (
@@ -132,20 +133,6 @@ void LogSplinePoissonWeightPoissonNoise::setParams(const QVariantMap &params)
     m_p = paramPtr<double>(SMOOTH_PARAM);
 }
 
-double LogSplinePoissonWeightPoissonNoise::sqDif
-(
-    const Smoother::VectorDouble &y1,
-    const Smoother::VectorDouble &y2
-)
-{
-    double res = 0;
-    for(size_t i = 0; i < y1.size(); ++i)
-    {
-        res += (y1[i] - y2[i]) * (y1[i] - y2[i]);
-    }
-    return res;
-}
-
 
 LogSplinePoissonWeightOnePeak::LogSplinePoissonWeightOnePeak
 (
@@ -235,4 +222,95 @@ void LogSplinePoissonWeightOnePeak::setParams(const QVariantMap &params)
     {
         *const_cast<double*>(m_noiseLevel) = 1.0;
     }
+}
+
+LSFixNoiseValue::LSFixNoiseValue(const QVariantMap &pars)
+    :
+      Smoother (pars, paramsTemplate()),
+      m_p(paramPtr<double>(SMOOTH_PARAM)),
+      m_noise(paramPtr<double>(NOISE_LEVEL))
+{
+
+}
+
+Smoother::Type LSFixNoiseValue::type() const
+{
+    return LogSplineFixNoiseValue;
+}
+
+void LSFixNoiseValue::run
+(
+    VectorDouble &yOut,
+    const VectorDouble &yIn
+)
+{
+    if(inputCheck(yOut, yIn))
+    {
+        ParSplineCalc::InstanceLocker calc
+        (
+            ParSplineCalc::lockInstance()
+        );
+        calc->logSplinePoissonWeights(yOut, yIn, *m_p);
+        double s = std(yOut, yIn);
+        double a, b;
+        if(s > *m_noise)
+        {
+            while (s > *m_noise)
+            {
+                calc->logSplinePoissonWeights
+                (
+                    yOut,
+                    yIn,
+                    *m_p /= 10.
+                );
+                s = std(yOut, yIn);
+            }
+            a = *m_p; b = *m_p * 10.;
+        }
+        else
+        {
+            while(s < *m_noise)
+            {
+                calc->logSplinePoissonWeights
+                (
+                    yOut,
+                    yIn,
+                    *m_p *= 10.
+                );
+                s = std(yOut, yIn);
+            }
+            a = *m_p / 10.; b = *m_p;
+        }
+
+        *m_p = math::froot
+        (
+            [&](double x)->double
+            {
+                calc->logSplinePoissonWeights
+                (
+                    yOut,
+                    yIn,
+                    x
+                );
+                return std(yOut, yIn) - *m_noise;
+            },
+            a,
+            b
+        );
+    }
+}
+
+QVariantMap LSFixNoiseValue::paramsTemplate() const
+{
+    QVariantMap params;
+    params[SMOOTH_PARAM] = QVariant::fromValue<double>(1.0);
+    params[NOISE_LEVEL] = QVariant::fromValue<double>(0.1);
+    return params;
+}
+
+void LSFixNoiseValue::setParams(const QVariantMap &params)
+{
+    Smoother::setParams(params);
+    m_p = paramPtr<double>(SMOOTH_PARAM);
+    m_noise = paramPtr<double>(NOISE_LEVEL);
 }

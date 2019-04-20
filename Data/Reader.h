@@ -86,7 +86,12 @@ public:
     void run();
 
 private:
+
+    void readEvent(quint64 event, quint64 sweep, quint64 prevSweep);
+
     QScopedPointer<QFile> mFile;
+    //Flag which type of edges read from riken data file
+    bool m_bEdgeUp;
 };
 
 class TxtFileReader : public Reader
@@ -137,7 +142,7 @@ public:
 
     Q_SIGNAL void massSpectrumReadNotify(MapUintUint);
 private:
-
+    bool m_bEdgeUp;
     QScopedPointer<QFile> mFile;
 };
 

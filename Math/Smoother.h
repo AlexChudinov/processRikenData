@@ -29,7 +29,8 @@ public:
     {
         LogSplinePoissonWeightType,
         LogSplinePoissonWeightPoissonNoiseType,
-        LogSplinePoissonWeightOnePeakType
+        LogSplinePoissonWeightOnePeakType,
+        LogSplineFixNoiseValue
     };
 
     static Pointer create(Type type, const QVariantMap& pars = QVariantMap());
@@ -83,7 +84,7 @@ public:
         );
     }
 
-    static inline const QMap<Type, QString>& registry()
+    static inline const QMap<QString, Type>& registry()
     {
         return s_registry;
     }
@@ -103,9 +104,28 @@ protected:
         else return nullptr;
     }
 
+    /**
+     * @brief sqDif square deviances between two arrays
+     * @param y1
+     * @param y2
+     * @return
+     */
+    static double sqDif
+    (
+        const VectorDouble& y1,
+        const VectorDouble& y2
+    );
+
+    //Standart square deviation
+    static double std
+    (
+        const VectorDouble& y1,
+        const VectorDouble& y2
+    );
+
 private:
     QVariantMap m_params;
-    static QMap<Type, QString> s_registry;
+    static QMap<QString, Type> s_registry;
     static QStringList s_typeStrings;
 };
 

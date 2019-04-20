@@ -1,17 +1,19 @@
 #include "LogSplinePoissonWeight.h"
 
-QMap<Smoother::Type, QString> Smoother::s_registry
+QMap<QString, Smoother::Type> Smoother::s_registry
 {
-    {Smoother::LogSplinePoissonWeightType, "LogSplinePoissonWeightType"},
-    {Smoother::LogSplinePoissonWeightPoissonNoiseType, "LogSplinePoissonWeightPoissonNoiseType"},
-    {Smoother::LogSplinePoissonWeightOnePeakType, "LogSplinePoissonWeightOnePeakType"}
+    {"LogSplinePoissonWeightType", Smoother::LogSplinePoissonWeightType},
+    {"LogSplinePoissonWeightPoissonNoiseType", Smoother::LogSplinePoissonWeightPoissonNoiseType},
+    {"LogSplinePoissonWeightOnePeakType", Smoother::LogSplinePoissonWeightOnePeakType},
+    {"LogSplineFixNoiseValue", Smoother::LogSplineFixNoiseValue}
 };
 
 QStringList Smoother::s_typeStrings
 {
     "LogSplinePoissonWeightType",
     "LogSplinePoissonWeightPoissonNoiseType",
-    "LogSplinePoissonWeightOnePeakType"
+    "LogSplinePoissonWeightOnePeakType",
+    "LogSplineFixNoiseValue"
 };
 
 Smoother::Smoother(const QVariantMap &pars, QVariantMap &&parsTemp)
@@ -53,15 +55,16 @@ Smoother::Pointer Smoother::create
         return Pointer(new LogSplinePoissonWeightPoissonNoise);
     case LogSplinePoissonWeightOnePeakType:
         return Pointer(new LogSplinePoissonWeightOnePeak(pars));
+    case LogSplineFixNoiseValue:
+        return Pointer(new LSFixNoiseValue(pars));
     }
     return Pointer();
 }
 
 Smoother::Pointer Smoother::create(const QString &typeName, const QVariantMap &pars)
 {
-    if (typeName == s_typeStrings[0]) return Pointer(new LogSplinePoissonWeight(pars));
-    else if (typeName == s_typeStrings[1]) return Pointer(new LogSplinePoissonWeightPoissonNoise);
-    else if (typeName == s_typeStrings[2]) return Pointer(new LogSplinePoissonWeightOnePeak(pars));
+    QMap<QString, Type>::ConstIterator it = s_registry.find(typeName);
+    if (it != s_registry.end()) return create(it.value(), pars);
     else return Pointer();
 }
 
@@ -81,4 +84,23 @@ void Smoother::setParams(const QVariantMap &params)
         }
         if(ok) m_params = params;
     }
+}
+
+double Smoother::sqDif
+(
+    const VectorDouble &y1,
+    const VectorDouble &y2
+)
+{
+    double res = 0;
+    for(size_t i = 0; i < y1.size(); ++i)
+    {
+        res += (y1[i] - y2[i]) * (y1[i] - y2[i]);
+    }
+    return res;
+}
+
+double Smoother::std(const Smoother::VectorDouble &y1, const Smoother::VectorDouble &y2)
+{
+    return sqDif(y1, y2) / y1.size();
 }

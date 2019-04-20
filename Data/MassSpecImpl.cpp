@@ -185,13 +185,13 @@ MassSpecImpl::VecShrdPtr MassSpecMap::vecData(int minTimeBin, int maxTimeBin)
 
 MassSpecImpl::Map::value_type MassSpecMap::first() const
 {
-    assert(isPacked());
+    assert(!isPacked());
     return *mData.begin();
 }
 
 MassSpecImpl::Map::value_type MassSpecMap::last() const
 {
-    assert(isPacked());
+    assert(!isPacked());
     return *mData.rbegin();
 }
 
@@ -202,7 +202,7 @@ bool MassSpecMap::isEmpty() const
 
 int MassSpecMap::tic(int t0, int t1) const
 {
-    if(t1 >= t0) return 0;
+    if(t0 >= t1) return 0;
     int res = 0;
     Map::const_iterator _First = mData.lower_bound(t0);
     Map::const_iterator _Last = mData.upper_bound(t1);

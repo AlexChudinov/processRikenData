@@ -94,6 +94,7 @@ public:
 
     using GraphData = PropertiesOfPlot::GraphData;
     using DoubleVector = QVector<double>;
+    using StdDoubleVector = std::vector<double>;
     using GraphDataPtr = QSharedPointer<QCPGraphDataContainer>;
 
     explicit DataPlot
@@ -143,6 +144,22 @@ private:
      * @return
      */
     int choosePlotIdx();
+
+    /**
+     * @brief showInfoMessage shows informational message
+     * from the data plot
+     * @param info
+     */
+    void showInfoMessage(const QString& info) const;
+
+    /**
+     * @brief equalRangedDataPoints makes equal ranged data points
+     * from current range
+     * @param x
+     * @param y
+     * @param idx index of Plot
+     */
+    void equalRangedDataPoints(StdDoubleVector& x, StdDoubleVector &y, int idx);
 
     static inline QVector<QCPGraphData> zip(const DoubleVector& x, const DoubleVector& y);
     static inline QPair<DoubleVector, DoubleVector> unzip(const QCPGraphDataContainer& xy);

@@ -114,16 +114,17 @@ DISTFILES += \
 unix
 {
     INCLUDEPATH += /usr/local/include/opencv4/
-
     LIBS += /usr/local/lib/libopencv*
 }
 
 win32
 {
-    INCLUDEPATH += C:/zlib/
-    INCLUDEPATH += C:/opencv/build/include/
-    INCLUDEPATH += C:/opencv/build/include/
-    INCLUDEPATH += C:/Boost/
+    INCLUDEPATH += C:/zlib \
+        C:/opencv/build/include \
+        C:/opencv/build/include \
+        C:/Boost \
+        C:/Eigen
+
     CONFIG(debug, debug|release)
     {
         LIBS += C:\opencv\build\x64\vc15\lib\opencv_world343d.lib

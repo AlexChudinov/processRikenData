@@ -41,18 +41,6 @@ public:
     QVariantMap paramsTemplate() const;
 
     void setParams(const QVariantMap &params);
-private:
-    /**
-     * @brief sqDif square deviances between two arrays
-     * @param y1
-     * @param y2
-     * @return
-     */
-    static double sqDif
-    (
-        const VectorDouble& y1,
-        const VectorDouble& y2
-    );
 };
 
 /**
@@ -85,6 +73,22 @@ private:
                     && y[i] > 1.0) cnt++;
         return cnt;
     }
+};
+
+class LSFixNoiseValue : public Smoother
+{
+    double * m_p;
+    double * m_noise;
+public:
+    LSFixNoiseValue(const QVariantMap& pars);
+
+    Type type() const;
+
+    void run(VectorDouble& yOut, const VectorDouble& yIn);
+
+    QVariantMap paramsTemplate() const;
+
+    void setParams(const QVariantMap& params);
 };
 
 #endif // LOGSPLINEPOISSONWEIGHT_H

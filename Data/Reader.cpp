@@ -279,7 +279,8 @@ void TxtFileReader::readTimeParams(QTextStream &stream)
 RikenDataReader::RikenDataReader(QObject *parent)
     :
       TimeEventsReader (parent),
-      mFile(new QFile)
+      mFile(new QFile),
+      m_bEdgeUp(true)
 {
 
 }
@@ -289,6 +290,15 @@ void RikenDataReader::open(const QString& fileName)
     mFile->setFileName(fileName);
     bool fOpened = mFile->open(QIODevice::ReadOnly|QIODevice::Text);
     Q_ASSERT(fOpened);
+    QString item = QInputDialog::getItem
+    (
+        Q_NULLPTR,
+        tr("Open REAKEN data file"),
+        tr("Edge direction:"),
+        QStringList() << "Up" << "Down"
+    );
+    if(item == "Up") m_bEdgeUp = true;
+    else m_bEdgeUp = false;
 }
 
 void RikenDataReader::close()
@@ -299,6 +309,7 @@ void RikenDataReader::close()
 void RikenDataReader::run()
 {
     Q_EMIT started();
+    MyInit::instance()->massSpecColl()->setFileName(mFile->fileName());
     QTextStream stream(mFile.data());
 
     Q_EMIT eventRead(0);
@@ -311,13 +322,16 @@ void RikenDataReader::run()
     {
         quint64 chan, edge, tag, sweep, evt;
         stream >> chan >> edge >> tag >> sweep >> evt;
-        if(sweep != prevSweep)
+        if((m_bEdgeUp && edge == 1) || (m_bEdgeUp && edge == 0))
         {
-            quint64 diff = sweep > prevSweep ? sweep - prevSweep
-                : prevSweep + std::numeric_limits<uint16_t>::max() - sweep;
-            for(; diff != 0; diff--) Q_EMIT eventRead(0);
+            if(sweep != prevSweep)
+            {
+                quint64 diff = sweep > prevSweep ? sweep - prevSweep
+                    : prevSweep + std::numeric_limits<uint16_t>::max() - sweep;
+                for(; diff != 0; diff--) Q_EMIT eventRead(0);
+            }
+            Q_EMIT eventRead(evt);
         }
-        Q_EMIT eventRead(evt);
     }
     Q_EMIT finished();
 }
@@ -325,6 +339,7 @@ void RikenDataReader::run()
 DirectMsFromRikenTxt::DirectMsFromRikenTxt(QObject *parent)
     :
       Reader(parent),
+      m_bEdgeUp(true),
       mFile(new QFile)
 {
     connect
@@ -341,6 +356,15 @@ void DirectMsFromRikenTxt::open(const QString &fileName)
     mFile->setFileName(fileName);
     bool fOpenned = mFile->open(QFile::ReadOnly | QFile::Text);
     Q_ASSERT(fOpenned);
+    QString item = QInputDialog::getItem
+    (
+        Q_NULLPTR,
+        tr("Open REAKEN data file"),
+        tr("Edge direction:"),
+        QStringList() << "Up" << "Down"
+    );
+    if(item == "Up") m_bEdgeUp = true;
+    else m_bEdgeUp = false;
 }
 
 void DirectMsFromRikenTxt::close()
@@ -361,6 +385,8 @@ void DirectMsFromRikenTxt::run()
         }
     );
 
+    MyInit::instance()->massSpecColl()->setFileName(mFile->fileName());
+
     QTextStream stream(mFile.data());
     MapIntInt ms;
     int nLines = 0;
@@ -377,13 +403,16 @@ void DirectMsFromRikenTxt::run()
         quint64 chan, edge, tag, sweep;
         int evt;
         stream >> chan >> edge >> tag >> sweep >> evt;
-        MapIntInt::iterator it = ms.find(evt);
-        if(it != ms.end()) it->second++;
-        else
+        if((m_bEdgeUp && edge == 1) || (!m_bEdgeUp && edge == 0))
         {
-            ms.insert(it, {evt, 1});
+            MapIntInt::iterator it = ms.find(evt);
+            if(it != ms.end()) it->second++;
+            else
+            {
+                ms.insert(it, {evt, 1});
+            }
+            if(i % step == 0) Q_EMIT progressNotify((100 * i) / nLines);
         }
-        if(i % step == 0) Q_EMIT progressNotify((100 * i) / nLines);
     }
 
     MyInit::instance()->massSpecColl()->blockingAddMassSpec(ms);

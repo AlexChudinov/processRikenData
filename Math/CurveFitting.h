@@ -134,19 +134,20 @@ private:
     void curveScaling(const DoubleVector& x, const DoubleVector& y);
 
     void estimateErrors(const DoubleVector& x, const DoubleVector& y);
+
+    //Derivatives of function by its parameters
+    double dfdA(double x) const;
+    double dfdw(double x) const;
+    double dfdtL(double x) const;
+    double dfdtR(double x) const;
+    double dfdtc(double x) const;
+
+    double residuals(const DoubleVector& x, const DoubleVector& y) const;
 };
 
 double AsymmetricGaussian::value(double x) const
 {
-    const double dx = (x - mParams->mTc) / mParams->mW;
-    const double dxL = mParams->mDTL / mParams->mW;
-    const double dxR = mParams->mDTR / mParams->mW;
-    if(dx < - dxL)
-        return mParams->mA * std::exp(dxL * dx + .5 * dxL * dxL);
-    else if(dx > dxR)
-        return mParams->mA * std::exp(.5 * dxR * dxR - dxR * dx);
-    else
-        return mParams->mA * std::exp(-.5 * dx * dx);
+    return mParams->mA * dfdA(x);
 }
 
 #endif // CURVEFITTING_H

@@ -89,47 +89,36 @@ void DataPlot::calculateSmoothing()
         createSmoother();
         if(mSmoother)
         {
-            const QCPRange range = mPlot->xAxis->range();
 
-            const PropertiesOfPlot& props = mPlotProps[choosePlotIdx()];
-
-            QCPGraphDataContainer::const_iterator _First = props.mData->findBegin(range.lower);
-            QCPGraphDataContainer::const_iterator _Last = props.mData->findEnd(range.upper);
-
-            //Early return if the data otside the range
-            if(_First == std::prev(props.mData->end())) return;
-
-            const size_t n = static_cast<size_t>(std::distance(_First, _Last));
-            Interpolator::Vector x(n), y(n);
-            for(size_t i = 0; _First != _Last; ++_First, ++i)
-            {
-                x[i] = _First->key;
-                y[i] = _First->value;
-            }
-
-            double step;
-            Interpolator::Vector yNew = mInterp->equalStepData(x, y, step),
-                    xNew(yNew.size()),
-                    ySmoothed;
-
-            double xx0 = x[0] - step;
-            for(double & xx : xNew) xx = xx0 += step;
-
+            StdDoubleVector ySmoothed, y, x;
+            equalRangedDataPoints(x, y, choosePlotIdx());
             std::replace_if
             (
-                yNew.begin(),
-                yNew.end(),
+                y.begin(),
+                y.end(),
                 [](double val)->bool { return val < 0.; },
                 0.
             );
 
-            mSmoother->run(ySmoothed, yNew);
+            mSmoother->run(ySmoothed, y);
 
             addPlot
             (
                 tr("Smoothed data mz: %1 - %2").arg(x.front()).arg(x.back()),
-                 QVector<double>::fromStdVector(xNew),
+                 QVector<double>::fromStdVector(x),
                  QVector<double>::fromStdVector(ySmoothed)
+            );
+            double s = 0.0;
+
+            for(size_t i = 0; i < ySmoothed.size(); ++i)
+            {
+                const double ds = ySmoothed[i] - y[i];
+                s += ds * ds;
+            }
+
+            showInfoMessage
+            (
+                tr("sig = %1").arg(s / ySmoothed.size())
             );
         }
     }
@@ -163,6 +152,10 @@ void DataPlot::createSmoother()
         dialog.setProps(mSmoother->params());
         dialog.exec();
         mSmoother->setParams(dialog.props());
+    }
+    else
+    {
+        mSmoother.release();
     }
 }
 
@@ -218,26 +211,13 @@ void DataPlot::on_fitData()
     );
     if(ok)
     {
-        const QCPRange range = mPlot->xAxis->range();
+        StdDoubleVector x, y;
 
-        const PropertiesOfPlot& props = mPlotProps[choosePlotIdx()];
-
-        QCPGraphDataContainer::const_iterator _First = props.mData->findBegin(range.lower);
-        QCPGraphDataContainer::const_iterator _Last = props.mData->findEnd(range.upper);
-
-        CurveFitting::DoubleVector
-                x(static_cast<size_t>(std::distance(_First, _Last))),
-                y(x.size());
-
-        for(size_t i = 0; _First != _Last; ++_First, ++i)
-        {
-            x[i] = _First->key;
-            y[i] = _First->value;
-        }
+        equalRangedDataPoints(x, y, choosePlotIdx());
 
         CurveFitting::Ptr approx = CurveFitting::create(item, x, y);
 
-        CurveFitting::DoubleVector yy;
+        StdDoubleVector yy;
         approx->values(x, yy);
 
         addPlot
@@ -246,6 +226,16 @@ void DataPlot::on_fitData()
             DoubleVector::fromStdVector(x),
             DoubleVector::fromStdVector(yy)
         );
+
+        double s = 0.0;
+
+        for(size_t i = 0; i < yy.size(); ++i)
+        {
+            const double ds = yy[i] - y[i];
+            s += ds * ds;
+        }
+
+        showInfoMessage(tr("Resudial sum of square deviations: %1").arg(s / y.size()));
     }
 }
 
@@ -286,6 +276,41 @@ int DataPlot::choosePlotIdx()
     }
     QString item = QInputDialog::getItem(this, tr("Choose plot"), tr("Plots list"), items);
     return std::distance(items.begin(), std::find(items.begin(), items.end(), item));
+}
+
+void DataPlot::showInfoMessage(const QString &info) const
+{
+    QMessageBox wnd
+    (
+        QMessageBox::Icon::Information,
+        "Data plot",
+        info
+    );
+
+    wnd.exec();
+}
+
+void DataPlot::equalRangedDataPoints(StdDoubleVector &x, StdDoubleVector &y, int idx)
+{
+    PropertiesOfPlot::GraphData data = mPlotProps[idx].mData;
+    QCPRange range = mPlot->xAxis->range();
+    QCPGraphDataContainer::const_iterator _First = data->findBegin(range.lower);
+    QCPGraphDataContainer::const_iterator _Last = data->findEnd(range.upper);
+    const size_t n = std::distance(_First, _Last);
+    StdDoubleVector xPlot(n), yPlot(n);
+    for(size_t i = 0; i < n; ++i, ++_First)
+    {
+        xPlot[i] = _First->key;
+        yPlot[i] = _First->value;
+    }
+    double step;
+    y = mInterp->equalStepData(xPlot, yPlot, step);
+    x.resize(y.size());
+    double x0 = xPlot[0] - step;
+    for(size_t i = 0; i < x.size(); ++i)
+    {
+        x[i] = x0 += step;
+    }
 }
 
 PropertiesOfPlotForm::PropertiesOfPlotForm(QWidget *parent)

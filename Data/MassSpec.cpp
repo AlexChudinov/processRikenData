@@ -261,6 +261,7 @@ const QString &MassSpectrumsCollection::fileName() const
 void MassSpectrumsCollection::setFileName(const QString &fileName)
 {
     mFileName = fileName;
+    Q_EMIT fileNameNotify(fileName);
 }
 
 MassSpecImpl::MapShrdPtr MassSpectrumsCollection::massSpec(size_t idx)
@@ -424,35 +425,13 @@ VecInt MassSpectrumsCollection::readTotalIonCurrent
     if(idxFirst < idxLast)
     {
         res.assign(idxLast - idxFirst, 0);
-        QFuture<void> unpackTask = QtConcurrent::run
-        (
-            [this, idxFirst] () mutable
-            {
-                mCollection[idxFirst]->unpack();
-            }
-        ), packTask;
         for(size_t i = 0; idxFirst < idxLast; ++idxFirst, ++i)
         {
-            packTask.waitForFinished();
-            unpackTask.waitForFinished();
-            if(idxFirst + 1 < idxLast)
-                unpackTask = QtConcurrent::run
-                (
-                    [this, idxFirst] () mutable
-                    {
-                        mCollection[idxFirst + 1]->unpack();
-                    }
-                );
+            mCollection[idxFirst]->unpack();
             MassSpecImpl::Map::value_type _First = mCollection[idxFirst]->first();
             MassSpecImpl::Map::value_type _Last = mCollection[idxFirst]->last();
             res[i] = mCollection[idxFirst]->tic(_First.first, _Last.first);
-            auto packTask = QtConcurrent::run
-            (
-                [this, idxFirst] () mutable
-                {
-                    mCollection[idxFirst]->pack();
-                }
-            );
+            mCollection[idxFirst]->pack();
         }
     }
     return res;
