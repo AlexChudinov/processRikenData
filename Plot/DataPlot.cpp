@@ -120,6 +120,24 @@ void DataPlot::calculateSmoothing()
             (
                 tr("sig = %1").arg(s / ySmoothed.size())
             );
+            if(mSmoother->type() == Smoother::LogSplineFixNoiseValue)
+            {
+                LSFixNoiseValue * pSpline = dynamic_cast<LSFixNoiseValue *>(mSmoother.get());
+                PeakParams * peakParams = dynamic_cast<PeakParams *>(pSpline);
+                QLocale locale;
+                QString strPos = locale.toString
+                (
+                    peakParams->peakPosition() + * x.begin(),
+                    'f',
+                    10
+                );
+                showInfoMessage
+                (
+                    tr("Peak position: %1 +/- %2")
+                            .arg(strPos)
+                            .arg(peakParams->peakPositionUncertainty())
+                );
+            }
         }
     }
     catch (const std::exception& e)

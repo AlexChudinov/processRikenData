@@ -8,8 +8,9 @@
 #include <QVariant>
 #include <QMap>
 #include <opencv2/core/core.hpp>
+#include "Math/peakparams.h"
 
-class CurveFitting
+class CurveFitting : public PeakParams
 {
 public:
     using DoubleVector = std::vector<double>;
@@ -49,7 +50,7 @@ public:
      * @param out
      * @return
      */
-    virtual QTextStream& operator>>(QTextStream& out) const = 0;
+    virtual void print(QTextStream& out) const = 0;
 };
 
 /**
@@ -81,8 +82,6 @@ class AsymmetricGaussian : public CurveFitting
         mutable AsymmetricGaussian * mObj;
         const DoubleVector& m_x;
         const DoubleVector& m_y;
-        virtual int getDims() const;
-        virtual double calc(const double* x) const;
     public:
         Function
         (
@@ -98,9 +97,20 @@ class AsymmetricGaussian : public CurveFitting
         {
 
         }
+
+        int getDims() const;
+        double calc(const double* x) const;
+        void getGradient(const double * x, double * y);
     };
 
     using Errors = Parameters;
+
+    AsymmetricGaussian
+    (
+        const DoubleVector& x,
+        const DoubleVector& y,
+        const AsymmetricGaussian& other
+    );
 
 public:
     AsymmetricGaussian(const DoubleVector& x, const DoubleVector& y);
@@ -116,13 +126,19 @@ public:
     ParamsList properties() const;
     void setProperties(const ParamsList& props);
 
-    virtual QTextStream& operator>>(QTextStream& out) const;
+    virtual void print(QTextStream& out) const;
+
+    double peakPosition() const;
+    double peakPositionUncertainty() const;
+
 private:
     double mResudials;
 
     QScopedPointer<Parameters> mParams;
     QScopedPointer<Errors> mErrors;
     QScopedPointer<Properties> mProps;
+
+    double run(const DoubleVector& x, const DoubleVector& y);
 
     void init(const DoubleVector& x, const DoubleVector& y);
 
@@ -133,7 +149,7 @@ private:
      */
     void curveScaling(const DoubleVector& x, const DoubleVector& y);
 
-    void estimateErrors(const DoubleVector& x, const DoubleVector& y);
+    void estimateErrors(const DoubleVector& x);
 
     //Derivatives of function by its parameters
     double dfdA(double x) const;

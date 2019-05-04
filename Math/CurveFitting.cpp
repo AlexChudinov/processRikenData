@@ -1,5 +1,6 @@
 #include <QMessageBox>
 #include <Eigen/Dense>
+#include <array>
 #include "CurveFitting.h"
 #include "../Base/ThreadPool.h"
 #include "../QMapPropsDialog.h"
@@ -32,6 +33,21 @@ CurveFitting::~CurveFitting()
 
 AsymmetricGaussian::AsymmetricGaussian
 (
+    const DoubleVector &x,
+    const DoubleVector &y,
+    const AsymmetricGaussian &other
+)
+    :
+      CurveFitting (x, y),
+      mParams(new Parameters(*other.mParams)),
+      mErrors(new Errors(*other.mErrors)),
+      mProps(new Properties(*other.mProps))
+{
+    run(x, y);
+}
+
+AsymmetricGaussian::AsymmetricGaussian
+(
     const CurveFitting::DoubleVector &x,
     const CurveFitting::DoubleVector &y
 )
@@ -43,38 +59,8 @@ AsymmetricGaussian::AsymmetricGaussian
     dialog.setProps(properties());
     dialog.exec();
     setProperties(dialog.props());
-    double A;
-    size_t iterNum = 0;
-    do
-    {
-        A = mParams->mA;
-        cv::Mat_<double> res(4, 1);
-        res << mParams->mW, mParams->mTc,
-            mParams->mDTL, mParams->mDTR;
-        cv::Ptr<cv::DownhillSolver> solver
-        (
-            cv::DownhillSolver::create
-            (
-                cv::Ptr<Function>(new Function(this, x, y)),
-                res
-            )
-        );
-        solver->setInitStep(mProps->mStep * res);
-        solver->minimize(res);
-        solver->setTermCriteria(cv::TermCriteria(3, 10000, A * mProps->mRelTol));
-        mParams->mW = res(0);
-        mParams->mTc = res(1);
-        mParams->mDTL = res(2);
-        mParams->mDTR = res(3);
-        curveScaling(x, y);
-    }
-    while
-    (
-        A != 0.0
-        && std::fabs(A - mParams->mA)/A > mProps->mRelTol
-        && (++iterNum < mProps->mIterNum)
-    );
-    if(A == 0.0)
+
+    if(run(x, y) == 0.0)
     {
         QMessageBox::warning
         (
@@ -85,18 +71,19 @@ AsymmetricGaussian::AsymmetricGaussian
     }
     else
     {
-        estimateErrors(x, y);
+        estimateErrors(x);
         QString fitting;
         QTextStream stream(&fitting);
-        *this >> stream;
+        print(stream);
         stream << "sig = " << residuals(x, y) << "\n";
         stream.flush();
-        QMessageBox::warning
+        QMessageBox msg
         (
-            Q_NULLPTR,
-            "Fitting result",
-            fitting
+            QMessageBox::Information,
+            "Curve fitting",
+            *stream.string()
         );
+        msg.exec();
     }
 }
 
@@ -188,11 +175,12 @@ void AsymmetricGaussian::setProperties
     Q_ASSERT(ok);
 }
 
-QTextStream &AsymmetricGaussian::operator>>(QTextStream &out) const
+void AsymmetricGaussian::print(QTextStream &out) const
 {
     out << "Fitted with " << eqn() << "\n";
     QVariantMap pars = params();
     QVariantMap errs = errors();
+    out.setRealNumberPrecision(10);
     bool ok = true;
     for
     (
@@ -205,7 +193,55 @@ QTextStream &AsymmetricGaussian::operator>>(QTextStream &out) const
             << "+/-" << itErrs.value().toDouble(&ok) << "\n";
     }
     Q_ASSERT(ok);
-    return out;
+}
+
+double AsymmetricGaussian::peakPosition() const
+{
+    return mParams->mTc;
+}
+
+double AsymmetricGaussian::peakPositionUncertainty() const
+{
+    return mErrors->mTc;
+}
+
+double AsymmetricGaussian::run
+(
+    const DoubleVector &x,
+    const DoubleVector &y
+)
+{
+    double A;
+    size_t iterNum = 0;
+    do
+    {
+        A = mParams->mA;
+        cv::Mat_<double> res(4, 1);
+        res << mParams->mW, mParams->mTc,
+            mParams->mDTL, mParams->mDTR;
+        cv::Ptr<cv::DownhillSolver> solver
+        (
+            cv::DownhillSolver::create
+            (
+                cv::Ptr<Function>(new Function(this, x, y))
+            )
+        );
+        solver->setInitStep(0.1 * res);
+        solver->setTermCriteria(cv::TermCriteria(3, 10000, A * mProps->mRelTol));
+        solver->minimize(res);
+        mParams->mW = res(0);
+        mParams->mTc = res(1);
+        mParams->mDTL = res(2);
+        mParams->mDTR = res(3);
+        curveScaling(x, y);
+    }
+    while
+    (
+        A != 0.0
+        && std::fabs(A - mParams->mA)/A > mProps->mRelTol
+        && (++iterNum < mProps->mIterNum)
+    );
+    return A;
 }
 
 void AsymmetricGaussian::init(const CurveFitting::DoubleVector &x, const CurveFitting::DoubleVector &y)
@@ -215,7 +251,7 @@ void AsymmetricGaussian::init(const CurveFitting::DoubleVector &x, const CurveFi
     mProps.reset(new Properties);
     *mParams = {1., 0., 0., 0., 0.};
     *mErrors = {0., 0., 0., 0., 0.};
-    *mProps = {0.1, 1e-6, 10000};
+    *mProps = {0.25, 1e-6, 10};
     double norm = 0.0, xx = 0.0, xx2 = 0.0;
     for(size_t i = 0; i < x.size(); ++i)
     {
@@ -247,35 +283,29 @@ void AsymmetricGaussian::curveScaling(const CurveFitting::DoubleVector &x, const
 
 void AsymmetricGaussian::estimateErrors
 (
-    const CurveFitting::DoubleVector &x,
-    const CurveFitting::DoubleVector &y
+    const CurveFitting::DoubleVector &x
 )
 {
-    const size_t n = x.size();
-    DoubleVector
-            dfdA_vals(n), dfdw_vals(n),
-            dfdtL_vals(n), dfdtR_vals(n),
-            dfdtc_vals(n);
-    MatrixXd M(n, 5);
-    VectorXd V(x.size());
-    V.fill(1.0);
-    for(size_t i = 0; i < x.size(); ++i)
+    const size_t nRuns = 10;
+    DoubleVector y0;
+    values(x, y0);
+    std::poisson_distribution<> dist;
+    std::mt19937_64 gen;
+    double sig = 0.0;
+    for(size_t i = 0; i < nRuns; ++i)
     {
-        M(i, 0) = dfdA(x[i]);
-        M(i, 1) = dfdw(x[i]);
-        M(i, 2) = dfdtL(x[i]);
-        M(i, 3) = dfdtR(x[i]);
-        M(i, 4) = dfdtc(x[i]);
+        DoubleVector yy(y0.size());
+        for(size_t j = 0; j < yy.size(); ++j)
+        {
+            dist.param(std::poisson_distribution<>::param_type(y0[j]));
+            yy[j] = dist(gen);
+        }
+        AsymmetricGaussian gaus(x, yy, *this);
+        double d = mParams->mTc - gaus.mParams->mTc;
+        sig += d * d;
     }
-    MatrixXd TM = M.transpose();
-    double sig = residuals(x, y);
-    VectorXd err = sig * (TM * M).ldlt().solve(TM*V);
-    double f = x.size() - 5;
-    mErrors->mA = std::sqrt(std::fabs(err(0)/f));
-    mErrors->mW = std::sqrt(std::fabs(err(1)/f));
-    mErrors->mDTL = std::sqrt(std::fabs(err(2)/f));
-    mErrors->mDTR = std::sqrt(std::fabs(err(3)/f));
-    mErrors->mTc = std::sqrt(std::fabs(err(4)/f));
+    sig /= nRuns;
+    mErrors->mTc = std::sqrt(sig);
 }
 
 double AsymmetricGaussian::dfdA(double x) const
@@ -366,13 +396,38 @@ double AsymmetricGaussian::Function::calc(const double *x) const
     mObj->mParams->mDTL = x[2];
     mObj->mParams->mDTR = x[3];
     mObj->curveScaling(m_x, m_y);
-    QMutex mut;
     double s = 0.;
-    ThreadPool::parFor(m_x.size(), [&](size_t i)
+    for(size_t i = 0; i < m_x.size(); ++i)
     {
         double ss = mObj->value(m_x[i]) - m_y[i];
-        QMutexLocker lock(&mut);
-        s += (ss * ss);
-    });
+        s += ss*ss;
+    }
     return s;
+}
+
+void AsymmetricGaussian::Function::getGradient(const double *x, double *y)
+{
+    mObj->mParams->mW = x[0];
+    mObj->mParams->mTc = x[1];
+    mObj->mParams->mDTL = x[2];
+    mObj->mParams->mDTR = x[3];
+    mObj->curveScaling(m_x, m_y);
+    DoubleVector yy;
+    mObj->values(m_x, yy);
+    y[0] = 0.0;
+    y[1] = 0.0;
+    y[2] = 0.0;
+    y[3] = 0.0;
+    for(size_t i = 0; i < m_x.size(); ++i)
+    {
+        double d = yy[i] - m_y[i];
+        y[0] += d * mObj->dfdw(m_x[i]);
+        y[1] += d * mObj->dfdtc(m_x[i]);
+        y[2] += d * mObj->dfdtL(m_x[i]);
+        y[3] += d * mObj->dfdtR(m_x[i]);
+    }
+    y[0] *= 2.0;
+    y[1] *= 2.0;
+    y[2] *= 2.0;
+    y[3] *= 2.0;
 }

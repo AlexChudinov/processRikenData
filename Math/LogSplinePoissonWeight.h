@@ -2,6 +2,7 @@
 #define LOGSPLINEPOISSONWEIGHT_H
 
 #include "Smoother.h"
+#include "peakparams.h"
 
 /**
  * @brief The LogSplinePoissonWeight class calculates log spline
@@ -75,10 +76,12 @@ private:
     }
 };
 
-class LSFixNoiseValue : public Smoother
+class LSFixNoiseValue : public Smoother, public PeakParams
 {
     double * m_p;
     double * m_noise;
+    double m_maxPeakPos;
+    double m_maxPeakPosUncertainty;
 public:
     LSFixNoiseValue(const QVariantMap& pars);
 
@@ -89,6 +92,10 @@ public:
     QVariantMap paramsTemplate() const;
 
     void setParams(const QVariantMap& params);
+
+    double peakPosition() const;
+
+    double peakPositionUncertainty() const;
 };
 
 #endif // LOGSPLINEPOISSONWEIGHT_H

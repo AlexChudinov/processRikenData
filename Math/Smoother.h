@@ -95,6 +95,8 @@ public:
     }
 
 protected:
+    static double maxPeakPos(const VectorDouble& y);
+
     template <class T>
     inline T* paramPtr(const QString& key)
     {

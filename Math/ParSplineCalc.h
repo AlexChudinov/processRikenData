@@ -33,6 +33,10 @@ public:
 		~InstanceLocker();
 
 		ParSplineCalc * operator -> () { return m_instance; }
+        const ParSplineCalc * operator -> () const { return m_instance; }
+
+        ParSplineCalc * get() { return m_instance; }
+        const ParSplineCalc * get() const { return m_instance; }
 
 		operator bool() const { return m_instance; }
 	};

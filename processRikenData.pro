@@ -49,7 +49,8 @@ SOURCES += main.cpp\
     Math/alglib/specialfunctions.cpp \
     Math/alglib/statistics.cpp \
     Data/MassSpecImpl.cpp \
-    Data/PackProc.cpp
+    Data/PackProc.cpp \
+    Math/peakparams.cpp
 
 HEADERS  += mainwindow.h \
     QCustomPlot/qcustomplot.h \
@@ -90,7 +91,8 @@ HEADERS  += mainwindow.h \
     Math/alglib/statistics.h \
     Math/alglib/stdafx.h \
     Data/MassSpecImpl.h \
-    Data/PackProc.h
+    Data/PackProc.h \
+    Math/peakparams.h
 
 FORMS    += mainwindow.ui \
     PropertiesListForm.ui \

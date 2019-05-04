@@ -2,6 +2,8 @@
 #include "ParSplineCalc.h"
 #include "Solvers.h"
 
+#include <random>
+
 LogSplinePoissonWeight::LogSplinePoissonWeight
 (
     const QVariantMap &pars
@@ -105,20 +107,20 @@ void LogSplinePoissonWeightPoissonNoise::run
             a = *m_p / 10.; b = *m_p;
         }
 
-        while(std::abs(a - b) > 1.0)
-        {
-            calc->logSplinePoissonWeights
-            (
-                yOut,
-                yIn,
-                *m_p = .5 * (a + b)
-            );
-            TIC = std::accumulate(yOut.begin(), yOut.end(), 0.0);
-            s = sqDif(yOut, yIn);
-            if(s < TIC) a = *m_p;
-            else if (s > TIC) b = *m_p;
-            else break;
-        }
+        math::froot
+        (
+            [&](double x)->double
+            {
+                calc->logSplinePoissonWeights
+                (
+                    yOut,
+                    yIn,
+                    x
+                );
+                return sqDif(yOut, yIn) - std::accumulate(yOut.begin(), yOut.end(), 0.0);
+            },
+            a, b
+        );
     }
 }
 
@@ -297,6 +299,34 @@ void LSFixNoiseValue::run
             a,
             b
         );
+
+        m_maxPeakPos = maxPeakPos(yOut);
+
+        m_maxPeakPosUncertainty = 0.0;
+
+        const size_t nRuns = 10;
+        VectorDouble yy(yOut.size()), yyOut(yOut.size());
+        std::poisson_distribution<> dist;
+        std::mt19937_64 gen;
+        for(size_t i = 0; i < nRuns; ++i)
+        {
+            for(size_t j = 0; j < yOut.size(); ++j)
+            {
+                if(yOut[j] > 0.0)
+                {
+                    dist.param(std::poisson_distribution<>::param_type(yOut[j]));
+                    yy[j] = dist(gen);
+                }
+                else
+                {
+                    yy[j] = 0.0;
+                }
+            }
+            calc->logSplinePoissonWeights(yyOut, yy, *m_p);
+            double d = maxPeakPos(yyOut) - m_maxPeakPos;
+            m_maxPeakPosUncertainty += d*d;
+        }
+        m_maxPeakPosUncertainty = std::sqrt(m_maxPeakPosUncertainty/nRuns);
     }
 }
 
@@ -314,3 +344,14 @@ void LSFixNoiseValue::setParams(const QVariantMap &params)
     m_p = paramPtr<double>(SMOOTH_PARAM);
     m_noise = paramPtr<double>(NOISE_LEVEL);
 }
+
+double LSFixNoiseValue::peakPosition() const
+{
+    return m_maxPeakPos;
+}
+
+double LSFixNoiseValue::peakPositionUncertainty() const
+{
+    return m_maxPeakPosUncertainty;
+}
+

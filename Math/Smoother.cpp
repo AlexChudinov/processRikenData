@@ -86,6 +86,15 @@ void Smoother::setParams(const QVariantMap &params)
     }
 }
 
+double Smoother::maxPeakPos(const VectorDouble &y)
+{
+    VectorDouble::const_iterator it = std::max_element(y.cbegin(), y.cend());
+    const ptrdiff_t n = std::distance(y.cbegin(), it);
+    double b = y[n+1] - y[n-1];
+    double a = y[n+1] - 2*y[n] + y[n-1];
+    return static_cast<double>(n) - b / 2 / a;
+}
+
 double Smoother::sqDif
 (
     const VectorDouble &y1,
