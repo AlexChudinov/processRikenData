@@ -46,7 +46,7 @@ public:
     virtual void setProperties(const ParamsList&) = 0;
 
     /**
-     * @brief operator << prints fitting data into stream
+     * @brief prints fitting data into stream
      * @param out
      * @return
      */
@@ -165,5 +165,31 @@ double AsymmetricGaussian::value(double x) const
 {
     return mParams->mA * dfdA(x);
 }
+
+/**
+ * @brief The Parabola class fitts peak apex with parabola
+ */
+class Parabola : public CurveFitting
+{
+    double a, b, c, sa, sb, sc;
+public:
+    Parabola(const DoubleVector& x, const DoubleVector& y);
+
+    virtual void values(const DoubleVector& x, DoubleVector& y) const;
+
+    QString eqn() const;
+
+    ParamsList params() const;
+    void setParams(const ParamsList &pars);
+    ParamsList errors() const;
+
+    ParamsList properties() const;
+    void setProperties(const ParamsList& props);
+
+    virtual void print(QTextStream& out) const;
+
+    double peakPosition() const;
+    double peakPositionUncertainty() const;
+};
 
 #endif // CURVEFITTING_H

@@ -10,7 +10,7 @@ using namespace std;
 
 const QStringList &CurveFitting::implementations()
 {
-    static QStringList g_impl{"Asymmetric Gaussian"};
+    static QStringList g_impl{"Asymmetric Gaussian", "Parabola"};
     return g_impl;
 }
 
@@ -18,6 +18,8 @@ CurveFitting::Ptr CurveFitting::create(const QString &name, const DoubleVector &
 {
     if(name == "Asymmetric Gaussian")
         return Ptr(new AsymmetricGaussian(x, y));
+    if(name == "Parabola")
+        return Ptr(new Parabola(x, y));
     else return Ptr();
 }
 
@@ -430,4 +432,110 @@ void AsymmetricGaussian::Function::getGradient(const double *x, double *y)
     y[1] *= 2.0;
     y[2] *= 2.0;
     y[3] *= 2.0;
+}
+
+Parabola::Parabola(const CurveFitting::DoubleVector &x, const CurveFitting::DoubleVector &y)
+    :
+      CurveFitting (x, y)
+{
+    VectorXd ty(x.size());
+    MatrixXd M(x.size(), 3);
+    for(size_t i = 0; i < x.size(); ++i)
+    {
+        ty(static_cast<Index>(i)) = y[i];
+        M(static_cast<Index>(i), 0) = 1.;
+        M(static_cast<Index>(i), 1) = x[i];
+        M(static_cast<Index>(i), 2) = x[i] * x[i];
+    }
+    MatrixXd TM = M.transpose();
+    VectorXd coefs = (TM*M).ldlt().solve(TM*ty);
+    a = coefs(2); b = coefs(1); c = coefs(0);
+}
+
+void Parabola::values(const CurveFitting::DoubleVector &x, CurveFitting::DoubleVector &y) const
+{
+    y.resize(x.size());
+    QtConcurrent::map(const_cast<DoubleVector&>(x), [this, x, &y](DoubleVector::const_reference xx)
+    {
+        const ptrdiff_t i = &xx - x.data();
+        y[static_cast<size_t>(i)] = (a*xx + b)*xx + c;
+    }).waitForFinished();
+}
+
+QString Parabola::eqn() const
+{
+    return "(a*x + b)*x + c";
+}
+
+CurveFitting::ParamsList Parabola::params() const
+{
+    return ParamsList
+    {
+        {"a", a},
+        {"b", b},
+        {"c", c}
+    };
+}
+
+void Parabola::setParams(const CurveFitting::ParamsList &pars)
+{
+    ParamsList::ConstIterator it = pars.find("a");
+    bool ok = true;
+    if(it != pars.end()) a = it.value().toDouble(&ok);
+    if((it = pars.find("b")) != pars.end()) b = it.value().toDouble(&ok);
+    if((it = pars.find("c")) != pars.end()) c = it.value().toDouble(&ok);
+    Q_ASSERT(ok);
+}
+
+CurveFitting::ParamsList Parabola::errors() const
+{
+    return ParamsList
+    {
+        {"a", sa},
+        {"b", sb},
+        {"c", sc}
+    };
+}
+
+CurveFitting::ParamsList Parabola::properties() const
+{
+    return ParamsList();
+}
+
+void Parabola::setProperties(const CurveFitting::ParamsList& /**/)
+{
+
+}
+
+void Parabola::print(QTextStream &out) const
+{
+    out << "Fitted with " << eqn() << "\n";
+    QVariantMap pars = params();
+    QVariantMap errs = errors();
+    out.setRealNumberPrecision(10);
+    bool ok = true;
+    for
+    (
+        QVariantMap::ConstIterator itPars = pars.begin(), itErrs = errs.begin();
+        itPars != pars.end();
+        ++itPars, ++itErrs
+    )
+    {
+        out << itPars.key() << " = " << itPars.value().toDouble(&ok)
+            << "+/-" << itErrs.value().toDouble(&ok) << "\n";
+    }
+    Q_ASSERT(ok);
+}
+
+double Parabola::peakPosition() const
+{
+    return - b / 2. / a;
+}
+
+double Parabola::peakPositionUncertainty() const
+{
+    double
+            d1 = sb / 2. / a,
+            d2 = sa * b / 2. / a / a;
+    return std::sqrt(d1*d1 + d2*d2);
 }
