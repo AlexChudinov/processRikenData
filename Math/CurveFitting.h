@@ -171,6 +171,7 @@ double AsymmetricGaussian::value(double x) const
  */
 class Parabola : public CurveFitting
 {
+    double x0;
     double a, b, c, sa, sb, sc;
 public:
     Parabola(const DoubleVector& x, const DoubleVector& y);

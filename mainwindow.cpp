@@ -247,3 +247,20 @@ void MainWindow::createDataPlot(QVector<double> x, QVector<double> y, QString ca
     w->show();
     on_actionTileSubWindows_triggered();
 }
+
+void MainWindow::on_actionReal_precision_triggered()
+{
+    bool ok = true;;
+    int nDigits = QInputDialog::getInt
+    (
+        this,
+        tr("Real number precision"),
+        tr("Precision"),
+        6,
+        0,
+        16,
+        1,
+        &ok
+    );
+    if(ok) MyInit::instance()->setPrecision(nDigits);
+}

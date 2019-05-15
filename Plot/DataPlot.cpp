@@ -253,7 +253,21 @@ void DataPlot::on_fitData()
             s += ds * ds;
         }
 
-        showInfoMessage(tr("Resudial sum of square deviations: %1").arg(s / y.size()));
+        QLocale locale;
+        int nPrec = MyInit::instance()->precision();
+
+        showInfoMessage
+        (
+            tr
+            (
+                "Resudial sum of square deviations: %1\n"
+                "Peak position: %2\n"
+                "Peak position uncertainty: %3\n"
+            )
+                    .arg(s / y.size())
+                    .arg(locale.toString(approx->peakPosition(), 'f', nPrec))
+                    .arg(locale.toString(approx->peakPositionUncertainty(), 'f', nPrec))
+        );
     }
 }
 

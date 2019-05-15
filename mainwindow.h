@@ -40,6 +40,8 @@ private slots:
     void on_actionopenManyBinFiles_triggered();
 
     void createDataPlot(QVector<double> x, QVector<double> y, QString capture, QString xLabel);
+    void on_actionReal_precision_triggered();
+
 private:
     Ui::MainWindow *ui;
 

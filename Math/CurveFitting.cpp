@@ -1,12 +1,10 @@
 #include <QMessageBox>
 #include <Eigen/Dense>
 #include <array>
+#include <numeric>
 #include "CurveFitting.h"
 #include "../Base/ThreadPool.h"
 #include "../QMapPropsDialog.h"
-
-using namespace Eigen;
-using namespace std;
 
 const QStringList &CurveFitting::implementations()
 {
@@ -438,28 +436,50 @@ Parabola::Parabola(const CurveFitting::DoubleVector &x, const CurveFitting::Doub
     :
       CurveFitting (x, y)
 {
-    VectorXd ty(x.size());
-    MatrixXd M(x.size(), 3);
+    Eigen::VectorXd ty(x.size());
+    x0 = std::accumulate(x.begin(), x.end(), 0.0) / x.size();
+    Eigen::MatrixXd M(x.size(), 3);
     for(size_t i = 0; i < x.size(); ++i)
     {
-        ty(static_cast<Index>(i)) = y[i];
-        M(static_cast<Index>(i), 0) = 1.;
-        M(static_cast<Index>(i), 1) = x[i];
-        M(static_cast<Index>(i), 2) = x[i] * x[i];
+        ty(static_cast<Eigen::Index>(i)) = y[i];
+        double xx = x[i] - x0;
+        M(static_cast<Eigen::Index>(i), 0) = 1.;
+        M(static_cast<Eigen::Index>(i), 1) = xx;
+        M(static_cast<Eigen::Index>(i), 2) = xx * xx;
     }
-    MatrixXd TM = M.transpose();
-    VectorXd coefs = (TM*M).ldlt().solve(TM*ty);
+    Eigen::MatrixXd A = M.transpose() * M;
+    Eigen::VectorXd bb = M.transpose() * ty;
+    Eigen::VectorXd coefs = A.ldlt().solve(bb);
     a = coefs(2); b = coefs(1); c = coefs(0);
+    DoubleVector yy;
+    values(x, yy);
+    double ss = std::inner_product
+    (
+        y.begin(),
+        y.end(),
+        yy.begin(),
+        0.0,
+        std::plus<double>(),
+        [](double a, double b)->double
+    {
+        return (a - b) * (a - b);
+    }
+    ) / x.size();
+    A = A.inverse() * ss;
+    sa = std::sqrt(A(2,2));
+    sb = std::sqrt(A(1,1));
+    sc = std::sqrt(A(0,0));
 }
 
 void Parabola::values(const CurveFitting::DoubleVector &x, CurveFitting::DoubleVector &y) const
 {
     y.resize(x.size());
-    QtConcurrent::map(const_cast<DoubleVector&>(x), [this, x, &y](DoubleVector::const_reference xx)
+
+    ThreadPool::parFor(x.size(), [&](size_t i)
     {
-        const ptrdiff_t i = &xx - x.data();
-        y[static_cast<size_t>(i)] = (a*xx + b)*xx + c;
-    }).waitForFinished();
+        double xx = x[i] - x0;
+        y[i] = (a*xx + b)*xx + c;
+    });
 }
 
 QString Parabola::eqn() const
@@ -529,7 +549,7 @@ void Parabola::print(QTextStream &out) const
 
 double Parabola::peakPosition() const
 {
-    return - b / 2. / a;
+    return x0 - b / 2. / a;
 }
 
 double Parabola::peakPositionUncertainty() const

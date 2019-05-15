@@ -8,7 +8,8 @@ MyInit * MyInit::s_instance;
 
 MyInit::MyInit(QObject * parent)
     :
-      QObject(parent)
+      QObject(parent),
+      mRealNumPrecision(6)
 {
     qRegisterMetaType<size_t>("size_t");
     if(s_instance) throw std::runtime_error
@@ -74,6 +75,17 @@ TimeParams *MyInit::timeParams()
 MassSpectrumsCollection *MyInit::massSpecColl()
 {
     return mMassSpecsColl.data();
+}
+
+int MyInit::precision()
+{
+    return mRealNumPrecision;
+}
+
+void MyInit::setPrecision(int prec)
+{
+    mRealNumPrecision = prec;
+    Q_EMIT precisionNotify(prec);
 }
 
 void MyInit::moveToThread(QObject *obj)
