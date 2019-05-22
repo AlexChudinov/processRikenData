@@ -193,4 +193,32 @@ public:
     double peakPositionUncertainty() const;
 };
 
+class InterpolatorFun;
+
+class PeakShapeFit : public CurveFitting
+{
+    std::unique_ptr<InterpolatorFun> mShape;
+public:
+    PeakShapeFit(const DoubleVector& x, const DoubleVector& y);
+
+    virtual void values(const DoubleVector& x, DoubleVector& y) const;
+
+    QString eqn() const;
+
+    ParamsList params() const;
+    void setParams(const ParamsList &pars);
+    ParamsList errors() const;
+
+    ParamsList properties() const;
+    void setProperties(const ParamsList& props);
+
+    virtual void print(QTextStream& out) const;
+
+    double peakPosition() const;
+    double peakPositionUncertainty() const;
+
+private:
+    static double maxPeakPos(const DoubleVector& y);
+};
+
 #endif // CURVEFITTING_H

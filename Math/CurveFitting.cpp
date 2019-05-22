@@ -2,6 +2,8 @@
 #include <Eigen/Dense>
 #include <array>
 #include <numeric>
+
+#include "../Data/PeakShape.h"
 #include "CurveFitting.h"
 #include "../Base/ThreadPool.h"
 #include "../QMapPropsDialog.h"
@@ -558,4 +560,29 @@ double Parabola::peakPositionUncertainty() const
             d1 = sb / 2. / a,
             d2 = sa * b / 2. / a / a;
     return std::sqrt(d1*d1 + d2*d2);
+}
+
+PeakShapeFit::PeakShapeFit(const CurveFitting::DoubleVector &x, const CurveFitting::DoubleVector &y)
+    :
+      CurveFitting (x, y),
+      mShape(new InterpolatorFun)
+{
+    mShape->setXYValues(x, y);
+    mShape->setPeakAmp(1.0);
+    mShape->setPeakWidth(1.0);
+    mShape->setPeakPosition(x[0] + maxPeakPos(y));
+}
+
+void PeakShapeFit::values(const CurveFitting::DoubleVector &x, CurveFitting::DoubleVector &y) const
+{
+    y = mShape->values(x);
+}
+
+double PeakShapeFit::maxPeakPos(const CurveFitting::DoubleVector &y)
+{
+    DoubleVector::const_iterator it = std::max_element(y.cbegin(), y.cend());
+    const size_t n = static_cast<size_t>(std::distance(y.cbegin(), it));
+    double b = y[n+1] - y[n-1];
+    double a = y[n+1] - 2*y[n] + y[n-1];
+    return static_cast<double>(n) - b / 2 / a;
 }

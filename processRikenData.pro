@@ -13,6 +13,7 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
+    Data/PeakShape.cpp \
         mainwindow.cpp \
     QCustomPlot/qcustomplot.cpp \
     PropertiesListForm.cpp \
@@ -53,6 +54,7 @@ SOURCES += main.cpp\
     Math/peakparams.cpp
 
 HEADERS  += mainwindow.h \
+    Data/PeakShape.h \
     QCustomPlot/qcustomplot.h \
     PropertiesListForm.h \
     Math/exception.h \

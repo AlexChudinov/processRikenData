@@ -60,7 +60,7 @@ public:
      * @return
      */
     inline Vector equalStepData(const Vector& x, const Vector& y, double& step, bool isSorted = true);
-protected:
+
     /**
      * @brief pairSort sorts pairs {x,y} and makes x array sorted and y array rearranged accordingly
      * @param x
@@ -68,6 +68,7 @@ protected:
      */
     static inline void pairSort(Vector& x, Vector& y);
 
+protected:
     inline Vector equalStepDataSorted(const Vector& x, const Vector& y, double& step);
 };
 
