@@ -198,6 +198,31 @@ class InterpolatorFun;
 class PeakShapeFit : public CurveFitting
 {
     std::unique_ptr<InterpolatorFun> mShape;
+    class Function : public cv::MinProblemSolver::Function
+    {
+        mutable PeakShapeFit * mObj;
+        const DoubleVector& m_x;
+        const DoubleVector& m_y;
+    public:
+        Function
+        (
+            PeakShapeFit * obj,
+            const DoubleVector& x,
+            const DoubleVector& y
+        )
+            :
+              cv::MinProblemSolver::Function(),
+              mObj(obj),
+              m_x(x),
+              m_y(y)
+        {
+
+        }
+
+        int getDims() const;
+        double calc(const double* x) const;
+    };
+
 public:
     PeakShapeFit(const DoubleVector& x, const DoubleVector& y);
 
@@ -217,8 +242,16 @@ public:
     double peakPosition() const;
     double peakPositionUncertainty() const;
 
+    /**
+     * @brief fits shape to a new data
+     * @param x
+     * @param y
+     */
+    void fit(const DoubleVector& x, const DoubleVector& y);
 private:
     static double maxPeakPos(const DoubleVector& y);
+    double mRelTol;
+    double mPeakPositionUncertainty;
 };
 
 #endif // CURVEFITTING_H

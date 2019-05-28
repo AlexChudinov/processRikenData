@@ -69,6 +69,13 @@ DataPlot::DataPlot
         this,
         SLOT(on_fitData())
     );
+    mPlot->toolBar()->addAction
+    (
+        QIcon("://Icons/extractShape"),
+        tr("Extract peak shape inside window"),
+        this,
+        SLOT(on_createPeakShape())
+    );
     addToolBar(mPlot->toolBar());
     setStatusBar(new QStatusBar);
 
@@ -217,56 +224,102 @@ void DataPlot::on_showProps()
 void DataPlot::on_fitData()
 {
     bool ok;
+    QStringList items = CurveFitting::implementations();
     QString item = QInputDialog::getItem
     (
         this,
         tr("Choose approximator"),
         tr("Available approximators"),
-        CurveFitting::implementations(),
+        (items << "Shape fit"),
         0,
         true,
         &ok
     );
     if(ok)
     {
+        if(item != "Shape fit")
+        {
+            StdDoubleVector x, y;
+
+            equalRangedDataPoints(x, y, choosePlotIdx());
+
+            CurveFitting::Ptr approx = CurveFitting::create(item, x, y);
+
+            StdDoubleVector yy;
+            approx->values(x, yy);
+
+            addPlot
+            (
+                tr("Data fit in range %1 - %2").arg(x.front()).arg(x.back()),
+                DoubleVector::fromStdVector(x),
+                DoubleVector::fromStdVector(yy)
+            );
+
+            double s = 0.0;
+
+            for(size_t i = 0; i < yy.size(); ++i)
+            {
+                const double ds = yy[i] - y[i];
+                s += ds * ds;
+            }
+
+            QLocale locale;
+            int nPrec = MyInit::instance()->precision();
+
+            showInfoMessage
+            (
+                tr
+                (
+                    "Resudial sum of square deviations: %1\n"
+                    "Peak position: %2\n"
+                    "Peak position uncertainty: %3\n"
+                )
+                        .arg(s / y.size())
+                        .arg(locale.toString(approx->peakPosition(), 'f', nPrec))
+                        .arg(locale.toString(approx->peakPositionUncertainty(), 'f', nPrec))
+            );
+        }
+        else on_fitPeakShape();
+    }
+}
+
+void DataPlot::on_createPeakShape()
+{
+    StdDoubleVector x, y;
+
+    equalRangedDataPoints(x, y, choosePlotIdx());
+
+    mPeakShape.reset(new PeakShapeFit(x, y));
+}
+
+void DataPlot::on_fitPeakShape()
+{
+    if(mPeakShape)
+    {
         StdDoubleVector x, y;
 
         equalRangedDataPoints(x, y, choosePlotIdx());
 
-        CurveFitting::Ptr approx = CurveFitting::create(item, x, y);
-
-        StdDoubleVector yy;
-        approx->values(x, yy);
-
-        addPlot
-        (
-            tr("Data fit in range %1 - %2").arg(x.front()).arg(x.back()),
-            DoubleVector::fromStdVector(x),
-            DoubleVector::fromStdVector(yy)
-        );
-
-        double s = 0.0;
-
-        for(size_t i = 0; i < yy.size(); ++i)
-        {
-            const double ds = yy[i] - y[i];
-            s += ds * ds;
-        }
-
-        QLocale locale;
-        int nPrec = MyInit::instance()->precision();
+        mPeakShape->fit(x, y);
 
         showInfoMessage
         (
             tr
             (
-                "Resudial sum of square deviations: %1\n"
-                "Peak position: %2\n"
-                "Peak position uncertainty: %3\n"
+                "PeakPosition: %1\n"
+                "Peak uncertainty: %2\n"
             )
-                    .arg(s / y.size())
-                    .arg(locale.toString(approx->peakPosition(), 'f', nPrec))
-                    .arg(locale.toString(approx->peakPositionUncertainty(), 'f', nPrec))
+                    .arg(mPeakShape->peakPosition())
+                    .arg(mPeakShape->peakPositionUncertainty())
+        );
+
+        mPeakShape->values(x, y);
+
+        addPlot
+        (
+            tr("Shape fit in range %1 - %2").arg(x.front()).arg(x.back()),
+            DoubleVector::fromStdVector(x),
+            DoubleVector::fromStdVector(y)
         );
     }
 }

@@ -565,17 +565,143 @@ double Parabola::peakPositionUncertainty() const
 PeakShapeFit::PeakShapeFit(const CurveFitting::DoubleVector &x, const CurveFitting::DoubleVector &y)
     :
       CurveFitting (x, y),
-      mShape(new InterpolatorFun)
+      mShape(new InterpolatorFun),
+      mRelTol(1.e-9)
 {
-    mShape->setXYValues(x, y);
+    double newPeakPosition = x[0] + maxPeakPos(y);
+    DoubleVector tx = x;
+    for(double & xx : tx) xx -= newPeakPosition;
+    mShape->setXYValues(tx, y);
     mShape->setPeakAmp(1.0);
     mShape->setPeakWidth(1.0);
-    mShape->setPeakPosition(x[0] + maxPeakPos(y));
+    mShape->setPeakPosition(newPeakPosition);
 }
 
 void PeakShapeFit::values(const CurveFitting::DoubleVector &x, CurveFitting::DoubleVector &y) const
 {
     y = mShape->values(x);
+}
+
+QString PeakShapeFit::eqn() const
+{
+    return "Peak shape fit";
+}
+
+CurveFitting::ParamsList PeakShapeFit::params() const
+{
+    return ParamsList
+    {
+        {"Position", mShape->peakPosition()},
+        {"Width", mShape->peakWidth()},
+        {"Amplitude", mShape->peakAmp()}
+    };
+}
+
+void PeakShapeFit::setParams(const CurveFitting::ParamsList &pars)
+{
+    ParamsList::ConstIterator it = pars.find("Position");
+    bool ok = true;
+    if(it != pars.end())
+    {
+        mShape->setPeakPosition(it.value().toDouble(&ok));
+    }
+    if((it = pars.find("Width")) != pars.end())
+    {
+        mShape->setPeakWidth(it.value().toDouble(&ok));
+    }
+    if((it = pars.find("Amplitude")) != pars.end())
+    {
+        mShape->setPeakAmp(it.value().toDouble(&ok));
+    }
+    Q_ASSERT(ok);
+}
+
+CurveFitting::ParamsList PeakShapeFit::errors() const
+{
+    return ParamsList
+    {
+        {"Position", peakPositionUncertainty()},
+        {"Width", 0.0},
+        {"Amplitude", 0.0}
+    };
+}
+
+CurveFitting::ParamsList PeakShapeFit::properties() const
+{
+    return ParamsList{ {"TOL", mRelTol} };
+}
+
+void PeakShapeFit::setProperties(const CurveFitting::ParamsList &props)
+{
+    ParamsList::ConstIterator it = props.find("TOL");
+    bool ok = true;
+    if(it != props.end()) mRelTol = it.value().toDouble(&ok);
+    Q_ASSERT(ok);
+}
+
+void PeakShapeFit::print(QTextStream &out) const
+{
+    out << "Fitted with " << eqn() << "\n";
+    QVariantMap pars = params();
+    QVariantMap errs = errors();
+    out.setRealNumberPrecision(10);
+    bool ok = true;
+    for
+    (
+        QVariantMap::ConstIterator itPars = pars.begin(), itErrs = errs.begin();
+        itPars != pars.end();
+        ++itPars, ++itErrs
+    )
+    {
+        out << itPars.key() << " = " << itPars.value().toDouble(&ok)
+            << "+/-" << itErrs.value().toDouble(&ok) << "\n";
+    }
+    Q_ASSERT(ok);
+}
+
+double PeakShapeFit::peakPosition() const
+{
+    return mShape->peakPosition();
+}
+
+double PeakShapeFit::peakPositionUncertainty() const
+{
+    return mPeakPositionUncertainty;
+}
+
+void PeakShapeFit::fit(const CurveFitting::DoubleVector &x, const CurveFitting::DoubleVector &y)
+{
+    QMapPropsDialog dialog;
+    dialog.setProps(properties());
+    dialog.exec();
+    setProperties(dialog.props());
+    cv::Mat_<double> res(3, 1);
+    //first approximation for peak position
+    double newPeakPos = x[0] + maxPeakPos(y);
+    mShape->setPeakPosition(newPeakPos);
+    DoubleVector yy = mShape->values(x);
+    //first approximation for amplitude
+    double A = 0.0, ysum = 0.0;
+    for(size_t i = 0; i < y.size(); ++i)
+    {
+        A += y[i] * yy[i];
+        ysum += yy[i] * yy[i];
+    }
+    ysum != 0. ? A /= ysum : A = 0;
+    res << A, 1.0, newPeakPos;
+    cv::Ptr<cv::DownhillSolver> solver
+    (
+        cv::DownhillSolver::create
+        (
+            cv::Ptr<Function>(new Function(this, x, y))
+        )
+    );
+    solver->setInitStep(0.1 * res);
+    solver->setTermCriteria(cv::TermCriteria(3, 10000, mRelTol));
+    solver->minimize(res);
+    mShape->setPeakAmp(res(0));
+    mShape->setPeakWidth(res(1));
+    mShape->setPeakPosition(res(2));
 }
 
 double PeakShapeFit::maxPeakPos(const CurveFitting::DoubleVector &y)
@@ -585,4 +711,25 @@ double PeakShapeFit::maxPeakPos(const CurveFitting::DoubleVector &y)
     double b = y[n+1] - y[n-1];
     double a = y[n+1] - 2*y[n] + y[n-1];
     return static_cast<double>(n) - b / 2 / a;
+}
+
+int PeakShapeFit::Function::getDims() const
+{
+    return 3;
+}
+
+double PeakShapeFit::Function::calc(const double *x) const
+{
+    double ss = 0.0;
+    DoubleVector yy(m_x.size());
+    mObj->mShape->setPeakAmp(x[0]);
+    mObj->mShape->setPeakWidth(x[1]);
+    mObj->mShape->setPeakPosition(x[2]);
+    mObj->values(m_x, yy);
+    for (size_t i = 0; i < m_x.size(); ++i)
+    {
+        double ds = m_y[i] - yy[i];
+        ss += ds * ds;
+    }
+    return ss;
 }

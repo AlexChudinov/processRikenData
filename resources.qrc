@@ -18,5 +18,6 @@
         <file alias="props">Icons/properties.png</file>
         <file alias="del">Icons/delete.png</file>
         <file alias="fitData">Icons/fitData.png</file>
+        <file alias="extractShape">Icons/extract_shape.png</file>
     </qresource>
 </RCC>

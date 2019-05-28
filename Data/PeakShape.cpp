@@ -88,7 +88,7 @@ void InterpolatorFun::setPeakWidth(double width)
 {
     for(double& x : m_vXVals)
     {
-        double dx = (x - mPeakPosition) * mPeakWidth / width;
+        double dx = (x - mPeakPosition) * width / mPeakWidth;
         x = mPeakPosition + dx;
     }
     mPeakWidth = width;
@@ -103,7 +103,7 @@ void InterpolatorFun::setPeakAmp(double amp)
 {
     for(double& y : m_vYVals)
     {
-        y *= mPeakAmp/amp;
+        y *= amp / mPeakAmp;
     }
     mPeakAmp = amp;
 }

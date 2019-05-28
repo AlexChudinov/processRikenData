@@ -86,6 +86,8 @@ int PropertiesOfPlotForm::decimals(double x0, double x1)
     return prec;
 }
 
+class PeakShapeFit;
+
 class DataPlot : public QMainWindow
 {
     Q_OBJECT
@@ -124,8 +126,14 @@ public slots:
     void on_showProps();
 
     void on_fitData();
+
+    void on_createPeakShape();
+
+    void on_fitPeakShape();
 private:
     const static QList<Qt::GlobalColor> s_colors;
+
+    std::unique_ptr<PeakShapeFit> mPeakShape;
 
     QPointer<BasePlot> mPlot;
 

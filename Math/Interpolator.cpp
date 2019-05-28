@@ -88,25 +88,15 @@ double LinInterp::interpolateSorted
     double xNew
 )
 {
+    if(xNew < x.front() || xNew >= x.back()) return 0.0;
     Vector::const_iterator
-            itx = std::lower_bound(x.begin(), x.end(), xNew),
+            itx = std::upper_bound(x.begin(), x.end(), xNew),
             ity = y.begin();
     std::advance(ity, std::distance(x.begin(), itx));
-    if(itx != x.begin())
-    {
-        std::advance(itx, -1);
-        std::advance(ity, -1);
-    }
-    else if(itx == x.end())
-    {
-        std::advance(itx, -2);
-        std::advance(ity, -2);
-
-    }
-    const double x0 = *itx;
-    const double x1 = *next(itx);
-    const double y0 = *ity;
-    const double y1 = *next(ity);
+    const double x0 = *prev(itx);
+    const double x1 = *itx;
+    const double y0 = *prev(ity);
+    const double y1 = *ity;
 
     return (y1 - y0) / (x1 - x0) * (xNew - x0) + y0;
 }
