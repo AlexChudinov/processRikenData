@@ -287,9 +287,13 @@ void DataPlot::on_createPeakShape()
 {
     StdDoubleVector x, y;
 
-    equalRangedDataPoints(x, y, choosePlotIdx());
+    int nPlot = choosePlotIdx();
 
-    mPeakShape.reset(new PeakShapeFit(x, y));
+    if(nPlot != 0)
+    {
+        equalRangedDataPoints(x, y, nPlot);
+        mPeakShape.reset(new PeakShapeFit(x, y));
+    }
 }
 
 void DataPlot::on_fitPeakShape()

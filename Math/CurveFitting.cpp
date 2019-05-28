@@ -687,7 +687,7 @@ void PeakShapeFit::fit(const CurveFitting::DoubleVector &x, const CurveFitting::
         A += y[i] * yy[i];
         ysum += yy[i] * yy[i];
     }
-    ysum != 0. ? A /= ysum : A = 0;
+    ysum != 0. ? A /= ysum / mShape->peakAmp() : A = 0;
     res << A, 1.0, newPeakPos;
     cv::Ptr<cv::DownhillSolver> solver
     (

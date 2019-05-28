@@ -71,11 +71,6 @@ double InterpolatorFun::peakPosition() const
 
 void InterpolatorFun::setPeakPosition(double pos)
 {
-    for(double& x : m_vXVals)
-    {
-        x -= mPeakPosition;
-        x += pos;
-    }
     mPeakPosition = pos;
 }
 
@@ -86,11 +81,6 @@ double InterpolatorFun::peakWidth() const
 
 void InterpolatorFun::setPeakWidth(double width)
 {
-    for(double& x : m_vXVals)
-    {
-        double dx = (x - mPeakPosition) * width / mPeakWidth;
-        x = mPeakPosition + dx;
-    }
     mPeakWidth = width;
 }
 
@@ -101,14 +91,17 @@ double InterpolatorFun::peakAmp() const
 
 void InterpolatorFun::setPeakAmp(double amp)
 {
-    for(double& y : m_vYVals)
-    {
-        y *= amp / mPeakAmp;
-    }
     mPeakAmp = amp;
 }
 
 PeakShape::Vector InterpolatorFun::values(const Vector& x) const
 {
-    return mInterp->interpolate(m_vXVals, m_vYVals, x);
+    Vector dx(x.size()), y;
+    for(size_t i = 0; i < x.size(); ++i)
+    {
+        dx[i] = (x[i] - mPeakPosition) / mPeakWidth;
+    }
+    y = mInterp->interpolate(m_vXVals, m_vYVals, dx);
+    for(double & yy : y) yy *= mPeakAmp;
+    return y;
 }
