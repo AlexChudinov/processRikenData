@@ -763,8 +763,11 @@ double PeakShapeFit::Function::calc(const double *x) const
     mObj->values(m_x, yy);
     for (size_t i = 0; i < m_x.size(); ++i)
     {
-        double ds = m_y[i] - yy[i];
-        ss += ds * ds;
+        if(yy[i] > 0.0)
+        {
+            double ds = (m_y[i] - yy[i]) / yy[i];
+            ss += ds * ds;
+        }
     }
     return ss;
 }

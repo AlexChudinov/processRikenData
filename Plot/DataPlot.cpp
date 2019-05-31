@@ -306,6 +306,9 @@ void DataPlot::on_fitPeakShape()
 
         mPeakShape->fit(x, y);
 
+        QLocale locale;
+        int nPrec = MyInit::instance()->precision();
+
         showInfoMessage
         (
             tr
@@ -313,8 +316,8 @@ void DataPlot::on_fitPeakShape()
                 "PeakPosition: %1\n"
                 "Peak uncertainty: %2\n"
             )
-                    .arg(mPeakShape->peakPosition())
-                    .arg(mPeakShape->peakPositionUncertainty())
+                    .arg(locale.toString(mPeakShape->peakPosition(), 'f', nPrec))
+                    .arg(locale.toString(mPeakShape->peakPositionUncertainty(), 'f', nPrec))
         );
 
         mPeakShape->values(x, y);
