@@ -566,15 +566,47 @@ PeakShapeFit::PeakShapeFit(const CurveFitting::DoubleVector &x, const CurveFitti
     :
       CurveFitting (x, y),
       mShape(new InterpolatorFun),
-      mRelTol(1.e-9)
+      mRelTol(1.e-9),
+      mPeakPositionUncertainty(0.0)
 {
-    double newPeakPosition = x[0] + maxPeakPos(y);
+    double fPeakPosition = x[0] + maxPeakPos(y);
     DoubleVector tx = x;
-    for(double & xx : tx) xx -= newPeakPosition;
+    for(double & xx : tx) xx -= fPeakPosition;
     mShape->setXYValues(tx, y);
     mShape->setPeakAmp(1.0);
     mShape->setPeakWidth(1.0);
-    mShape->setPeakPosition(newPeakPosition);
+    mShape->setPeakPosition(fPeakPosition);
+    DoubleVector ty(y.size());
+    std::poisson_distribution<> dist;
+    std::mt19937_64 gen;
+    double s = 0.0;
+    for(int i = 0; i < 100; ++i)
+    {
+        for(size_t j = 0; j < y.size(); ++j)
+        {
+            if(y[j] >= 0.0)
+            {
+                dist.param(std::poisson_distribution<>::param_type(y[j]));
+                ty[j] = dist(gen);
+            }
+        }
+        cv::Mat_<double> res(3,1);
+        res << mShape->peakAmp(), mShape->peakWidth(), mShape->peakPosition();
+        cv::Ptr<cv::DownhillSolver> solver
+        (
+            cv::DownhillSolver::create
+            (
+                cv::Ptr<Function>(new Function(this, x, ty))
+            )
+        );
+        solver->setInitStep(0.1 * res);
+        solver->setTermCriteria(cv::TermCriteria(3, 10000, mRelTol));
+        solver->minimize(res);
+
+        double d = res(2) - fPeakPosition;
+        s += d*d;
+    }
+    mPeakPositionUncertainty = std::sqrt(s/100);
 }
 
 void PeakShapeFit::values(const CurveFitting::DoubleVector &x, CurveFitting::DoubleVector &y) const
@@ -677,6 +709,8 @@ void PeakShapeFit::fit(const CurveFitting::DoubleVector &x, const CurveFitting::
     setProperties(dialog.props());
     cv::Mat_<double> res(3, 1);
     //first approximation for peak position
+    double prevAmp = mShape->peakAmp();
+    double prevWidth = mShape->peakWidth();
     double newPeakPos = x[0] + maxPeakPos(y);
     mShape->setPeakPosition(newPeakPos);
     DoubleVector yy = mShape->values(x);
@@ -702,6 +736,7 @@ void PeakShapeFit::fit(const CurveFitting::DoubleVector &x, const CurveFitting::
     mShape->setPeakAmp(res(0));
     mShape->setPeakWidth(res(1));
     mShape->setPeakPosition(res(2));
+    mPeakPositionUncertainty *= std::sqrt(prevAmp / mShape->peakAmp()) * mShape->peakWidth() / prevWidth;
 }
 
 double PeakShapeFit::maxPeakPos(const CurveFitting::DoubleVector &y)
