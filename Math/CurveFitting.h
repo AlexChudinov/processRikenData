@@ -203,6 +203,7 @@ class PeakShapeFit : public CurveFitting
         mutable PeakShapeFit * mObj;
         const DoubleVector& m_x;
         const DoubleVector& m_y;
+        double mMaxY;
     public:
         Function
         (
@@ -216,7 +217,7 @@ class PeakShapeFit : public CurveFitting
               m_x(x),
               m_y(y)
         {
-
+            mMaxY = *std::max_element(y.begin(), y.end());
         }
 
         int getDims() const;

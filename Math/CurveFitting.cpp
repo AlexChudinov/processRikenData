@@ -599,7 +599,9 @@ PeakShapeFit::PeakShapeFit(const CurveFitting::DoubleVector &x, const CurveFitti
                 cv::Ptr<Function>(new Function(this, x, ty))
             )
         );
-        solver->setInitStep(0.1 * res);
+        cv::Mat_<double> step = 0.1 * res;
+        step(2) = 1;
+        solver->setInitStep(step);
         solver->setTermCriteria(cv::TermCriteria(3, 10000, mRelTol));
         solver->minimize(res);
 
@@ -763,11 +765,8 @@ double PeakShapeFit::Function::calc(const double *x) const
     mObj->values(m_x, yy);
     for (size_t i = 0; i < m_x.size(); ++i)
     {
-        if(yy[i] > 0.0)
-        {
-            double ds = (m_y[i] - yy[i]) / yy[i];
-            ss += ds * ds;
-        }
+        double ds = m_y[i] - yy[i];
+        ss += ds * ds;
     }
     return ss;
 }
