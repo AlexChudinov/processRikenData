@@ -251,6 +251,7 @@ public:
     void fit(const DoubleVector& x, const DoubleVector& y);
 private:
     static double maxPeakPos(const DoubleVector& y);
+    void calculateUncertainty(const DoubleVector &vXVals, const int nRuns);
     double mRelTol;
     double mPeakPositionUncertainty;
 };
