@@ -215,34 +215,42 @@ double AsymmetricGaussian::run
 {
     double A;
     size_t iterNum = 0;
-    do
-    {
-        A = mParams->mA;
-        cv::Mat_<double> res(4, 1);
-        res << mParams->mW, mParams->mTc,
-            mParams->mDTL, mParams->mDTR;
-        cv::Ptr<cv::DownhillSolver> solver
-        (
-            cv::DownhillSolver::create
+    try {
+        do
+        {
+            A = mParams->mA;
+            cv::Mat_<double> res(4, 1);
+            res << mParams->mW, mParams->mTc,
+                mParams->mDTL, mParams->mDTR;
+            cv::Ptr<cv::DownhillSolver> solver
             (
-                cv::Ptr<Function>(new Function(this, x, y))
-            )
+                cv::DownhillSolver::create
+                (
+                    cv::Ptr<Function>(new Function(this, x, y))
+                )
+            );
+            solver->setInitStep(0.1 * res);
+            solver->setTermCriteria(cv::TermCriteria(3, 10000, A * mProps->mRelTol));
+            solver->minimize(res);
+            mParams->mW = res(0);
+            mParams->mTc = res(1);
+            mParams->mDTL = res(2);
+            mParams->mDTR = res(3);
+            curveScaling(x, y);
+
+        }
+        while
+        (
+            A != 0.0
+            && std::fabs(A - mParams->mA)/A > mProps->mRelTol
+            && (++iterNum < mProps->mIterNum)
         );
-        solver->setInitStep(0.1 * res);
-        solver->setTermCriteria(cv::TermCriteria(3, 10000, A * mProps->mRelTol));
-        solver->minimize(res);
-        mParams->mW = res(0);
-        mParams->mTc = res(1);
-        mParams->mDTL = res(2);
-        mParams->mDTR = res(3);
-        curveScaling(x, y);
     }
-    while
-    (
-        A != 0.0
-        && std::fabs(A - mParams->mA)/A > mProps->mRelTol
-        && (++iterNum < mProps->mIterNum)
-    );
+    catch (const cv::Exception& ex)
+    {
+        QMessageBox::warning(Q_NULLPTR, QObject::tr("OpenCV exception handler"), QString("Exception") + ex.what());
+        init(x, y);
+    }
     return A;
 }
 
@@ -280,7 +288,7 @@ void AsymmetricGaussian::curveScaling(const CurveFitting::DoubleVector &x, const
         A += y[i] * ty[i];
         norm += ty[i] * ty[i];
     }
-    mParams->mA = norm != 0.0 ? A / norm : A;
+    mParams->mA = std::isnormal(A / norm) ? A / norm : * std::max_element(y.begin(), y.end());
 }
 
 void AsymmetricGaussian::estimateErrors
@@ -288,26 +296,30 @@ void AsymmetricGaussian::estimateErrors
     const CurveFitting::DoubleVector &x
 )
 {
-    const size_t nRuns = 10;
-    DoubleVector y0;
-    values(x, y0);
-    std::poisson_distribution<> dist;
-    std::mt19937_64 gen;
-    double sig = 0.0;
-    for(size_t i = 0; i < nRuns; ++i)
-    {
-        DoubleVector yy(y0.size());
-        for(size_t j = 0; j < yy.size(); ++j)
+    try {
+        const size_t nRuns = 10;
+        DoubleVector y0;
+        values(x, y0);
+        std::poisson_distribution<> dist;
+        std::mt19937_64 gen;
+        double sig = 0.0;
+        for(size_t i = 0; i < nRuns; ++i)
         {
-            dist.param(std::poisson_distribution<>::param_type(y0[j]));
-            yy[j] = dist(gen);
+            DoubleVector yy(y0.size());
+            for(size_t j = 0; j < yy.size(); ++j)
+            {
+                dist.param(std::poisson_distribution<>::param_type(y0[j]));
+                yy[j] = dist(gen);
+            }
+            AsymmetricGaussian gaus(x, yy, *this);
+            double d = mParams->mTc - gaus.mParams->mTc;
+            sig += d * d;
         }
-        AsymmetricGaussian gaus(x, yy, *this);
-        double d = mParams->mTc - gaus.mParams->mTc;
-        sig += d * d;
+        sig /= nRuns;
+        mErrors->mTc = std::sqrt(sig);
+    } catch (const std::exception& ex) {
+        QMessageBox::warning(Q_NULLPTR, "std::exception handler", ex.what());
     }
-    sig /= nRuns;
-    mErrors->mTc = std::sqrt(sig);
 }
 
 double AsymmetricGaussian::dfdA(double x) const
@@ -780,7 +792,7 @@ double PeakShapeFit::Function::calc(const double *x) const
         }
         else if (m_y[i] > 0.)
         {
-            ss += m_y[i] + 1;
+            ss += m_y[i];
         }
     }
     return ss;
