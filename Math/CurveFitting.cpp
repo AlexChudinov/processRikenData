@@ -719,6 +719,11 @@ void PeakShapeFit::fit(const CurveFitting::DoubleVector &x, const CurveFitting::
     calculateUncertainty(x, 100);
 }
 
+void PeakShapeFit::import(QTextStream &out) const
+{
+    mShape->import(out);
+}
+
 double PeakShapeFit::maxPeakPos(const CurveFitting::DoubleVector &y)
 {
     DoubleVector::const_iterator it = std::max_element(y.cbegin(), y.cend());

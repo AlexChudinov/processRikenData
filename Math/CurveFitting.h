@@ -249,6 +249,12 @@ public:
      * @param y
      */
     void fit(const DoubleVector& x, const DoubleVector& y);
+
+    /**
+     * @brief import peak shape
+     * @param out
+     */
+    void import(QTextStream& out) const;
 private:
     static double maxPeakPos(const DoubleVector& y);
     void calculateUncertainty(const DoubleVector &vXVals, const int nRuns);

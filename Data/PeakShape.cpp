@@ -105,3 +105,16 @@ PeakShape::Vector InterpolatorFun::values(const Vector& x) const
     for(double & yy : y) yy *= mPeakAmp;
     return y;
 }
+
+void InterpolatorFun::import(QTextStream &out) const
+{
+    out.setRealNumberPrecision(10);
+    out << "Amplitude:" << peakAmp() << "\n";
+    out << "Width:" << mPeakWidth << "\n";
+    out << "Position:" << peakPosition() << "\n";
+
+    for(size_t i = 0; i < m_vXVals.size(); ++i)
+    {
+        out << m_vXVals[i] << "\t" << m_vYVals[i] << "\n";
+    }
+}

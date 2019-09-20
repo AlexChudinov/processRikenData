@@ -43,6 +43,13 @@ DataPlot::DataPlot
     setCentralWidget(mPlot);
     mPlot->toolBar()->addAction
     (
+        QIcon("://Icons/importTextData"),
+        tr("Extract text data from plot"),
+        this,
+        SLOT(on_importTxt())
+    );
+    mPlot->toolBar()->addAction
+    (
         QIcon("://Icons//splineSmoothing"),
         tr("Smooth data with spline"),
         this,
@@ -76,6 +83,7 @@ DataPlot::DataPlot
         this,
         SLOT(on_createPeakShape())
     );
+
     addToolBar(mPlot->toolBar());
     setStatusBar(new QStatusBar);
 
@@ -328,6 +336,24 @@ void DataPlot::on_fitPeakShape()
             DoubleVector::fromStdVector(x),
             DoubleVector::fromStdVector(y)
         );
+    }
+}
+
+void DataPlot::on_importTxt()
+{
+    QString fileName = QFileDialog::getSaveFileName
+    (
+        this,
+        tr("Save text data"),
+        QString()
+    );
+    if(!fileName.isEmpty())
+    {
+        QFile file(fileName);
+        file.open(QFile::WriteOnly);
+        QTextStream stream(&file);
+        mPeakShape->import(stream);
+        file.close();
     }
 }
 

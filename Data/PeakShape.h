@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <memory>
+#include <QTextStream>
 #include "../Math/interpolator.h"
 
 /**
@@ -41,6 +42,7 @@ public:
 
     virtual Vector values(const Vector&) const = 0;
 
+    virtual void import(QTextStream& out) const = 0;
 protected:
 
 };
@@ -73,6 +75,8 @@ public:
     void setPeakAmp(double amp);
 
     Vector values(const Vector& x) const;
+
+    void import(QTextStream& out) const;
 };
 
 #endif // PEAKSHAPE_H

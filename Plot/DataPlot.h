@@ -130,6 +130,8 @@ public slots:
     void on_createPeakShape();
 
     void on_fitPeakShape();
+
+    void on_importTxt();
 private:
     const static QList<Qt::GlobalColor> s_colors;
 
