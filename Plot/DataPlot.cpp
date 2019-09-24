@@ -123,17 +123,22 @@ void DataPlot::calculateSmoothing()
                  QVector<double>::fromStdVector(x),
                  QVector<double>::fromStdVector(ySmoothed)
             );
-            double s = 0.0;
 
+            double s = 0.0;
+            int cnt = 0;
             for(size_t i = 0; i < ySmoothed.size(); ++i)
             {
-                const double ds = ySmoothed[i] - y[i];
-                s += ds * ds;
+                if(ySmoothed[i] > 1.)
+                {
+                    const double ds = ySmoothed[i] - y[i];
+                    s += ds * ds / ySmoothed[i];
+                    cnt++;
+                }
             }
 
             showInfoMessage
             (
-                tr("sig = %1").arg(s / ySmoothed.size())
+                tr("Chi-square: %1").arg(s / cnt)
             );
             if(mSmoother->type() == Smoother::LogSplineFixNoiseValue)
             {
@@ -264,11 +269,15 @@ void DataPlot::on_fitData()
             );
 
             double s = 0.0;
-
+            int cnt = 0;
             for(size_t i = 0; i < yy.size(); ++i)
             {
-                const double ds = yy[i] - y[i];
-                s += ds * ds;
+                if(yy[i] >= 1.)
+                {
+                    const double ds = yy[i] - y[i];
+                    s += ds * ds / yy[i];
+                    cnt++;
+                }
             }
 
             QLocale locale;
@@ -278,11 +287,11 @@ void DataPlot::on_fitData()
             (
                 tr
                 (
-                    "Resudial sum of square deviations: %1\n"
+                    "Chi-square: %1\n"
                     "Peak position: %2\n"
                     "Peak position uncertainty: %3\n"
                 )
-                        .arg(s / y.size())
+                        .arg(s / cnt)
                         .arg(locale.toString(approx->peakPosition(), 'f', nPrec))
                         .arg(locale.toString(approx->peakPositionUncertainty(), 'f', nPrec))
             );
@@ -293,14 +302,36 @@ void DataPlot::on_fitData()
 
 void DataPlot::on_createPeakShape()
 {
-    StdDoubleVector x, y;
-
-    int nPlot = choosePlotIdx();
-
-    if(nPlot != 0)
+    QString item = QInputDialog::getItem(this, "Peak shape", "Peak shape", QStringList{"Spline", "Data curve"});
+    if(!item.isEmpty())
     {
-        equalRangedDataPoints(x, y, nPlot);
-        mPeakShape.reset(new PeakShapeFit(x, y));
+        if(item == "Spline")
+        {
+            QSharedPointer<QCPGraphDataContainer> data = mPlot->graph(0)->data();
+            QCPRange range = mPlot->xAxis->range();
+            QCPGraphDataContainer::const_iterator _First = data->findBegin(range.lower);
+            QCPGraphDataContainer::const_iterator _Last = data->findEnd(range.upper);
+            const size_t n = std::distance(_First, _Last);
+            StdDoubleVector x(n), y(n);
+            for(size_t i = 0; i < n; ++i, ++_First)
+            {
+                x[i] = _First->key;
+                y[i] = _First->value;
+            }
+        }
+        else
+        {
+            StdDoubleVector x, y;
+
+            int nPlot = choosePlotIdx();
+
+            if(nPlot != 0)
+            {
+                equalRangedDataPoints(x, y, nPlot);
+
+                mPeakShape.reset(new PeakShapeFit(x, y,));
+            }
+        }
     }
 }
 
