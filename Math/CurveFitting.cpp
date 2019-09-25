@@ -751,7 +751,7 @@ void PeakShapeFit::calculateUncertainty(const DoubleVector& vXVals, const int nR
             }
         }
         cv::Mat_<double> res(2,1);
-        res << mShape->peakAmp(), mShape->peakPosition();
+        res << mShape->peakAmp(), fPeakPosition;
         cv::Ptr<cv::DownhillSolver> solver
         (
             cv::DownhillSolver::create
@@ -760,6 +760,7 @@ void PeakShapeFit::calculateUncertainty(const DoubleVector& vXVals, const int nR
             )
         );
         cv::Mat_<double> step = 0.1 * res;
+        step(1) = 1;
         solver->setInitStep(step);
         solver->setTermCriteria(cv::TermCriteria(3, 10000, mRelTol));
         solver->minimize(res);
