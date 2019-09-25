@@ -193,11 +193,11 @@ public:
     double peakPositionUncertainty() const;
 };
 
-class PeakShape;
+class InterpolatorFun;
 
 class PeakShapeFit : public CurveFitting
 {
-    std::unique_ptr<PeakShape> mShape;
+    std::unique_ptr<InterpolatorFun> mShape;
     class Function : public cv::MinProblemSolver::Function
     {
         mutable PeakShapeFit * mObj;
@@ -225,7 +225,7 @@ class PeakShapeFit : public CurveFitting
     };
 
 public:
-    PeakShapeFit(const DoubleVector &x, const DoubleVector &y, PeakShape* ps);
+    PeakShapeFit(const DoubleVector &x, const DoubleVector &y);
 
     virtual void values(const DoubleVector& x, DoubleVector& y) const;
 

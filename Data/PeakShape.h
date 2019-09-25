@@ -20,8 +20,7 @@ public:
 
     enum Type
     {
-        InterpolatorFunType,
-        AlglibInterpolatorType
+        InterpolatorFunType
     };
 
     static const QStringList& names();
@@ -82,38 +81,4 @@ public:
     void import(QTextStream& out) const;
 };
 
-namespace alglib
-{
-    class spline1dinterpolant;
-}
-
-class AlglibInterpolator : public PeakShape
-{
-public:
-
-    AlglibInterpolator(const Vector& x, const Vector& y, int M);
-
-    virtual Type type() const;
-
-    virtual bool valid() const;
-
-    virtual double peakPosition() const { return mPeakPosition; }
-    virtual void setPeakPosition(double x0) { mPeakPosition = x0; }
-
-    virtual double peakWidth() const { return mPeakWidth; }
-    virtual void setPeakWidth(double w) { mPeakWidth = w; }
-
-    virtual double peakAmp() const { return mPeakAmp; }
-    virtual void setPeakAmp(double a) { mPeakAmp = a; }
-
-    virtual Vector values(const Vector&x) const;
-
-    virtual void import(QTextStream& out) const;
-
-private:
-    std::unique_ptr<alglib::spline1dinterpolant> mShape;
-    double mPeakPosition;
-    double mPeakWidth;
-    double mPeakAmp;
-};
 #endif // PEAKSHAPE_H

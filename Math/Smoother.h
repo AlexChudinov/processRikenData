@@ -30,7 +30,8 @@ public:
         LogSplinePoissonWeightType,
         LogSplinePoissonWeightPoissonNoiseType,
         LogSplinePoissonWeightOnePeakType,
-        LogSplineFixNoiseValue
+        LogSplineFixNoiseValue,
+        AlglibSplineType
     };
 
     static Pointer create(Type type, const QVariantMap& pars = QVariantMap());

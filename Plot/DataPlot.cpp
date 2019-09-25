@@ -2,6 +2,7 @@
 #include <exception>
 
 #include "Math/CurveFitting.h"
+#include "Math/alglib/interpolation.h"
 #include "../QMapPropsDialog.h"
 #include "Base/BaseObject.h"
 #include "DataPlot.h"
@@ -302,36 +303,14 @@ void DataPlot::on_fitData()
 
 void DataPlot::on_createPeakShape()
 {
-    QString item = QInputDialog::getItem(this, "Peak shape", "Peak shape", QStringList{"Spline", "Data curve"});
-    if(!item.isEmpty())
+    StdDoubleVector x, y;
+
+    int nPlot = choosePlotIdx();
+
+    if(nPlot != 0)
     {
-        if(item == "Spline")
-        {
-            QSharedPointer<QCPGraphDataContainer> data = mPlot->graph(0)->data();
-            QCPRange range = mPlot->xAxis->range();
-            QCPGraphDataContainer::const_iterator _First = data->findBegin(range.lower);
-            QCPGraphDataContainer::const_iterator _Last = data->findEnd(range.upper);
-            const size_t n = std::distance(_First, _Last);
-            StdDoubleVector x(n), y(n);
-            for(size_t i = 0; i < n; ++i, ++_First)
-            {
-                x[i] = _First->key;
-                y[i] = _First->value;
-            }
-        }
-        else
-        {
-            StdDoubleVector x, y;
-
-            int nPlot = choosePlotIdx();
-
-            if(nPlot != 0)
-            {
-                equalRangedDataPoints(x, y, nPlot);
-
-                mPeakShape.reset(new PeakShapeFit(x, y,));
-            }
-        }
+        equalRangedDataPoints(x, y, nPlot);
+        mPeakShape.reset(new PeakShapeFit(x, y));
     }
 }
 

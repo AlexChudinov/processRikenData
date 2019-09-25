@@ -1,11 +1,13 @@
 #include "LogSplinePoissonWeight.h"
+#include "alglibspline.h"
 
 QMap<QString, Smoother::Type> Smoother::s_registry
 {
     {"LogSplinePoissonWeightType", Smoother::LogSplinePoissonWeightType},
     {"LogSplinePoissonWeightPoissonNoiseType", Smoother::LogSplinePoissonWeightPoissonNoiseType},
     {"LogSplinePoissonWeightOnePeakType", Smoother::LogSplinePoissonWeightOnePeakType},
-    {"LogSplineFixNoiseValue", Smoother::LogSplineFixNoiseValue}
+    {"LogSplineFixNoiseValue", Smoother::LogSplineFixNoiseValue},
+    {"AlglibSpline", Smoother::AlglibSplineType}
 };
 
 QStringList Smoother::s_typeStrings
@@ -13,7 +15,8 @@ QStringList Smoother::s_typeStrings
     "LogSplinePoissonWeightType",
     "LogSplinePoissonWeightPoissonNoiseType",
     "LogSplinePoissonWeightOnePeakType",
-    "LogSplineFixNoiseValue"
+    "LogSplineFixNoiseValue",
+    "AlglibSpline"
 };
 
 Smoother::Smoother(const QVariantMap &pars, QVariantMap &&parsTemp)
@@ -57,6 +60,8 @@ Smoother::Pointer Smoother::create
         return Pointer(new LogSplinePoissonWeightOnePeak(pars));
     case LogSplineFixNoiseValue:
         return Pointer(new LSFixNoiseValue(pars));
+    case AlglibSplineType:
+        return Pointer(new AlglibSpline(pars));
     }
     return Pointer();
 }

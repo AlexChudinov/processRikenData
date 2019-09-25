@@ -38,7 +38,6 @@ void LogSplinePoissonWeight::run
 QVariantMap LogSplinePoissonWeight::paramsTemplate() const
 {
     return QVariantMap({{SMOOTH_PARAM, QVariant(1.0)}});
-
 }
 
 void LogSplinePoissonWeight::setParams(const QVariantMap &params)

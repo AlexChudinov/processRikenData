@@ -51,7 +51,8 @@ SOURCES += main.cpp\
     Math/alglib/statistics.cpp \
     Data/MassSpecImpl.cpp \
     Data/PackProc.cpp \
-    Math/peakparams.cpp
+    Math/peakparams.cpp \
+    Math/alglibspline.cpp
 
 HEADERS  += mainwindow.h \
     Data/PeakShape.h \
@@ -94,7 +95,8 @@ HEADERS  += mainwindow.h \
     Math/alglib/stdafx.h \
     Data/MassSpecImpl.h \
     Data/PackProc.h \
-    Math/peakparams.h
+    Math/peakparams.h \
+    Math/alglibspline.h
 
 FORMS    += mainwindow.ui \
     PropertiesListForm.ui \
