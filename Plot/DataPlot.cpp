@@ -129,7 +129,7 @@ void DataPlot::calculateSmoothing()
             int cnt = 0;
             for(size_t i = 0; i < ySmoothed.size(); ++i)
             {
-                if(ySmoothed[i] > 1.)
+                if(ySmoothed[i] >= 1.)
                 {
                     const double ds = ySmoothed[i] - y[i];
                     s += ds * ds / ySmoothed[i];
@@ -273,16 +273,13 @@ void DataPlot::on_fitData()
             int cnt = 0;
             for(size_t i = 0; i < yy.size(); ++i)
             {
-                if(yy[i] >= 1.)
+                if(yy[i] > 0.)
                 {
                     const double ds = yy[i] - y[i];
                     s += ds * ds / yy[i];
                     cnt++;
                 }
             }
-
-            QLocale locale;
-            int nPrec = MyInit::instance()->precision();
 
             showInfoMessage
             (
@@ -293,8 +290,8 @@ void DataPlot::on_fitData()
                     "Peak position uncertainty: %3\n"
                 )
                         .arg(s / cnt)
-                        .arg(locale.toString(approx->peakPosition(), 'f', nPrec))
-                        .arg(locale.toString(approx->peakPositionUncertainty(), 'f', nPrec))
+                        .arg(mPeakShape->peakPosition(), 0, 'g', 10)
+                        .arg(mPeakShape->peakPositionUncertainty(), 0, 'g', 3)
             );
         }
         else on_fitPeakShape();
@@ -311,6 +308,16 @@ void DataPlot::on_createPeakShape()
     {
         equalRangedDataPoints(x, y, nPlot);
         mPeakShape.reset(new PeakShapeFit(x, y));
+        showInfoMessage
+        (
+            tr
+            (
+                "Peak position: %1\n"
+                "Peak position uncertainty: %2\n"
+            )
+                    .arg(mPeakShape->peakPosition(), 0, 'g', 10)
+                    .arg(mPeakShape->peakPositionUncertainty(), 0, 'g', 3)
+        );
     }
 }
 
@@ -324,9 +331,6 @@ void DataPlot::on_fitPeakShape()
 
         mPeakShape->fit(x, y);
 
-        QLocale locale;
-        int nPrec = MyInit::instance()->precision();
-
         showInfoMessage
         (
             tr
@@ -334,8 +338,8 @@ void DataPlot::on_fitPeakShape()
                 "PeakPosition: %1\n"
                 "Peak uncertainty: %2\n"
             )
-                    .arg(locale.toString(mPeakShape->peakPosition(), 'f', nPrec))
-                    .arg(locale.toString(mPeakShape->peakPositionUncertainty(), 'f', nPrec))
+                    .arg(mPeakShape->peakPosition(), 0, 'g', 10)
+                    .arg(mPeakShape->peakPositionUncertainty(), 0, 'g', 3)
         );
 
         mPeakShape->values(x, y);

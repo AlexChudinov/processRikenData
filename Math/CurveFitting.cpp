@@ -588,6 +588,7 @@ PeakShapeFit::PeakShapeFit(const CurveFitting::DoubleVector &x, const CurveFitti
     mShape->setPeakAmp(1.0);
     mShape->setPeakWidth(1.0);
     mShape->setPeakPosition(fPeakPosition);
+    calculateUncertainty(x, 100);
 }
 
 void PeakShapeFit::values(const CurveFitting::DoubleVector &x, CurveFitting::DoubleVector &y) const
