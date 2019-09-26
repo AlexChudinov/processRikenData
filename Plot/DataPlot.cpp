@@ -301,13 +301,20 @@ void DataPlot::on_fitData()
 
 void DataPlot::on_createPeakShape()
 {
-    StdDoubleVector x, y;
-
     int nPlot = choosePlotIdx();
 
     if(nPlot != 0)
     {
-        equalRangedDataPoints(x, y, nPlot);
+        //equalRangedDataPoints(x, y, nPlot);
+        QSharedPointer<QCPGraphDataContainer> data
+                = mPlot->graph(nPlot)->data();
+        StdDoubleVector x(data->size()), y(data->size());
+        QCPGraphDataContainer::const_iterator it = data->begin();
+        for(size_t i = 0; i < x.size(); ++i, ++it)
+        {
+            x[i] = it->key;
+            y[i] = it->value;
+        }
         mPeakShape.reset(new PeakShapeFit(x, y));
         showInfoMessage
         (
@@ -362,14 +369,47 @@ void DataPlot::on_fitDoublePeakShape()
         equalRangedDataPoints(x, y, choosePlotIdx());
 
         DoublePeakShapeFit fit(*mPeakShape, x, y);
-        fit.values(x, y);
+        StdDoubleVector yy;
+        fit.values(x, yy);
 
         addPlot
         (
             tr("Shape fit in range %1 - %2").arg(x.front()).arg(x.back()),
             DoubleVector::fromStdVector(x),
-            DoubleVector::fromStdVector(y)
+            DoubleVector::fromStdVector(yy)
         );
+
+
+        while
+        (
+            QMessageBox::question
+            (
+                this,
+                tr("Double peak fittig"),
+                tr
+                (
+                    "Peak position1: %1\n"
+                    "Peak uncertainty1: %2\n"
+                    "Peak position2: %3 \n"
+                    "Peak uncertainty2: %4\n"
+                    "Do you want to make another run?"
+                )
+                    .arg(fit.peakPosition1(), 0, 'g', 10)
+                    .arg(fit.peakPositionUncertainty1(), 0, 'g', 3)
+                    .arg(fit.peakPosition2(), 0, 'g', 10)
+                    .arg(fit.peakPositionUncertainty2(), 0, 'g', 3)
+            ) == QMessageBox::Yes
+        )
+        {
+            fit.fit(x, y);
+            fit.values(x, yy);
+            addPlot
+            (
+                tr("Shape fit in range %1 - %2").arg(x.front()).arg(x.back()),
+                DoubleVector::fromStdVector(x),
+                DoubleVector::fromStdVector(yy)
+            );
+        };
     }
 }
 

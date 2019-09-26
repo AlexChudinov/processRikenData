@@ -833,31 +833,24 @@ DoublePeakShapeFit::DoublePeakShapeFit(const PeakShapeFit &onePeakShape, const D
     mShape2->setPeakPosition(props["t2: "].toDouble(&ok));
     Q_ASSERT(ok);
 
-    Eigen::MatrixXd M(y.size(), 2);
-    Eigen::VectorXd Y(y.size());
-    DoubleVector y1 = mShape1->values(x);
-    DoubleVector y2 = mShape2->values(x);
+    calcAmps(x, y);
+    fit(x, y);
+}
 
-    for(size_t i = 0; i < y.size(); ++i)
-    {
-        M(i, 0) = y1[i];
-        M(i, 1) = y2[i];
-        Y(i) = y[i];
-    }
+void DoublePeakShapeFit::values(const DoublePeakShapeFit::DoubleVector &x, DoublePeakShapeFit::DoubleVector &y) const
+{
+    y = mShape1->values(x);
+    DoubleVector dy = mShape2->values(x);
+    for (size_t i = 0; i < y.size(); ++i) y[i] += dy[i];
+}
 
-    Eigen::VectorXd A = (M.transpose() * M).ldlt().solve(M.transpose() * Y);
-
-    mShape1->setPeakAmp(mShape1->peakAmp() * A(0));
-    mShape2->setPeakAmp(mShape2->peakAmp() * A(1));
-
-    cv::Mat_<double> p0(4,1);
-    p0 << mShape1->peakPosition(), mShape1->peakAmp(), mShape2->peakPosition(), mShape2->peakAmp();
-
+void DoublePeakShapeFit::fit(const DoubleVector& x, const DoubleVector& y)
+{
+    cv::Mat_<double> p0{mShape1->peakPosition(), mShape2->peakPosition()};
     minimize(p0, p0, Function(this, x, y));
     mShape1->setPeakPosition(p0(0));
-    mShape1->setPeakAmp(p0(1));
-    mShape2->setPeakPosition(p0(2));
-    mShape2->setPeakAmp(p0(3));
+    mShape2->setPeakPosition(p0(1));
+    calcAmps(x, y);
     DoubleVector yy;
     values(x, yy);
     DoubleVector ty(y.size());
@@ -880,20 +873,23 @@ DoublePeakShapeFit::DoublePeakShapeFit(const PeakShapeFit &onePeakShape, const D
             }
         }
         minimize(p0, p1, Function(this, x, ty));
-        double dp1 = mShape1->peakPosition() - p0(0);
+        double dp1 = p1(0) - p0(0);
         mPeakPositionUncertainty1 += dp1 * dp1;
-        double dp2 = mShape2->peakPosition() - p0(0);
+        double dp2 = p1(1) - p0(1);
         mPeakPositionUncertainty2 += dp2 * dp2;
     }
     mPeakPositionUncertainty1 = std::sqrt(mPeakPositionUncertainty1 / 100);
     mPeakPositionUncertainty2 = std::sqrt(mPeakPositionUncertainty2 / 100);
 }
 
-void DoublePeakShapeFit::values(const DoublePeakShapeFit::DoubleVector &x, DoublePeakShapeFit::DoubleVector &y) const
+double DoublePeakShapeFit::peakPositionUncertainty2() const
 {
-    y = mShape1->values(x);
-    DoubleVector dy = mShape2->values(x);
-    for (size_t i = 0; i < y.size(); ++i) y[i] += dy[i];
+    return mPeakPositionUncertainty2;
+}
+
+double DoublePeakShapeFit::peakPositionUncertainty1() const
+{
+    return mPeakPositionUncertainty1;
 }
 
 void DoublePeakShapeFit::minimize(const cv::Mat_<double> &p0, cv::Mat_<double> &p1, const Function &fun)
@@ -906,27 +902,44 @@ void DoublePeakShapeFit::minimize(const cv::Mat_<double> &p0, cv::Mat_<double> &
         )
     );
     p1 = p0;
-    cv::Mat_<double> step = .1 * p0;
-    step(0) = 1;
-    step(2) = 1;
+    cv::Mat_<double> step{.1, .1};
     solver->setInitStep(step);
     solver->setTermCriteria(cv::TermCriteria(3, 10000, 1e-10));
     solver->minimize(p1);
 }
 
+void DoublePeakShapeFit::calcAmps(const DoubleVector &x, const DoubleVector &y)
+{
+    Eigen::MatrixXd M(y.size(), 2);
+    Eigen::VectorXd Y(y.size());
+    DoubleVector y1 = mShape1->values(x);
+    DoubleVector y2 = mShape2->values(x);
+
+    for(size_t i = 0; i < y.size(); ++i)
+    {
+        M(i, 0) = y1[i];
+        M(i, 1) = y2[i];
+        Y(i) = y[i];
+    }
+
+    Eigen::VectorXd A = (M.transpose() * M).ldlt().solve(M.transpose() * Y);
+
+    mShape1->setPeakAmp(mShape1->peakAmp() * A(0));
+    mShape2->setPeakAmp(mShape2->peakAmp() * A(1));
+}
+
 int DoublePeakShapeFit::Function::getDims() const
 {
-    return 4;
+    return 2;
 }
 
 double DoublePeakShapeFit::Function::calc(const double *x) const
 {
     double ss = 0.0;
     DoubleVector yy(m_x.size());
-    mObj->mShape1->setPeakAmp(x[1]);
     mObj->mShape1->setPeakPosition(x[0]);
-    mObj->mShape2->setPeakAmp(x[3]);
-    mObj->mShape2->setPeakPosition(x[2]);
+    mObj->mShape2->setPeakPosition(x[1]);
+    mObj->calcAmps(m_x, m_y);
     mObj->values(m_x, yy);
     for (size_t i = 0; i < m_x.size(); ++i)
     {

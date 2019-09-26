@@ -299,11 +299,24 @@ public:
     DoublePeakShapeFit(const PeakShapeFit& onePeakShape, const DoubleVector &x, const DoubleVector &y);
 
     void values(const DoubleVector& x, DoubleVector& y) const;
+
+    void fit(const DoubleVector& x, const DoubleVector& y);
+
+    inline double peakPosition1() const { return mShape1->peakPosition(); }
+
+    inline double peakPosition2() const { return mShape2->peakPosition(); }
+
+    double peakPositionUncertainty2() const;
+
+    double peakPositionUncertainty1() const;
+
 private:
     std::unique_ptr<InterpolatorFun> mShape1, mShape2;
     double mPeakPositionUncertainty1, mPeakPositionUncertainty2;
 
     void minimize(const cv::Mat_<double>& p0, cv::Mat_<double>& p1, const Function& fun);
+
+    void calcAmps(const DoubleVector& x, const DoubleVector& y);
 };
 
 #endif // CURVEFITTING_H
