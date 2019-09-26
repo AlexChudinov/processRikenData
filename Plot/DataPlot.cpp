@@ -290,8 +290,8 @@ void DataPlot::on_fitData()
                     "Peak position uncertainty: %3\n"
                 )
                         .arg(s / cnt)
-                        .arg(mPeakShape->peakPosition(), 0, 'g', 10)
-                        .arg(mPeakShape->peakPositionUncertainty(), 0, 'g', 3)
+                        .arg(approx->peakPosition(), 0, 'g', 10)
+                        .arg(approx->peakPositionUncertainty(), 0, 'g', 3)
             );
         }
         else on_fitPeakShape();
