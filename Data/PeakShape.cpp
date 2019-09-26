@@ -55,6 +55,18 @@ InterpolatorFun::InterpolatorFun(const PeakShape::Vector &xVals, const PeakShape
     setXYValues(xVals, yVals);
 }
 
+InterpolatorFun::InterpolatorFun(const InterpolatorFun &interp)
+    :
+      m_vXVals(interp.m_vXVals),
+      m_vYVals(interp.m_vYVals),
+      mPeakPosition(interp.mPeakPosition),
+      mPeakWidth(interp.mPeakWidth),
+      mPeakAmp(interp.mPeakAmp),
+      mInterp(Interpolator::create(interp.mInterp->name()).release())
+
+{
+}
+
 void InterpolatorFun::setXYValues(const PeakShape::Vector &xVals, const PeakShape::Vector &yVals, bool isSorted)
 {
     Q_ASSERT(xVals.size() == yVals.size());

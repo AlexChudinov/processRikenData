@@ -244,14 +244,16 @@ void DataPlot::on_fitData()
         this,
         tr("Choose approximator"),
         tr("Available approximators"),
-        (items << "Shape fit"),
+        (items << "Shape fit" << "Double shape fit"),
         0,
         true,
         &ok
     );
     if(ok)
     {
-        if(item != "Shape fit")
+        if(item == "Shape fit") on_fitPeakShape();
+        else if (item == "Double shape fit") on_fitDoublePeakShape();
+        else
         {
             StdDoubleVector x, y;
 
@@ -294,7 +296,6 @@ void DataPlot::on_fitData()
                         .arg(approx->peakPositionUncertainty(), 0, 'g', 3)
             );
         }
-        else on_fitPeakShape();
     }
 }
 
@@ -343,6 +344,25 @@ void DataPlot::on_fitPeakShape()
         );
 
         mPeakShape->values(x, y);
+
+        addPlot
+        (
+            tr("Shape fit in range %1 - %2").arg(x.front()).arg(x.back()),
+            DoubleVector::fromStdVector(x),
+            DoubleVector::fromStdVector(y)
+        );
+    }
+}
+
+void DataPlot::on_fitDoublePeakShape()
+{
+    if(mPeakShape)
+    {
+        StdDoubleVector x, y;
+        equalRangedDataPoints(x, y, choosePlotIdx());
+
+        DoublePeakShapeFit fit(*mPeakShape, x, y);
+        fit.values(x, y);
 
         addPlot
         (

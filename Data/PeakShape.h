@@ -61,6 +61,8 @@ public:
 
     InterpolatorFun(const Vector& xVals, const Vector& yVals, const QString& strInterp = "Linear");
 
+    InterpolatorFun(const InterpolatorFun& interp);
+
     void setXYValues(const Vector& xVals, const Vector& yVals, bool isSorted = true);
 
     Type type() const;

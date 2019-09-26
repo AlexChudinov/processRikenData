@@ -27,6 +27,12 @@ public:
     static Pointer create(const QString& name);
 
     /**
+     * @brief name returns name of a current interpolator
+     * @return
+     */
+    virtual const QString& name() const = 0;
+
+    /**
      * @brief names names of available interpolators
      * @return
      */
@@ -78,6 +84,11 @@ public:
     virtual Vector interpolate(const Vector& x, const Vector& y, const Vector& xNew, bool isSorted = true);
     virtual Vector interpolate(const Vector& y, const Vector& xNew);
 
+    virtual const QString& name() const
+    {
+        const static QString name = "Linear";
+        return  name;
+    }
 private:
     Vector interpolateSorted(const Vector& x, const Vector& y, const Vector& xNew);
     double interpolateSorted(const Vector& x, const Vector& y, double xNew);

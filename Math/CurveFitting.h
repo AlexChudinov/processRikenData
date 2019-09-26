@@ -9,6 +9,7 @@
 #include <QMap>
 #include <opencv2/core/core.hpp>
 #include "Math/peakparams.h"
+#include "../Data/PeakShape.h"
 
 class CurveFitting : public PeakParams
 {
@@ -203,7 +204,6 @@ class PeakShapeFit : public CurveFitting
         mutable PeakShapeFit * mObj;
         const DoubleVector& m_x;
         const DoubleVector& m_y;
-        double mMaxY;
     public:
         Function
         (
@@ -217,7 +217,6 @@ class PeakShapeFit : public CurveFitting
               m_x(x),
               m_y(y)
         {
-            mMaxY = *std::max_element(y.begin(), y.end());
         }
 
         int getDims() const;
@@ -255,11 +254,56 @@ public:
      * @param out
      */
     void import(QTextStream& out) const;
+
+    InterpolatorFun cloneShape() const;
 private:
     static double maxPeakPos(const DoubleVector& y);
     void calculateUncertainty(const DoubleVector &vXVals, const int nRuns);
     double mRelTol;
     double mPeakPositionUncertainty;
+};
+
+/**
+ * @brief The DoublePeakShapeFit class fits mass spectra region with a double shape
+ */
+class DoublePeakShapeFit
+{
+public:
+    using DoubleVector = std::vector<double>;
+private:
+    class Function : public cv::MinProblemSolver::Function
+    {
+        mutable DoublePeakShapeFit * mObj;
+        const DoubleVector& m_x;
+        const DoubleVector& m_y;
+        double mMaxY;
+    public:
+        Function
+        (
+            DoublePeakShapeFit * obj,
+            const DoubleVector& x,
+            const DoubleVector& y
+        )
+            :
+              cv::MinProblemSolver::Function(),
+              mObj(obj),
+              m_x(x),
+              m_y(y)
+        {
+        }
+
+        int getDims() const;
+        double calc(const double* x) const;
+    };
+public:
+    DoublePeakShapeFit(const PeakShapeFit& onePeakShape, const DoubleVector &x, const DoubleVector &y);
+
+    void values(const DoubleVector& x, DoubleVector& y) const;
+private:
+    std::unique_ptr<InterpolatorFun> mShape1, mShape2;
+    double mPeakPositionUncertainty1, mPeakPositionUncertainty2;
+
+    void minimize(const cv::Mat_<double>& p0, cv::Mat_<double>& p1, const Function& fun);
 };
 
 #endif // CURVEFITTING_H

@@ -3,7 +3,6 @@
 #include <array>
 #include <numeric>
 
-#include "../Data/PeakShape.h"
 #include "CurveFitting.h"
 #include "../Base/ThreadPool.h"
 #include "../QMapPropsDialog.h"
@@ -297,21 +296,28 @@ void AsymmetricGaussian::estimateErrors
 )
 {
     try {
-        const size_t nRuns = 10;
+        const size_t nRuns = 100;
         DoubleVector y0;
         values(x, y0);
+        DoubleVector  ty(y0.size());
         std::poisson_distribution<> dist;
         std::mt19937_64 gen;
         double sig = 0.0;
         for(size_t i = 0; i < nRuns; ++i)
         {
-            DoubleVector yy(y0.size());
-            for(size_t j = 0; j < yy.size(); ++j)
+            for(size_t j = 0; j < y0.size(); ++j)
             {
-                dist.param(std::poisson_distribution<>::param_type(y0[j]));
-                yy[j] = dist(gen);
+                if(y0[j] > 0.0)
+                {
+                    dist.param(std::poisson_distribution<>::param_type(y0[j]));
+                    ty[j] = dist(gen);
+                }
+                else
+                {
+                    ty[j] = 0.0;
+                }
             }
-            AsymmetricGaussian gaus(x, yy, *this);
+            AsymmetricGaussian gaus(x, ty, *this);
             double d = mParams->mTc - gaus.mParams->mTc;
             sig += d * d;
         }
@@ -411,10 +417,11 @@ double AsymmetricGaussian::Function::calc(const double *x) const
     mObj->mParams->mDTR = x[3];
     mObj->curveScaling(m_x, m_y);
     double s = 0.;
-    for(size_t i = 0; i < m_x.size(); ++i)
+    DoubleVector yy;
+    mObj->values(m_x, yy);
+    for (size_t i = 0; i < m_x.size(); ++i)
     {
-        double ss = mObj->value(m_x[i]) - m_y[i];
-        s += ss*ss;
+        s += (yy[i] - m_y[i]) * (yy[i] - m_y[i]);
     }
     return s;
 }
@@ -724,6 +731,11 @@ void PeakShapeFit::import(QTextStream &out) const
     mShape->import(out);
 }
 
+InterpolatorFun PeakShapeFit::cloneShape() const
+{
+    return InterpolatorFun(*mShape);
+}
+
 double PeakShapeFit::maxPeakPos(const CurveFitting::DoubleVector &y)
 {
     DoubleVector::const_iterator it = std::max_element(y.cbegin(), y.cend());
@@ -749,6 +761,10 @@ void PeakShapeFit::calculateUncertainty(const DoubleVector& vXVals, const int nR
             {
                 dist.param(std::poisson_distribution<>::param_type(y[j]));
                 ty[j] = dist(gen);
+            }
+            else
+            {
+                ty[j] = 0.0;
             }
         }
         cv::Mat_<double> res(2,1);
@@ -785,6 +801,132 @@ double PeakShapeFit::Function::calc(const double *x) const
     DoubleVector yy(m_x.size());
     mObj->mShape->setPeakAmp(x[0]);
     mObj->mShape->setPeakPosition(x[1]);
+    mObj->values(m_x, yy);
+    for (size_t i = 0; i < m_x.size(); ++i)
+    {
+        if(yy[i] > 0.)
+        {
+            ss += yy[i] - m_y[i] * std::log(yy[i]);
+        }
+        else if (m_y[i] > 0.)
+        {
+            ss += m_y[i];
+        }
+    }
+    return ss;
+}
+
+DoublePeakShapeFit::DoublePeakShapeFit(const PeakShapeFit &onePeakShape, const DoubleVector& x, const DoubleVector& y)
+    :
+      mShape1(new InterpolatorFun(onePeakShape.cloneShape())),
+      mShape2(new InterpolatorFun(onePeakShape.cloneShape())),
+      mPeakPositionUncertainty1(0.0),
+      mPeakPositionUncertainty2(0.0)
+{
+    QMapPropsDialog dialog;
+    QVariantMap props{{"t1: ", 1.0}, {"t2: ", 1.0}};
+    dialog.setProps(props);
+    dialog.exec();
+    props = dialog.props();
+    bool ok = true;
+    mShape1->setPeakPosition(props["t1: "].toDouble(&ok));
+    mShape2->setPeakPosition(props["t2: "].toDouble(&ok));
+    Q_ASSERT(ok);
+
+    Eigen::MatrixXd M(y.size(), 2);
+    Eigen::VectorXd Y(y.size());
+    DoubleVector y1 = mShape1->values(x);
+    DoubleVector y2 = mShape2->values(x);
+
+    for(size_t i = 0; i < y.size(); ++i)
+    {
+        M(i, 0) = y1[i];
+        M(i, 1) = y2[i];
+        Y(i) = y[i];
+    }
+
+    Eigen::VectorXd A = (M.transpose() * M).ldlt().solve(M.transpose() * Y);
+
+    mShape1->setPeakAmp(mShape1->peakAmp() * A(0));
+    mShape2->setPeakAmp(mShape2->peakAmp() * A(1));
+
+    cv::Mat_<double> p0(4,1);
+    p0 << mShape1->peakPosition(), mShape1->peakAmp(), mShape2->peakPosition(), mShape2->peakAmp();
+
+    minimize(p0, p0, Function(this, x, y));
+    mShape1->setPeakPosition(p0(0));
+    mShape1->setPeakAmp(p0(1));
+    mShape2->setPeakPosition(p0(2));
+    mShape2->setPeakAmp(p0(3));
+    DoubleVector yy;
+    values(x, yy);
+    DoubleVector ty(y.size());
+    std::poisson_distribution<> dist;
+    std::mt19937_64 gen;
+    for(int i = 0; i < 100; ++i)
+    {
+        cv::Mat_<double> p1 = p0;
+
+        for(size_t j = 0; j < yy.size(); ++j)
+        {
+            if(yy[j] > 0.)
+            {
+                dist.param(std::poisson_distribution<>::param_type(yy[j]));
+                ty[j] = dist(gen);
+            }
+            else
+            {
+                ty[j] = 0.;
+            }
+        }
+        minimize(p0, p1, Function(this, x, ty));
+        double dp1 = mShape1->peakPosition() - p0(0);
+        mPeakPositionUncertainty1 += dp1 * dp1;
+        double dp2 = mShape2->peakPosition() - p0(0);
+        mPeakPositionUncertainty2 += dp2 * dp2;
+    }
+    mPeakPositionUncertainty1 = std::sqrt(mPeakPositionUncertainty1 / 100);
+    mPeakPositionUncertainty2 = std::sqrt(mPeakPositionUncertainty2 / 100);
+}
+
+void DoublePeakShapeFit::values(const DoublePeakShapeFit::DoubleVector &x, DoublePeakShapeFit::DoubleVector &y) const
+{
+    y = mShape1->values(x);
+    DoubleVector dy = mShape2->values(x);
+    for (size_t i = 0; i < y.size(); ++i) y[i] += dy[i];
+}
+
+void DoublePeakShapeFit::minimize(const cv::Mat_<double> &p0, cv::Mat_<double> &p1, const Function &fun)
+{
+    cv::Ptr<cv::DownhillSolver> solver
+    (
+        cv::DownhillSolver::create
+        (
+            cv::Ptr<Function>(new Function(fun))
+        )
+    );
+    p1 = p0;
+    cv::Mat_<double> step = .1 * p0;
+    step(0) = 1;
+    step(2) = 1;
+    solver->setInitStep(step);
+    solver->setTermCriteria(cv::TermCriteria(3, 10000, 1e-10));
+    solver->minimize(p1);
+}
+
+int DoublePeakShapeFit::Function::getDims() const
+{
+    return 4;
+}
+
+double DoublePeakShapeFit::Function::calc(const double *x) const
+{
+    double ss = 0.0;
+    DoubleVector yy(m_x.size());
+    mObj->mShape1->setPeakAmp(x[1]);
+    mObj->mShape1->setPeakPosition(x[0]);
+    mObj->mShape2->setPeakAmp(x[3]);
+    mObj->mShape2->setPeakPosition(x[2]);
     mObj->values(m_x, yy);
     for (size_t i = 0; i < m_x.size(); ++i)
     {
