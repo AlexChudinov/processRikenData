@@ -804,14 +804,8 @@ double PeakShapeFit::Function::calc(const double *x) const
     mObj->values(m_x, yy);
     for (size_t i = 0; i < m_x.size(); ++i)
     {
-        if(yy[i] > 0.)
-        {
-            ss += yy[i] - m_y[i] * std::log(yy[i]);
-        }
-        else if (m_y[i] > 0.)
-        {
-            ss += m_y[i];
-        }
+        double ds = (m_y[i] - yy[i]);
+        ss += ds * ds;
     }
     return ss;
 }
@@ -846,6 +840,8 @@ void DoublePeakShapeFit::values(const DoublePeakShapeFit::DoubleVector &x, Doubl
 
 void DoublePeakShapeFit::fit(const DoubleVector& x, const DoubleVector& y)
 {
+    mPeakPositionUncertainty1 = 0.0;
+    mPeakPositionUncertainty2 = 0.0;
     cv::Mat_<double> p0{mShape1->peakPosition(), mShape2->peakPosition()};
     minimize(p0, p0, Function(this, x, y));
     mShape1->setPeakPosition(p0(0));
@@ -856,10 +852,10 @@ void DoublePeakShapeFit::fit(const DoubleVector& x, const DoubleVector& y)
     DoubleVector ty(y.size());
     std::poisson_distribution<> dist;
     std::mt19937_64 gen;
+    double fMax1 = p0(0); double fMax2 = p0(1);
     for(int i = 0; i < 100; ++i)
     {
-        cv::Mat_<double> p1 = p0;
-
+        p0 = cv::Mat_<double>{fMax1, fMax2};
         for(size_t j = 0; j < yy.size(); ++j)
         {
             if(yy[j] > 0.)
@@ -872,10 +868,10 @@ void DoublePeakShapeFit::fit(const DoubleVector& x, const DoubleVector& y)
                 ty[j] = 0.;
             }
         }
-        minimize(p0, p1, Function(this, x, ty));
-        double dp1 = p1(0) - p0(0);
+        minimize(p0, p0, Function(this, x, ty));
+        double dp1 = fMax1 - p0(0);
         mPeakPositionUncertainty1 += dp1 * dp1;
-        double dp2 = p1(1) - p0(1);
+        double dp2 = fMax2 - p0(1);
         mPeakPositionUncertainty2 += dp2 * dp2;
     }
     mPeakPositionUncertainty1 = std::sqrt(mPeakPositionUncertainty1 / 100);
@@ -904,7 +900,7 @@ void DoublePeakShapeFit::minimize(const cv::Mat_<double> &p0, cv::Mat_<double> &
     p1 = p0;
     cv::Mat_<double> step{.1, .1};
     solver->setInitStep(step);
-    solver->setTermCriteria(cv::TermCriteria(3, 10000, 1e-10));
+    solver->setTermCriteria(cv::TermCriteria(3, 10000, 1e-9));
     solver->minimize(p1);
 }
 
@@ -943,14 +939,8 @@ double DoublePeakShapeFit::Function::calc(const double *x) const
     mObj->values(m_x, yy);
     for (size_t i = 0; i < m_x.size(); ++i)
     {
-        if(yy[i] > 0.)
-        {
-            ss += yy[i] - m_y[i] * std::log(yy[i]);
-        }
-        else if (m_y[i] > 0.)
-        {
-            ss += m_y[i];
-        }
+        double ds = (m_y[i] - yy[i]);
+        ss += ds * ds;
     }
     return ss;
 }
