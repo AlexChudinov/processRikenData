@@ -360,6 +360,8 @@ public:
 
     void values(const DoubleVector& x, DoubleVector& y) const;
 
+    double value(double x) const;
+
     void fit(const DoubleVector& x, const DoubleVector& y);
 
     void importData(QTextStream& out) const;

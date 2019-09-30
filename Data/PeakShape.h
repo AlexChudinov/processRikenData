@@ -42,6 +42,8 @@ public:
 
     virtual Vector values(const Vector&) const = 0;
 
+    virtual double value(double x) const = 0;
+
     virtual void import(QTextStream& out) const = 0;
 protected:
 
@@ -79,6 +81,8 @@ public:
     void setPeakAmp(double amp);
 
     Vector values(const Vector& x) const;
+
+    double value(double x) const;
 
     void import(QTextStream& out) const;
 };

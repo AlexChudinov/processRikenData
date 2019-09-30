@@ -56,6 +56,8 @@ public:
      */
     virtual Vector interpolate(const Vector& y, const Vector& xNew) = 0;
 
+    virtual double interpolate(const Vector& x, const Vector& y, double x0) = 0;
+
     /**
      * @brief equalStepData estimates y-values corresponednt to equal step
      * from max to min x-values taken with smallest step
@@ -83,6 +85,7 @@ class LinInterp : public Interpolator
 public:
     virtual Vector interpolate(const Vector& x, const Vector& y, const Vector& xNew, bool isSorted = true);
     virtual Vector interpolate(const Vector& y, const Vector& xNew);
+    virtual double interpolate(const Vector &x, const Vector &y, double x0);
 
     virtual const QString& name() const
     {

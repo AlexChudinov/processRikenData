@@ -66,6 +66,11 @@ Interpolator::Vector LinInterp::interpolate
     return res;
 }
 
+double LinInterp::interpolate(const Interpolator::Vector &x, const Interpolator::Vector &y, double x0)
+{
+    return interpolateSorted(x, y, x0);
+}
+
 Interpolator::Vector LinInterp::interpolateSorted
 (
     const Interpolator::Vector &x,

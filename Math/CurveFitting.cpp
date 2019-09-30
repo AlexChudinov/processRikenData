@@ -993,6 +993,16 @@ void MultiShapeFit::values
     }
 }
 
+double MultiShapeFit::value(double x) const
+{
+    double res = .0;
+    for(size_t j = 0; j < mShapes.size(); ++j)
+    {
+        res += mShapes[j]->value(x);
+    }
+    return res;
+}
+
 void MultiShapeFit::fit(const MultiShapeFit::DoubleVector &x, const MultiShapeFit::DoubleVector &y)
 {
     mUncertainties.assign(mUncertainties.size(), 0.0);
@@ -1126,12 +1136,10 @@ double MultiShapeFit::Function::calc(const double *x) const
     }
     mObj->setWidth(x[mObj->mShapes.size()]);
     mObj->calcAmps(m_x, m_y);
-    DoubleVector yy;
-    mObj->values(m_x, yy);
     double s = 0.;
     for(size_t i = 0; i < m_x.size(); ++i)
     {
-        const double ds = yy[i] - m_y[i];
+        const double ds = m_y[i] - mObj->value(m_x[i]);
         s += ds * ds;
     }
     return s;

@@ -130,6 +130,11 @@ PeakShape::Vector InterpolatorFun::values(const Vector& x) const
     return y;
 }
 
+double InterpolatorFun::value(double x) const
+{
+    return mInterp->interpolate(m_vXVals, m_vYVals, (x - mPeakPosition)/mPeakWidth) * mPeakAmp;
+}
+
 void InterpolatorFun::import(QTextStream &out) const
 {
     out.setRealNumberPrecision(10);
