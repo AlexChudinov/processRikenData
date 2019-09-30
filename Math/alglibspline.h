@@ -19,7 +19,7 @@ public:
     virtual QVariantMap paramsTemplate() const;
     virtual void setParams(const QVariantMap& params);
 private:
-    const int * mM; //Number of spline points
+    int * mM; //Number of spline points
 };
 
 #endif // ALGLIBSPLINE_H

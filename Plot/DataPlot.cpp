@@ -159,6 +159,17 @@ void DataPlot::calculateSmoothing()
                             .arg(peakParams->peakPositionUncertainty())
                 );
             }
+            if(mSmoother->type() == Smoother::AlglibSplineType)
+            {
+                showInfoMessage
+                (
+                    tr("Number of spline points: %1\n")
+                            .arg
+                            (
+                                mSmoother->params()["Spline nodes:"].toInt()
+                            )
+                );
+            }
         }
     }
     catch (const std::exception& e)
@@ -421,7 +432,7 @@ void DataPlot::on_importTxt()
         tr("Save text data"),
         QString()
     );
-    if(!fileName.isEmpty())
+    if(!fileName.isEmpty() && mPeakShape)
     {
         QFile file(fileName);
         file.open(QFile::WriteOnly);

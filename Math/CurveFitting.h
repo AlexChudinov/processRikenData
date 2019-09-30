@@ -319,4 +319,60 @@ private:
     void calcAmps(const DoubleVector& x, const DoubleVector& y);
 };
 
+class MultiShapeFit
+{
+public:
+    using DoubleVector = DoublePeakShapeFit::DoubleVector;
+
+private:
+    class Function : public cv::MinProblemSolver::Function
+    {
+        mutable MultiShapeFit * mObj;
+        const DoubleVector& m_x;
+        const DoubleVector& m_y;
+        double mMaxY;
+    public:
+        Function
+        (
+            MultiShapeFit * obj,
+            const DoubleVector& x,
+            const DoubleVector& y
+        )
+            :
+              cv::MinProblemSolver::Function(),
+              mObj(obj),
+              m_x(x),
+              m_y(y)
+        {
+        }
+
+        int getDims() const;
+        double calc(const double* x) const;
+    };
+public:
+    void values(const DoubleVector& x, DoubleVector& y) const;
+
+    void fit(const DoubleVector& x, const DoubleVector& y);
+
+private:
+    std::vector<std::shared_ptr<InterpolatorFun>> mShapes;
+
+    MultiShapeFit
+    (
+        const PeakShapeFit& onePeakShape,
+        const DoubleVector& x,
+        const DoubleVector& y,
+        size_t nShapes
+    );
+
+    void minimize(const Function& fun);
+
+    void setWidth(double w);
+
+    void calcAmps(const DoubleVector& x, const DoubleVector& y);
+
+    double mW;
+    DoubleVector mUncertainties;
+};
+
 #endif // CURVEFITTING_H
