@@ -255,7 +255,7 @@ void DataPlot::on_fitData()
         this,
         tr("Choose approximator"),
         tr("Available approximators"),
-        (items << "Shape fit" << "Double shape fit"),
+        (items << "Shape fit" << "Double shape fit" << "Multi-shape fit"),
         0,
         true,
         &ok
@@ -264,6 +264,7 @@ void DataPlot::on_fitData()
     {
         if(item == "Shape fit") on_fitPeakShape();
         else if (item == "Double shape fit") on_fitDoublePeakShape();
+        else if (item == "Multi-shape fit") on_fitMultiShape();
         else
         {
             StdDoubleVector x, y;
@@ -420,7 +421,41 @@ void DataPlot::on_fitDoublePeakShape()
                 DoubleVector::fromStdVector(x),
                 DoubleVector::fromStdVector(yy)
             );
-        };
+        }
+    }
+}
+
+void DataPlot::on_fitMultiShape()
+{
+    if(mPeakShape)
+    {
+        StdDoubleVector x, y;
+        equalRangedDataPoints(x, y, choosePlotIdx());
+
+        int nShapes = QInputDialog::getInt(this, "Multifit", "Number of peaks", 2, 1, 20);
+
+        MultiShapeFit fit(*mPeakShape, x, y, nShapes);
+        StdDoubleVector yy;
+        fit.values(x, yy);
+
+        addPlot
+        (
+            tr("Shape fit in range %1 - %2").arg(x.front()).arg(x.back()),
+            DoubleVector::fromStdVector(x),
+            DoubleVector::fromStdVector(yy)
+        );
+
+        QString str;
+        QTextStream data(&str);
+        fit.importData(data);
+
+        QInputDialog::getMultiLineText
+        (
+            this,
+            tr("Multifit"),
+            tr("Fit result:"),
+            str
+        );
     }
 }
 

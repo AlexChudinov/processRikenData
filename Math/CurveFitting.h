@@ -350,13 +350,6 @@ private:
         double calc(const double* x) const;
     };
 public:
-    void values(const DoubleVector& x, DoubleVector& y) const;
-
-    void fit(const DoubleVector& x, const DoubleVector& y);
-
-private:
-    std::vector<std::shared_ptr<InterpolatorFun>> mShapes;
-
     MultiShapeFit
     (
         const PeakShapeFit& onePeakShape,
@@ -365,11 +358,19 @@ private:
         size_t nShapes
     );
 
+    void values(const DoubleVector& x, DoubleVector& y) const;
+
+    void fit(const DoubleVector& x, const DoubleVector& y);
+
+    void importData(QTextStream& out) const;
+private:
+    std::vector<std::shared_ptr<InterpolatorFun>> mShapes;
+
     void minimize(const Function& fun);
 
     void setWidth(double w);
 
-    void calcAmps(const DoubleVector& x, const DoubleVector& y);
+    bool calcAmps(const DoubleVector& x, const DoubleVector& y);
 
     double mW;
     DoubleVector mUncertainties;
