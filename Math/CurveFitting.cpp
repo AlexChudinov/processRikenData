@@ -819,7 +819,7 @@ DoublePeakShapeFit::DoublePeakShapeFit(const PeakShapeFit &onePeakShape, const D
       mPeakPositionUncertainty2(0.0)
 {
     QMapPropsDialog dialog;
-    QVariantMap props{{"t1: ", 1.0}, {"t2: ", 1.0}};
+    QVariantMap props{{"t1: ", .0}, {"t2: ", .0}};
     dialog.setProps(props);
     dialog.exec();
     props = dialog.props();
@@ -1007,13 +1007,13 @@ void MultiShapeFit::fit(const MultiShapeFit::DoubleVector &x, const MultiShapeFi
 {
     mUncertainties.assign(mUncertainties.size(), 0.0);
     minimize(Function(this, x, y));
-    calcAmps(x, y);
     std::poisson_distribution<> dist;
     std::mt19937_64 gen;
-    DoubleVector tp(mShapes.size());
+    DoubleVector tp(mShapes.size()), tA(mShapes.size());
     for(size_t i = 0; i < mShapes.size(); ++i)
     {
         tp[i] = mShapes[i]->peakPosition();
+        tA[i] = mShapes[i]->peakAmp();
     }
     double tw = mW;
     DoubleVector yy(x.size()), ty(yy.size());
@@ -1038,6 +1038,7 @@ void MultiShapeFit::fit(const MultiShapeFit::DoubleVector &x, const MultiShapeFi
             const double d = tp[j] - mShapes[j]->peakPosition();
             mUncertainties[j] += d*d;
             mShapes[j]->setPeakPosition(tp[j]);
+            mShapes[j]->setPeakAmp(tA[j]);
         }
         setWidth(tw);
     }
@@ -1068,20 +1069,28 @@ void MultiShapeFit::minimize(const MultiShapeFit::Function &fun)
             cv::Ptr<Function>(new Function(fun))
         )
     );
-    cv::Mat_<double> p0(mShapes.size() + 1, 1);
+    cv::Mat_<double> p0(2*mShapes.size() + 1, 1);
     for(size_t i = 0; i < mShapes.size(); ++i)
     {
         p0(i, 0) = mShapes[i]->peakPosition();
+        p0(i + mShapes.size(), 0) = mShapes[i]->peakAmp();
     }
-    p0(mShapes.size(), 0) = mW;
-    cv::Mat_<double> step(mShapes.size() + 1, 1, 0.1);
+    p0(2*mShapes.size(), 0) = mW;
+    cv::Mat_<double> step(2*mShapes.size() + 1, 1);
+    for(size_t i = 0; i < mShapes.size(); ++i)
+    {
+        step(i, 0) = 0.1;
+        step(i + mShapes.size(), 0) = 0.01 * mShapes[i]->peakAmp();
+    }
+    step(2 * mShapes.size(), 0) = 0.01 * mW;
     solver->setInitStep(step);
-    solver->setTermCriteria(cv::TermCriteria(3, 10000, 1e-9));
+    solver->setTermCriteria(cv::TermCriteria(3, 1000, 1e-9));
     solver->minimize(p0);
-    setWidth(p0(mShapes.size(), 0));
+    setWidth(p0(2*mShapes.size(), 0));
     for(size_t i = 0; i < mShapes.size(); ++i)
     {
         mShapes[i]->setPeakPosition(p0(i, 0));
+        mShapes[i]->setPeakAmp(p0(i + mShapes.size(), 0));
     }
 }
 
@@ -1125,7 +1134,7 @@ bool MultiShapeFit::calcAmps
 
 int MultiShapeFit::Function::getDims() const
 {
-    return mObj->mShapes.size() + 1;
+    return 2 * mObj->mShapes.size() + 1;
 }
 
 double MultiShapeFit::Function::calc(const double *x) const
@@ -1133,9 +1142,9 @@ double MultiShapeFit::Function::calc(const double *x) const
     for(size_t i = 0; i < mObj->mShapes.size(); ++i)
     {
         mObj->mShapes[i]->setPeakPosition(x[i]);
+        mObj->mShapes[i]->setPeakAmp(x[i + mObj->mShapes.size()]);
     }
-    mObj->setWidth(x[mObj->mShapes.size()]);
-    mObj->calcAmps(m_x, m_y);
+    mObj->setWidth(x[2*mObj->mShapes.size()]);
     double s = 0.;
     for(size_t i = 0; i < m_x.size(); ++i)
     {

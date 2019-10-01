@@ -348,6 +348,9 @@ private:
 
         int getDims() const;
         double calc(const double* x) const;
+
+        const DoubleVector& xVals() const { return m_x; }
+        const DoubleVector& yVals() const { return m_y; }
     };
 public:
     MultiShapeFit
