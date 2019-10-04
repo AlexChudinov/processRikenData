@@ -541,6 +541,11 @@ void DataPlot::equalRangedDataPoints(StdDoubleVector &x, StdDoubleVector &y, int
         xPlot[i] = _First->key;
         yPlot[i] = _First->value;
     }
+    QVariantMap props{{"xmin", .0}, {"xmax", .0}, {"step", 1.}};
+    QMapPropsDialog setLims;
+    setLims.setProps(props);
+    setLims.exec();
+
     double step;
     y = mInterp->equalStepData(xPlot, yPlot, step);
     x.resize(y.size());
@@ -549,6 +554,14 @@ void DataPlot::equalRangedDataPoints(StdDoubleVector &x, StdDoubleVector &y, int
     {
         x[i] = x0 += step;
     }
+    StdDoubleVector::const_iterator
+            it1 = std::lower_bound(x.begin(), x.end(), range.lower),
+            it2 = std::upper_bound(x.begin(), x.end(), range.upper);
+    const std::ptrdiff_t
+            n1 = std::distance(x.cbegin(), it1),
+            n2 = std::distance(x.cbegin(), it2);
+    x.assign(it1, it2);
+    y.assign(y.begin() + n1, y.begin() + n2);
 }
 
 PropertiesOfPlotForm::PropertiesOfPlotForm(QWidget *parent)
