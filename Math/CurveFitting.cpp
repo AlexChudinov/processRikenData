@@ -1148,8 +1148,9 @@ double MultiShapeFit::Function::calc(const double *x) const
     double s = 0.;
     for(size_t i = 0; i < m_x.size(); ++i)
     {
-        const double ds = m_y[i] - mObj->value(m_x[i]);
-        s += ds * ds;
+        const double y0 = mObj->value(m_x[i]);
+        const double ds = (m_y[i] - y0);
+        s += ds * ds / (y0 + 1.);
     }
     return s;
 }

@@ -449,13 +449,25 @@ void DataPlot::on_fitMultiShape()
         QTextStream data(&str);
         fit.importData(data);
 
-        QInputDialog::getMultiLineText
+        while(QInputDialog::getMultiLineText
         (
             this,
             tr("Multifit"),
             tr("Fit result:"),
             str
-        );
+        ).isNull())
+        {
+            fit.fit(x,y);
+            str.clear();
+            fit.importData(data);
+            fit.values(x, yy);
+            addPlot
+            (
+                tr("Shape fit in range %1 - %2").arg(x.front()).arg(x.back()),
+                DoubleVector::fromStdVector(x),
+                DoubleVector::fromStdVector(yy)
+            );
+        }
     }
 }
 
@@ -534,34 +546,29 @@ void DataPlot::equalRangedDataPoints(StdDoubleVector &x, StdDoubleVector &y, int
     QCPRange range = mPlot->xAxis->range();
     QCPGraphDataContainer::const_iterator _First = data->findBegin(range.lower);
     QCPGraphDataContainer::const_iterator _Last = data->findEnd(range.upper);
-    const size_t n = std::distance(_First, _Last);
+    const size_t n = static_cast<size_t>(std::distance(_First, _Last));
     StdDoubleVector xPlot(n), yPlot(n);
     for(size_t i = 0; i < n; ++i, ++_First)
     {
         xPlot[i] = _First->key;
         yPlot[i] = _First->value;
     }
-    QVariantMap props{{"xmin", .0}, {"xmax", .0}, {"step", 1.}};
+    QVariantMap props{{"xmin", xPlot[0]}, {"xmax", xPlot[n-1]}, {"step", 1.}};
     QMapPropsDialog setLims;
     setLims.setProps(props);
     setLims.exec();
-
-    double step;
-    y = mInterp->equalStepData(xPlot, yPlot, step);
-    x.resize(y.size());
-    double x0 = xPlot[0] - step;
-    for(size_t i = 0; i < x.size(); ++i)
+    props = setLims.props();
+    bool ok = true;
+    const double step = props["step"].toDouble(&ok);
+    const double xmin = props["xmin"].toDouble(&ok);
+    const double xmax = props["xmax"].toDouble(&ok);
+    Q_ASSERT(ok);
+    x.assign(static_cast<size_t>((xmax - xmin)/step), xmin);
+    for(size_t i = 1; i < x.size(); ++i)
     {
-        x[i] = x0 += step;
+        x[i] = x[i-1] + step;
     }
-    StdDoubleVector::const_iterator
-            it1 = std::lower_bound(x.begin(), x.end(), range.lower),
-            it2 = std::upper_bound(x.begin(), x.end(), range.upper);
-    const std::ptrdiff_t
-            n1 = std::distance(x.cbegin(), it1),
-            n2 = std::distance(x.cbegin(), it2);
-    x.assign(it1, it2);
-    y.assign(y.begin() + n1, y.begin() + n2);
+    y = mInterp->interpolate(xPlot, yPlot, x);
 }
 
 PropertiesOfPlotForm::PropertiesOfPlotForm(QWidget *parent)
