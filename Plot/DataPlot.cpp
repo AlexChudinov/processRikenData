@@ -88,6 +88,7 @@ DataPlot::DataPlot
 
     mPlot->toolBar()->addAction
     (
+        QIcon("://Icons/xcorr"),
         tr("Use cross-correlation"),
         this,
         SLOT(on_corrPeakShape())
