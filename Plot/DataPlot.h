@@ -136,6 +136,8 @@ public slots:
     void on_fitMultiShape();
 
     void on_importTxt();
+
+    void on_corrPeakShape();
 private:
     const static QList<Qt::GlobalColor> s_colors;
 

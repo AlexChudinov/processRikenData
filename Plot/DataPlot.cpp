@@ -1,6 +1,7 @@
 #include <QDialog>
 #include <exception>
 
+#include <Math/alglib/fasttransforms.h>
 #include "Math/CurveFitting.h"
 #include "Math/alglib/interpolation.h"
 #include "../QMapPropsDialog.h"
@@ -83,6 +84,13 @@ DataPlot::DataPlot
         tr("Extract peak shape inside window"),
         this,
         SLOT(on_createPeakShape())
+    );
+
+    mPlot->toolBar()->addAction
+    (
+        tr("Use cross-correlation"),
+        this,
+        SLOT(on_corrPeakShape())
     );
 
     addToolBar(mPlot->toolBar());
@@ -486,6 +494,52 @@ void DataPlot::on_importTxt()
         QTextStream stream(&file);
         mPeakShape->import(stream);
         file.close();
+    }
+}
+
+void DataPlot::on_corrPeakShape()
+{
+    if(mPeakShape)
+    {
+        StdDoubleVector x, signal;
+        equalRangedDataPoints(x, signal, 0.);
+        int nPeaks = QInputDialog::getInt
+        (
+            this,
+            tr("Cross-correlation fit"),
+            tr("Peaks number:"),
+            1,
+            1,
+            30,
+            1
+        );
+        StdDoubleVector peaks = mPeakShape->crossCorrelate(x, signal, nPeaks);
+        StdDoubleVector y = mPeakShape->crossSignal
+        (
+            x,
+            peaks,
+            mPeakShape->calcAmps(x, signal, peaks)
+        );
+        addPlot
+        (
+            tr("Cross-corr fit"),
+            DoubleVector::fromStdVector(x),
+            DoubleVector::fromStdVector(y)
+        );
+        QString msg;
+        QTextStream stream(&msg);
+        stream.setRealNumberPrecision(10);
+        for(int i = 0; i < nPeaks; ++i)
+        {
+            stream << peaks[i] << ' '
+                   << peaks[i + nPeaks] << '\n';
+        }
+        QMessageBox::information
+        (
+            Q_NULLPTR,
+            tr("Cross-correlation fit"),
+            tr("Peaks:\n") + msg
+        );
     }
 }
 

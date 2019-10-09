@@ -256,6 +256,44 @@ public:
     void import(QTextStream& out) const;
 
     InterpolatorFun cloneShape() const;
+
+    /**
+     * @brief crossCorrelate estimates peak shape cross-correlation
+     * @param x
+     * @param y
+     * @param nPeaks
+     * @return [peakPositions, peakUncertainties, peakAmplitudes]
+     */
+    DoubleVector crossCorrelate
+    (
+        const DoubleVector& x,
+        const DoubleVector& y,
+        int nPeaks = 1
+    ) const;
+    DoubleVector crossCorrPeaks
+    (
+        const DoubleVector& x,
+        const DoubleVector& y,
+        int nPeaks
+    ) const;
+    DoubleVector calcAmps
+    (
+        const DoubleVector& x,
+        const DoubleVector& y,
+        const DoubleVector& peaks
+    ) const;
+    DoubleVector crossSignal
+    (
+        const DoubleVector& x,
+        const DoubleVector& peaks,
+        const DoubleVector &amps
+    ) const;
+    DoubleVector crossUncertainty
+    (
+        const DoubleVector& x,
+        const DoubleVector& y,
+        const DoubleVector& peaks
+    ) const;
 private:
     static double maxPeakPos(const DoubleVector& y);
     void calculateUncertainty(const DoubleVector &vXVals, const int nRuns);

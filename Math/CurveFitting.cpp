@@ -6,6 +6,7 @@
 #include "CurveFitting.h"
 #include "../Base/ThreadPool.h"
 #include "../QMapPropsDialog.h"
+#include "alglib/fasttransforms.h"
 
 const QStringList &CurveFitting::implementations()
 {
@@ -735,6 +736,189 @@ void PeakShapeFit::import(QTextStream &out) const
 InterpolatorFun PeakShapeFit::cloneShape() const
 {
     return InterpolatorFun(*mShape);
+}
+
+CurveFitting::DoubleVector PeakShapeFit::crossCorrelate
+(
+    const DoubleVector &x,
+    const DoubleVector &y,
+    int nPeaks
+) const
+{
+    DoubleVector peaks = crossCorrPeaks(x, y, nPeaks);
+    DoubleVector uncertainties = crossUncertainty
+    (
+        x,
+        crossSignal(x, peaks, calcAmps(x, y, peaks)),
+        peaks
+    );
+    peaks.insert(peaks.end(), uncertainties.begin(), uncertainties.end());
+    return peaks;
+}
+
+CurveFitting::DoubleVector PeakShapeFit::crossCorrPeaks
+(
+    const DoubleVector &x,
+    const DoubleVector &y,
+    int nPeaks
+) const
+{
+    DoubleVector pattern;
+    values(x, pattern);
+    alglib::real_1d_array s, p, r;
+    const alglib::ae_int_t n = x.size();
+    s.setlength(n); p.setlength(n);
+    s.setcontent(n, y.data());
+    p.setcontent(n, pattern.data());
+    r.setlength(2*n - 1);
+    alglib::corrr1d(s, n, p, n, r);
+    std::rotate
+    (
+        r.c_ptr()->ptr.p_double,
+        r.c_ptr()->ptr.p_double + n,
+        r.c_ptr()->ptr.p_double + r.length()
+    );
+    using VectorPair = std::vector<std::pair<double, double>>;
+    VectorPair peaks;
+    DoubleVector xx(2 * n - 1, 0);
+    std::iota(xx.begin(), xx.end(), -(n - 1));
+    const double h = x[1] - x[0];
+    for(alglib::ae_int_t i = 1; i < r.length() - 1; ++i)
+    {
+        if(r(i-1) < r(i) && r(i+1) < r(i))
+        {
+            const double a = r(i+1) - 2.*r(i) + r(i-1);
+            const double b = r(i+1) - r(i-1);
+            peaks.push_back
+            (
+                {
+                peakPosition() + (xx[i] - b/2./a) * h,
+                (r(i) - b*b/4./a)
+                }
+            );
+        }
+    }
+    VectorPair::iterator itEnd
+            = std::remove_if
+    (
+        peaks.begin(),
+        peaks.end(),
+        [&](const std::pair<double, double>& p)->bool
+    {
+        return p.first <= x.front() && p.first >= x.back();
+    }
+    );
+    peaks.assign(peaks.begin(), itEnd);
+    std::sort
+    (
+        peaks.begin(),
+        peaks.end(),
+        [](VectorPair::const_reference a, VectorPair::const_reference b)->bool
+    {
+        return a.second > b.second;
+    }
+    );
+    peaks.resize(nPeaks);
+    DoubleVector res(nPeaks);
+    std::transform
+    (
+        peaks.begin(),
+        peaks.end(),
+        res.begin(),
+        [](VectorPair::const_reference a)->double
+    {
+        return a.first;
+    }
+    );
+    std::sort(res.begin(), res.end(), std::less<>());
+    return res;
+}
+
+CurveFitting::DoubleVector PeakShapeFit::calcAmps
+(
+    const DoubleVector &x,
+    const DoubleVector &y,
+    const DoubleVector &peaks
+) const
+{
+    const double t0 = mShape->peakPosition();
+    Eigen::MatrixXd M(x.size(), peaks.size());
+    Eigen::VectorXd Y(y.size());
+    DoubleVector yy;
+    for(size_t i = 0; i < x.size(); ++i) Y(i) = y[i];
+    for(size_t i = 0; i < peaks.size(); ++i)
+    {
+        mShape->setPeakPosition(peaks[i]);
+        yy = mShape->values(x);
+        for(size_t j = 0; j < x.size(); ++j)
+        {
+            M(j, i) = yy[j];
+        }
+    }
+    Eigen::VectorXd A = (M.transpose()*M).ldlt().solve(M.transpose()*Y);
+    mShape->setPeakPosition(t0);
+    return DoubleVector(A.array().data(), A.array().data() + A.size());
+}
+
+CurveFitting::DoubleVector PeakShapeFit::crossSignal
+(
+    const DoubleVector &x,
+    const DoubleVector &peaks,
+    const DoubleVector &amps
+) const
+{
+    const double A = mShape->peakAmp();
+    const double t0 = mShape->peakPosition();
+    DoubleVector yy(x.size(), 0.0);
+    for(size_t i = 0; i < peaks.size(); ++i)
+    {
+        mShape->setPeakAmp(amps[i]);
+        mShape->setPeakPosition(peaks[i]);
+        DoubleVector dy = mShape->values(x);
+        for(size_t j = 0; j < x.size(); ++j)
+        {
+            yy[j] += dy[j];
+        }
+    }
+    mShape->setPeakAmp(A);
+    mShape->setPeakPosition(t0);
+    return yy;
+}
+
+CurveFitting::DoubleVector PeakShapeFit::crossUncertainty
+(
+    const DoubleVector &x,
+    const DoubleVector &y,
+    const DoubleVector &peaks
+) const
+{
+    DoubleVector res(peaks.size(), 0.0);
+    std::poisson_distribution<> dist;
+    std::mt19937_64 gen;
+    DoubleVector yy(y.size()), peaks1(peaks.size());
+    for(int i = 0; i < 100; ++i)
+    {
+        for(size_t i = 0; i < y.size(); ++i)
+        {
+            if(y[i] > .0)
+            {
+                dist.param(std::poisson_distribution<>::param_type(y[i]));
+                yy[i] = dist(gen);
+            }
+            else
+            {
+                yy[i] = 0.0;
+            }
+        }
+        peaks1 = crossCorrPeaks(x, yy, peaks.size());
+        for(size_t j = 0; j < peaks.size(); ++j)
+        {
+            const double d = peaks1[j] - peaks[j];
+            res[j] += d*d;
+        }
+    }
+    for(size_t j = 0; j < peaks.size(); ++j) res[j] = std::sqrt(res[j]/100);
+    return res;
 }
 
 double PeakShapeFit::maxPeakPos(const CurveFitting::DoubleVector &y)
