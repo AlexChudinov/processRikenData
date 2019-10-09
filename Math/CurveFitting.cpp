@@ -830,7 +830,7 @@ CurveFitting::DoubleVector PeakShapeFit::crossCorrPeaks
         return a.first;
     }
     );
-    std::sort(res.begin(), res.end(), std::less<>());
+    std::sort(res.begin(), res.end());
     return res;
 }
 

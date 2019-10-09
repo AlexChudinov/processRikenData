@@ -730,14 +730,7 @@ void PropertiesOfPlotForm::saveToAscii()
         file.open(QIODevice::Text | QIODevice::WriteOnly);
         QTextStream stream(&file);
         //x-values should be different
-        stream.setRealNumberPrecision
-        (
-            decimals
-            (
-                std::prev(_Last)->key,
-                std::prev(std::prev(_Last))->key
-            )
-        );
+        stream.setRealNumberPrecision(10);
         for(; _First != _Last; ++_First)
         {
             stream << _First->key << "\t" << _First->value << "\n";
