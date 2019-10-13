@@ -895,7 +895,7 @@ CurveFitting::DoubleVector PeakShapeFit::crossUncertainty
     DoubleVector res(peaks.size(), 0.0);
     std::poisson_distribution<> dist;
     std::mt19937_64 gen;
-    DoubleVector yy(y.size()), peaks1(peaks.size());
+    DoubleVector yy(y.size()), peaks1(peaks.size() * 10);
     for(int i = 0; i < 100; ++i)
     {
         for(size_t i = 0; i < y.size(); ++i)
@@ -910,10 +910,29 @@ CurveFitting::DoubleVector PeakShapeFit::crossUncertainty
                 yy[i] = 0.0;
             }
         }
-        peaks1 = crossCorrPeaks(x, yy, peaks.size());
+        peaks1 = crossCorrPeaks(x, yy, peaks1.size());
+        DoubleVector::iterator it = peaks1.begin();
         for(size_t j = 0; j < peaks.size(); ++j)
         {
-            const double d = peaks1[j] - peaks[j];
+            it = std::lower_bound(it, peaks1.end(), peaks[j]);
+            double p1;
+            if(it == peaks.end())
+            {
+                p1 = *std::prev(it);
+            }
+            else
+            {
+                if(peaks[j] - *std::prev(it) < *it - peaks[j])
+                {
+                    p1 = *std::prev(it);
+                    --it;
+                }
+                else
+                {
+                    p1 = *it;
+                }
+            }
+            const double d = p1 - peaks[j];
             res[j] += d*d;
         }
     }
