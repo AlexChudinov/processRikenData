@@ -348,6 +348,32 @@ void DataPlot::on_createPeakShape()
                     .arg(mPeakShape->peakPositionUncertainty(), 0, 'g', 3)
         );
     }
+    else
+    {
+        //Create triangle shape
+        StdDoubleVector x, y;
+        equalRangedDataPoints(x, y, 0);
+        StdDoubleVector::const_iterator
+                it = std::max_element(y.begin(), y.end());
+        StdDoubleVector xx
+        {
+            x.front(),
+            *(x.begin() + std::distance(y.cbegin(), it)),
+            x.back()
+        };
+        StdDoubleVector yy{.0, 1., .0};
+        mPeakShape.reset(new PeakShapeFit(xx, yy));
+        showInfoMessage
+        (
+            tr
+            (
+                "Peak position: %1\n"
+                "Peak position uncertainty: %2\n"
+            )
+                    .arg(mPeakShape->peakPosition(), 0, 'g', 10)
+                    .arg(mPeakShape->peakPositionUncertainty(), 0, 'g', 3)
+        );
+    }
 }
 
 void DataPlot::on_fitPeakShape()
