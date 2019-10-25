@@ -53,7 +53,7 @@ MapIntInt DirectSum::accum
     QMutexLocker lock(&coll->mMut);
     const int n = coll->nMaxBin - coll->nMinBin + 1;
     std::vector<int> acc(static_cast<size_t>(n));
-    for(; _First != _Last && _First < coll->mCollection.size(); ++_First)
+    for(; _First != _Last && _First < _Last; ++_First)
     {
         MassSpecImpl::MapShrdPtr msDataPtr = coll->mCollection[_First]->data();
         for(MassSpecImpl::Map::const_reference d : *msDataPtr)

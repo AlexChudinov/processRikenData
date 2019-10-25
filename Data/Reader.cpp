@@ -414,7 +414,8 @@ void DirectMsFromRikenTxt::run()
             if(i % step == 0) Q_EMIT progressNotify((100 * i) / nLines);
         }
     }
-
+    //Save virtual event with zero value
+    ms[ms.begin()->first - 1] = 0;
     MyInit::instance()->massSpecColl()->blockingAddMassSpec(ms);
 
     Q_EMIT finished();
